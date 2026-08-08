@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { coachxToday } from "@/lib/coachx-data";
+import { coachxDemoState, coachxToday } from "@/lib/coachx-data";
 import { Screen } from "@/components/screen";
 import { Card, IconButton, PrimaryButton, Section, StatTile } from "@/components/ui";
+import { AnatomyPreview } from "@/components/anatomy-preview";
 
 export default function TodayPage() {
   return (
@@ -24,9 +25,9 @@ export default function TodayPage() {
     >
       <main className="content">
         <section className="section">
-          <h1 className="headline-xl">{coachxToday.dayTitle}</h1>
+          <h1 className="headline-xl">{coachxToday.workoutTitle}</h1>
           <p className="body-lg muted" style={{ marginTop: 12 }}>
-            {coachxToday.dateLabel}
+            {coachxDemoState.athlete.name} · {coachxToday.dateLabel}
           </p>
         </section>
 
@@ -38,6 +39,9 @@ export default function TodayPage() {
                 <h2 className="headline-md" style={{ marginTop: 14 }}>
                   {coachxToday.workoutTitle}
                 </h2>
+                <p className="caption" style={{ marginTop: 6 }}>
+                  {coachxToday.workoutType}
+                </p>
               </div>
               <button aria-label="Start workout" className="tap-target focus-ring" type="button" style={{ background: "var(--accent-primary)", borderRadius: 9999 }}>
                 <span className="icon filled" style={{ color: "var(--background-deep)" }} aria-hidden="true">
@@ -55,31 +59,17 @@ export default function TodayPage() {
         </Section>
 
         <Section title="Target Zones">
-          <Card className="anatomy-box anatomy-frame">
-            <div className="anatomy-silhouette" aria-hidden="true" />
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 12,
-                padding: 20
-              }}
-            >
-              <div className="card elevated" style={{ padding: "10px 14px", borderRadius: 12, textAlign: "center", background: "rgba(6,6,6,0.82)" }}>
-                <div className="pill" style={{ minHeight: 20, padding: "0 8px", fontSize: 10 }}>
-                  Primary
-                </div>
+          <Card className="p-16 elevated" style={{ background: "var(--background-charcoal)" }}>
+            <AnatomyPreview focus={coachxToday.muscleFocus} />
+            <div className="grid-2" style={{ marginTop: 16 }}>
+              <div>
+                <div className="eyebrow">Primary</div>
                 <div className="body-lg" style={{ marginTop: 4 }}>
                   {coachxToday.primaryTarget}
                 </div>
               </div>
-              <div className="card elevated" style={{ padding: "10px 14px", borderRadius: 12, textAlign: "center", background: "rgba(6,6,6,0.82)" }}>
-                <div className="pill" style={{ minHeight: 20, padding: "0 8px", fontSize: 10 }}>
-                  Secondary
-                </div>
+              <div>
+                <div className="eyebrow">Secondary</div>
                 <div className="body-lg" style={{ marginTop: 4 }}>
                   {coachxToday.secondaryTarget}
                 </div>

@@ -1,5 +1,18 @@
 export type BottomTab = "today" | "calendar" | "progress" | "profile";
 
+export type MuscleGroup =
+  | "glutes"
+  | "hamstrings"
+  | "quadriceps"
+  | "calves"
+  | "core"
+  | "chest"
+  | "shoulders"
+  | "triceps"
+  | "biceps"
+  | "back"
+  | "lats";
+
 export interface WorkoutMovement {
   name: string;
   prescription: string;
@@ -7,9 +20,22 @@ export interface WorkoutMovement {
   thumbnail?: string;
 }
 
-export interface DaySummary {
+export interface CalendarDay {
+  label: string;
+  weekday: string;
+  day: number;
+  monthOffset: -1 | 0 | 1;
+  hasActivity?: boolean;
+  isSelected?: boolean;
+  isToday?: boolean;
+  isDimmed?: boolean;
+  completed?: boolean;
+}
+
+export interface DemoDay {
+  dateKey: string;
   dateLabel: string;
-  dayTitle: string;
+  calendarLabel: string;
   phase: string;
   workoutTitle: string;
   workoutType: string;
@@ -19,24 +45,14 @@ export interface DaySummary {
   primaryTarget: string;
   secondaryTarget: string;
   workoutCount: string;
-  nutrition: string;
+  nutritionCalories: string;
   macros: string;
   cardio: string;
   habits: string;
   coachInsight: string;
-  image: string;
+  muscleFocus: MuscleGroup[];
+  anatomyKey: string;
   movements: WorkoutMovement[];
-}
-
-export interface CalendarDay {
-  label: string;
-  weekday: string;
-  day: number;
-  hasActivity?: boolean;
-  isSelected?: boolean;
-  isToday?: boolean;
-  isDimmed?: boolean;
-  completed?: boolean;
 }
 
 export interface ProgressMetric {
@@ -51,83 +67,158 @@ export interface ProfileSection {
   value: string;
 }
 
-export const coachxToday: DaySummary = {
-  dateLabel: "Thursday, Oct 26",
-  dayTitle: "Ready, Alex?",
-  phase: "Hypertrophy Phase",
-  workoutTitle: "Upper Body Power",
-  workoutType: "Workout A",
-  duration: "65m",
-  volume: "8.2k",
+interface DemoAthlete {
+  name: string;
+  goal: string;
+  priorities: string;
+  training: string;
+  experience: string;
+  schedule: string;
+  recovery: string;
+  nutrition: string;
+  health: string;
+  baseline: string;
+}
+
+const demoAthlete: DemoAthlete = {
+  name: "Alex",
+  goal: "Body Recomposition",
+  priorities: "Glutes · Hamstrings · Legs",
+  training: "4 days / week · 60-75 min · Full gym",
+  experience: "Intermediate",
+  schedule: "Evening training · Active workday",
+  recovery: "6-7h sleep · Moderate stress",
+  nutrition: "3 meals + snack · Structured",
+  health: "Information reviewed",
+  baseline: "Measurements added · Photos added"
+};
+
+const demoDay: DemoDay = {
+  dateKey: "2026-08-08",
+  dateLabel: "Saturday, August 8, 2026",
+  calendarLabel: "Saturday August 8",
+  phase: "Workout A",
+  workoutTitle: "Glutes + Hamstrings",
+  workoutType: "Posterior chain emphasis",
+  duration: "68 min",
+  volume: "7.8k",
   sets: "24",
-  primaryTarget: "Chest",
-  secondaryTarget: "Triceps",
+  primaryTarget: "Glutes",
+  secondaryTarget: "Hamstrings",
   workoutCount: "6 exercises",
-  nutrition: "2,050 kcal",
+  nutritionCalories: "2050 kcal",
   macros: "140P · 220C · 60F",
-  cardio: "Zone 2 | 20 min",
+  cardio: "Zone 2 · 20 min",
   habits: "Daily habits 0/5",
-  coachInsight: "Focus today on controlled eccentrics and full chest lockout. Keep 1-2 reps in reserve.",
-  image:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuABq4AlgDw6jXhR_8KQP3becVdnv-QsyrNYbLfvfUJSM8E1OO8unXQ3MA90VR3e6VkRY-xd-hfgIxDY6Mp-9NMpG0dyBMFu14OEheB1jA8s3bDDOdxiO1UwqdxoTMaP7odqD57f2T7l9jfz4SSjNM4de3I8ZNZ-c6G33t2FPh1E8S3tZtkODVsbRzYm2CYTRf3VHA6ccteeb-XvbN-rUK8sT47vhPn8VMbv6JuUXQnsMWoin3Rx59XWAA",
+  coachInsight:
+    "Keep the pelvis neutral on thrusts and hinge with control on every rep. The posterior chain should do the work.",
+  muscleFocus: ["glutes", "hamstrings"],
+  anatomyKey: "posterior-lower-body",
   movements: [
     {
-      name: "Barbell Bench Press",
+      name: "Barbell Hip Thrust",
       prescription: "4 sets x 8-10 reps",
       icon: "fitness_center",
       thumbnail: "/stitch-assets/hip_thrust.png"
     },
     {
-      name: "Incline Dumbbell Press",
-      prescription: "3 sets x 10-12 reps",
+      name: "Romanian Deadlift",
+      prescription: "3 sets x 8-10 reps",
       icon: "sports_gymnastics",
       thumbnail: "/stitch-assets/romanian_deadlift.png"
     },
     {
-      name: "Cable Crossovers",
+      name: "Bulgarian Split Squat",
+      prescription: "3 sets x 10-12 reps",
+      icon: "directions_run"
+    },
+    {
+      name: "Seated Leg Curl",
       prescription: "3 sets x 12-15 reps",
-      icon: "accessibility_new"
+      icon: "airline_seat_recline_normal"
+    },
+    {
+      name: "Cable Kickback",
+      prescription: "3 sets x 12-15 reps",
+      icon: "self_improvement"
+    },
+    {
+      name: "Walking Lunge",
+      prescription: "2 sets x 20 steps",
+      icon: "directions_walk"
     }
   ]
 };
 
-export const coachxCalendarDays: CalendarDay[] = [
-  { label: "MON", weekday: "Mon", day: 28, isDimmed: true },
-  { label: "TUE", weekday: "Tue", day: 29, isDimmed: true },
-  { label: "WED", weekday: "Wed", day: 30, isDimmed: true },
-  { label: "THU", weekday: "Thu", day: 31, isDimmed: true },
-  { label: "FRI", weekday: "Fri", day: 1, hasActivity: true },
-  { label: "SAT", weekday: "Sat", day: 2, hasActivity: true },
-  { label: "SUN", weekday: "Sun", day: 3, hasActivity: true },
-  { label: "MON", weekday: "Mon", day: 4 },
-  { label: "TUE", weekday: "Tue", day: 5, hasActivity: true },
-  { label: "WED", weekday: "Wed", day: 6, hasActivity: true },
-  { label: "THU", weekday: "Thu", day: 7, completed: true },
-  { label: "FRI", weekday: "Fri", day: 8, isSelected: true },
-  { label: "SAT", weekday: "Sat", day: 9, isToday: true },
-  { label: "SUN", weekday: "Sun", day: 10, hasActivity: true },
-  { label: "MON", weekday: "Mon", day: 11 },
-  { label: "TUE", weekday: "Tue", day: 12, hasActivity: true },
-  { label: "WED", weekday: "Wed", day: 13 },
-  { label: "THU", weekday: "Thu", day: 14, hasActivity: true },
-  { label: "FRI", weekday: "Fri", day: 15, hasActivity: true },
-  { label: "SAT", weekday: "Sat", day: 16 }
-];
+function buildAugustCalendar(): CalendarDay[] {
+  const year = 2026;
+  const monthIndex = 7;
+  const startDate = new Date(Date.UTC(year, monthIndex, 1));
+  const startWeekday = (startDate.getUTCDay() + 6) % 7;
+  const firstVisibleDate = new Date(Date.UTC(year, monthIndex, 1 - startWeekday));
+  const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const selectedKey = demoDay.dateKey;
+  const selectedDate = new Date(selectedKey);
 
-export const coachxProgressMetrics: ProgressMetric[] = [
-  { label: "Training Volume", value: "+8%", delta: "vs last week", trend: "up" },
-  { label: "Bodyweight", value: "-0.4 kg", delta: "since baseline", trend: "down" },
-  { label: "Consistency", value: "5 / 7", delta: "days completed", trend: "steady" }
-];
+  return Array.from({ length: 42 }, (_, index) => {
+    const current = new Date(firstVisibleDate);
+    current.setUTCDate(firstVisibleDate.getUTCDate() + index);
 
-export const coachxProfile: ProfileSection[] = [
-  { label: "Goal", value: "Body Recomposition" },
-  { label: "Priorities", value: "Glutes · Abdomen · Legs" },
-  { label: "Training", value: "4 days / week · 60-75 min · Full gym" },
-  { label: "Experience", value: "Intermediate" },
-  { label: "Schedule", value: "Evening training · Active workday" },
-  { label: "Recovery", value: "6-7h sleep · Moderate stress" },
-  { label: "Nutrition", value: "3 meals + snack · Structured" },
-  { label: "Health & Limitations", value: "Information reviewed" },
-  { label: "Baseline", value: "Measurements added · Photos added" }
-];
+    const monthOffset = current.getUTCMonth() < monthIndex ? -1 : current.getUTCMonth() > monthIndex ? 1 : 0;
+    const weekdayIndex = (current.getUTCDay() + 6) % 7;
+    const isSelected = current.toISOString().startsWith(selectedKey);
+    const isToday =
+      current.getUTCFullYear() === selectedDate.getUTCFullYear() &&
+      current.getUTCMonth() === selectedDate.getUTCMonth() &&
+      current.getUTCDate() === selectedDate.getUTCDate();
+
+    return {
+      label: weekdays[weekdayIndex].toUpperCase(),
+      weekday: weekdays[weekdayIndex],
+      day: current.getUTCDate(),
+      monthOffset,
+      isDimmed: monthOffset !== 0,
+      isSelected,
+      isToday,
+      hasActivity: [1, 2, 3, 5, 6, 8, 10, 11, 14, 15, 18, 20, 22, 24, 26, 28, 30].includes(current.getUTCDate()) && monthOffset === 0,
+      completed: current.getUTCDate() === 7 && monthOffset === 0
+    };
+  });
+}
+
+const demoCalendarDays = buildAugustCalendar();
+
+export const coachxDemoState = {
+  athlete: demoAthlete,
+  day: demoDay,
+  calendar: {
+    monthLabel: "August 2026",
+    topLabel: "Calendar",
+    weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    days: demoCalendarDays
+  },
+  progress: {
+    metrics: [
+      { label: "Training Volume", value: "+8%", delta: "vs last week", trend: "up" },
+      { label: "Bodyweight", value: "-0.4 kg", delta: "since baseline", trend: "down" },
+      { label: "Consistency", value: "5 / 7", delta: "days completed", trend: "steady" }
+    ] satisfies ProgressMetric[]
+  },
+  profile: [
+    { label: "Goal", value: demoAthlete.goal },
+    { label: "Priorities", value: demoAthlete.priorities },
+    { label: "Training", value: demoAthlete.training },
+    { label: "Experience", value: demoAthlete.experience },
+    { label: "Schedule", value: demoAthlete.schedule },
+    { label: "Recovery", value: demoAthlete.recovery },
+    { label: "Nutrition", value: demoAthlete.nutrition },
+    { label: "Health & Limitations", value: demoAthlete.health },
+    { label: "Baseline", value: demoAthlete.baseline }
+  ] satisfies ProfileSection[]
+};
+
+export const coachxToday = coachxDemoState.day;
+export const coachxCalendarDays = coachxDemoState.calendar.days;
+export const coachxCalendarWeekdays = coachxDemoState.calendar.weekdays;
+export const coachxProgressMetrics = coachxDemoState.progress.metrics;
+export const coachxProfile = coachxDemoState.profile;

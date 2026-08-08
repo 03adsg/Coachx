@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { coachxCalendarDays } from "@/lib/coachx-data";
+import { coachxCalendarDays, coachxCalendarWeekdays, coachxDemoState, coachxToday } from "@/lib/coachx-data";
 import { Screen } from "@/components/screen";
 import { Card, IconButton, PrimaryButton, Section } from "@/components/ui";
 
@@ -7,7 +6,7 @@ export default function CalendarPage() {
   return (
     <Screen
       activeTab="calendar"
-      shellClassName="screen-shell"
+      shellClassName="screen-shell calendar-shell"
       topbar={
         <header className="topbar center">
           <div className="eyebrow" style={{ margin: 0, color: "#c6c6c7" }}>
@@ -17,24 +16,29 @@ export default function CalendarPage() {
       }
     >
       <main className="content tight">
-        <section className="section">
-          <div className="row" style={{ marginBottom: 8 }}>
+        <section className="calendar-toolbar">
+          <div className="calendar-month-row">
             <IconButton icon="chevron_left" label="Previous month" />
-            <h1 className="headline-md" style={{ textTransform: "uppercase", letterSpacing: "0.03em" }}>
-              August 2026
+            <h1 className="headline-md" style={{ textTransform: "uppercase", letterSpacing: "0.03em", textAlign: "center" }}>
+              {coachxDemoState.calendar.monthLabel}
             </h1>
             <IconButton icon="chevron_right" label="Next month" />
           </div>
 
-          <div className="calendar-grid" style={{ marginTop: 24 }}>
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+          <div className="calendar-weekdays">
+            {coachxCalendarWeekdays.map((day) => (
               <div key={day} className="calendar-label" style={{ textAlign: "center" }}>
                 {day}
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="calendar-grid">
             {coachxCalendarDays.map((day) => (
               <div
-                key={`${day.weekday}-${day.day}`}
+                key={`${day.weekday}-${day.day}-${day.monthOffset}`}
                 className={`day-cell ${day.isSelected ? "selected" : ""} ${day.isDimmed ? "dimmed" : ""}`.trim()}
               >
                 <span className="body-md" style={{ color: day.isToday ? "var(--text-primary)" : "inherit" }}>
@@ -52,53 +56,27 @@ export default function CalendarPage() {
         </section>
 
         <Section title="" meta="">
-          <Card className="p-16">
+          <Card className="p-16 elevated" style={{ background: "var(--background-charcoal)" }}>
             <div className="row" style={{ marginBottom: 16 }}>
               <div>
                 <div className="headline-md" style={{ fontSize: 14, lineHeight: "20px", textTransform: "uppercase" }}>
-                  Saturday August 8
+                  {coachxToday.calendarLabel}
                 </div>
               </div>
               <span className="accent" style={{ fontSize: 12, lineHeight: "16px", fontWeight: 700, textTransform: "uppercase" }}>
-                Training Day
+                {coachxToday.phase}
               </span>
             </div>
 
             <div className="row start" style={{ gap: 16 }}>
-              <div
-                style={{
-                  width: 72,
-                  height: 120,
-                  borderRadius: 12,
-                  border: "1px solid var(--border-quiet)",
-                  background: "linear-gradient(180deg, #242424 0%, #111 100%)",
-                  overflow: "hidden",
-                  display: "grid",
-                  placeItems: "center",
-                  position: "relative",
-                  flexShrink: 0
-                }}
-              >
-                <span className="icon muted" style={{ fontSize: 36, opacity: 0.3 }} aria-hidden="true">
-                  accessibility_new
-                </span>
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: "auto 0 20px",
-                    height: 40,
-                    background: "rgba(182,255,0,0.22)",
-                    filter: "blur(8px)"
-                  }}
-                />
-              </div>
+              <div className="card" style={{ width: 72, height: 120, borderRadius: 12, background: "var(--surface-default)", flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <div className="headline-md" style={{ marginBottom: 4 }}>
-                  Glutes + Hamstrings
+                  {coachxToday.workoutTitle}
                 </div>
-                <div className="body-md muted">Workout A</div>
+                <div className="body-md muted">{coachxToday.workoutType}</div>
                 <div className="caption" style={{ marginTop: 4 }}>
-                  6 exercises | 68 min
+                  {coachxToday.workoutCount} · {coachxToday.duration}
                 </div>
               </div>
             </div>
@@ -108,24 +86,28 @@ export default function CalendarPage() {
             <div className="grid-2">
               <div>
                 <div className="row" style={{ justifyContent: "flex-start", gap: 6, marginBottom: 8 }}>
-                  <span className="icon muted" style={{ fontSize: 18 }}>restaurant</span>
+                  <span className="icon muted" style={{ fontSize: 18 }}>
+                    restaurant
+                  </span>
                   <span className="body-md">Nutrition</span>
                 </div>
                 <div className="body-md" style={{ fontWeight: 700 }}>
-                  2,050 kcal
+                  {coachxToday.nutritionCalories}
                 </div>
                 <div className="caption" style={{ marginTop: 4 }}>
-                  140P · 220C · 60F
+                  {coachxToday.macros}
                 </div>
               </div>
               <div>
                 <div className="row" style={{ justifyContent: "flex-start", gap: 6, marginBottom: 8 }}>
-                  <span className="icon muted" style={{ fontSize: 18 }}>favorite</span>
+                  <span className="icon muted" style={{ fontSize: 18 }}>
+                    favorite
+                  </span>
                   <span className="body-md">Cardio &amp; Habits</span>
                 </div>
-                <div className="body-md">Zone 2 | 20 min</div>
+                <div className="body-md">{coachxToday.cardio}</div>
                 <div className="caption" style={{ marginTop: 4 }}>
-                  Daily habits 0/5
+                  {coachxToday.habits}
                 </div>
               </div>
             </div>

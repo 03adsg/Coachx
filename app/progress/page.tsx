@@ -1,6 +1,6 @@
 import { Screen } from "@/components/screen";
 import { Card, IconButton } from "@/components/ui";
-import { coachxProgressMetrics } from "@/lib/coachx-data";
+import { coachxDemoState, coachxProgressMetrics } from "@/lib/coachx-data";
 
 export default function ProgressPage() {
   return (
@@ -21,11 +21,23 @@ export default function ProgressPage() {
             <div>
               <h1 className="headline-lg">Your Training Trend</h1>
               <p className="caption" style={{ marginTop: 8 }}>
-                Weekly movement, bodyweight, and adherence tracked from the current phase.
+                Weekly movement, bodyweight, and adherence tracked from {coachxDemoState.day.dateLabel}.
               </p>
             </div>
             <IconButton icon="calendar_month" label="Choose range" />
           </div>
+        </section>
+
+        <section className="section">
+          <Card className="p-16 elevated" style={{ background: "var(--background-charcoal)" }}>
+            <div className="eyebrow">Current demo context</div>
+            <p className="body-md" style={{ marginTop: 6 }}>
+              {coachxDemoState.day.workoutTitle} · {coachxDemoState.day.phase}
+            </p>
+            <p className="caption" style={{ marginTop: 6 }}>
+              {coachxDemoState.day.nutritionCalories} · {coachxDemoState.day.cardio}
+            </p>
+          </Card>
         </section>
 
         <section className="section">

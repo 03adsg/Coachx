@@ -27,7 +27,7 @@ export function Screen({ children, activeTab, shellClassName, topbar }: ScreenPr
     }
 
     const context = gsap.context(() => {
-      const motionTargets = root.querySelectorAll(".topbar, .card, .list-card, .day-cell");
+      const motionTargets = root.querySelectorAll(".topbar, .calendar-toolbar, .card, .list-card, .day-cell, .nav-item");
       if (reducedMotion) {
         gsap.set(motionTargets, { opacity: 1, y: 0 });
         return;

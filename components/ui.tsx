@@ -19,8 +19,22 @@ export function Section({ title, meta, children }: { title: string; meta?: strin
   );
 }
 
-export function Card({ children, elevated = false, className = "" }: { children: ReactNode; elevated?: boolean; className?: string }) {
-  return <div className={`card ${elevated ? "elevated" : ""} ${className}`.trim()}>{children}</div>;
+export function Card({
+  children,
+  elevated = false,
+  className = "",
+  style
+}: {
+  children: ReactNode;
+  elevated?: boolean;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <div className={`card ${elevated ? "elevated" : ""} ${className}`.trim()} style={style}>
+      {children}
+    </div>
+  );
 }
 
 export function PrimaryButton({ href, children, className = "" }: { href?: string; children: ReactNode; className?: string }) {

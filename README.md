@@ -34,3 +34,11 @@ pnpm build
 - Stitch is the visual source of truth for implemented screens.
 - Mock data is centralized in `lib/coachx-data.ts`.
 - Shared motion presets live in `motion/`.
+
+## iPhone install test
+
+1. Open the deployed preview in Safari on iPhone.
+2. Tap the Share button in the browser toolbar.
+3. Choose `Add to Home Screen`.
+4. Launch COACHX from the Home Screen icon.
+5. Verify the app opens in standalone mode with minimal browser chrome.

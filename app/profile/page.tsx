@@ -1,6 +1,6 @@
 import { Screen } from "@/components/screen";
 import { Card, SecondaryButton } from "@/components/ui";
-import { coachxProfile } from "@/lib/coachx-data";
+import { coachxDemoState, coachxProfile } from "@/lib/coachx-data";
 
 export default function ProfilePage() {
   return (
@@ -18,8 +18,8 @@ export default function ProfilePage() {
       <main className="content tight">
         <section className="section">
           <div className="row start">
-            <div>
-              <h1 className="headline-lg">Alex</h1>
+              <div>
+              <h1 className="headline-lg">{coachxDemoState.athlete.name}</h1>
               <p className="caption" style={{ marginTop: 8 }}>
                 Athlete profile and foundation settings
               </p>
@@ -40,7 +40,7 @@ export default function ProfilePage() {
               <div>
                 <div className="eyebrow">Current plan</div>
                 <h2 className="headline-md" style={{ marginTop: 6 }}>
-                  Body Recomposition
+                  {coachxDemoState.athlete.goal}
                 </h2>
               </div>
               <span className="pill">Active</span>
