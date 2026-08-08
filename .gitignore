@@ -9,4 +9,5 @@ calendar.png
 day.png
 profile*.png
 progress*.png
-pnpm-workspace.yaml
+
+.vercel
