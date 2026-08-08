@@ -160,6 +160,14 @@
 - `pnpm lint` via bundled Node: passed.
 - `pnpm build` via bundled Node: passed.
 
+## Batch A Live QA
+
+- Preview URL: `https://coachx-33007opj6-projectmanagmentnotion-costacleans-projects.vercel.app`
+- Flows verified in deployed HTML: `/`, `/calendar`, `/day/2026-08-08`, `/workout/coachx-demo-session`, `/exercises`, exercise detail, adjust flow, summary, and rest-day state.
+- Viewport review: a 390px browser render exposed a Today CTA collision; the CTA now flows normally on Today/Day Detail while workout flows keep their sticky action.
+- Issues fixed: Today page sticky CTA collision, plus the live preview was redeployed from commit `fda2b20`.
+- Remaining temporary assets: `public/coachx-avatar.svg`, `public/exercise-placeholder.svg`, and the provisional `Progress` screen.
+
 ## Known differences from Stitch
 
 - The `Progress` screen remains temporary until a dedicated Stitch export is available.
