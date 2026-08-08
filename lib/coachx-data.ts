@@ -1,3 +1,5 @@
+import { createDemoWorkoutSession, getExerciseDefinition } from "@/lib/workout-data";
+
 export type BottomTab = "today" | "calendar" | "progress" | "profile";
 
 export type MuscleGroup =
@@ -93,19 +95,21 @@ const demoAthlete: DemoAthlete = {
   baseline: "Measurements added · Photos added"
 };
 
+const demoWorkoutSession = createDemoWorkoutSession();
+
 const demoDay: DemoDay = {
   dateKey: "2026-08-08",
-  dateLabel: "Saturday, August 8, 2026",
+  dateLabel: demoWorkoutSession.dateLabel,
   calendarLabel: "Saturday August 8",
-  phase: "Workout A",
-  workoutTitle: "Glutes + Hamstrings",
+  phase: demoWorkoutSession.phaseLabel,
+  workoutTitle: demoWorkoutSession.workoutLabel,
   workoutType: "Posterior chain emphasis",
-  duration: "68 min",
+  duration: demoWorkoutSession.summary.duration,
   volume: "7.8k",
-  sets: "24",
+  sets: demoWorkoutSession.summary.setsCompleted,
   primaryTarget: "Glutes",
   secondaryTarget: "Hamstrings",
-  workoutCount: "6 exercises",
+  workoutCount: `${demoWorkoutSession.totalExercises} exercises`,
   nutritionCalories: "2050 kcal",
   macros: "140P · 220C · 60F",
   cardio: "Zone 2 · 20 min",
@@ -114,40 +118,15 @@ const demoDay: DemoDay = {
     "Keep the pelvis neutral on thrusts and hinge with control on every rep. The posterior chain should do the work.",
   muscleFocus: ["glutes", "hamstrings"],
   anatomyKey: "posterior-lower-body",
-  movements: [
-    {
-      name: "Barbell Hip Thrust",
-      prescription: "4 sets x 8-10 reps",
+  movements: demoWorkoutSession.exercises.map((exercise) => {
+    const definition = getExerciseDefinition(exercise.performedExerciseId);
+    return {
+      name: definition.name,
+      prescription: `${definition.programSets} sets x ${definition.programReps} reps`,
       icon: "fitness_center",
-      thumbnail: "/stitch-assets/hip_thrust.png"
-    },
-    {
-      name: "Romanian Deadlift",
-      prescription: "3 sets x 8-10 reps",
-      icon: "sports_gymnastics",
-      thumbnail: "/stitch-assets/romanian_deadlift.png"
-    },
-    {
-      name: "Bulgarian Split Squat",
-      prescription: "3 sets x 10-12 reps",
-      icon: "directions_run"
-    },
-    {
-      name: "Seated Leg Curl",
-      prescription: "3 sets x 12-15 reps",
-      icon: "airline_seat_recline_normal"
-    },
-    {
-      name: "Cable Kickback",
-      prescription: "3 sets x 12-15 reps",
-      icon: "self_improvement"
-    },
-    {
-      name: "Walking Lunge",
-      prescription: "2 sets x 20 steps",
-      icon: "directions_walk"
-    }
-  ]
+      thumbnail: definition.thumbnail
+    };
+  })
 };
 
 function buildAugustCalendar(): CalendarDay[] {
@@ -191,6 +170,7 @@ const demoCalendarDays = buildAugustCalendar();
 export const coachxDemoState = {
   athlete: demoAthlete,
   day: demoDay,
+  workoutSession: demoWorkoutSession,
   calendar: {
     monthLabel: "August 2026",
     topLabel: "Calendar",

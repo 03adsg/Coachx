@@ -27,7 +27,9 @@ export function Screen({ children, activeTab, shellClassName, topbar }: ScreenPr
     }
 
     const context = gsap.context(() => {
-      const motionTargets = root.querySelectorAll(".topbar, .calendar-toolbar, .card, .list-card, .day-cell, .nav-item");
+      const motionTargets = root.querySelectorAll(
+        ".topbar, .calendar-toolbar, .card, .list-card, .day-cell, .nav-item, .workout-overview-card, .workout-set-row, .workout-alternative-card, .workout-library-card, .workout-detail-card, .workout-choice-card, .workout-summary-tile"
+      );
       if (reducedMotion) {
         gsap.set(motionTargets, { opacity: 1, y: 0 });
         return;

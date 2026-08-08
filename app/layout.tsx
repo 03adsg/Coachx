@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk, Plus_Jakarta_Sans } from "next/font/google";
 import type { ReactNode } from "react";
+import { AppProviders } from "./providers";
 import "./globals.css";
 
 const hankenGrotesk = Hanken_Grotesk({
@@ -43,7 +44,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${hankenGrotesk.variable} ${plusJakartaSans.variable}`}>
-      <body>{children}</body>
+      <body>
+        <AppProviders>{children}</AppProviders>
+      </body>
     </html>
   );
 }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Screen } from "@/components/screen";
 import { AnatomyPreview } from "@/components/anatomy-preview";
 import { Card, PrimaryButton, Section } from "@/components/ui";
@@ -121,8 +122,13 @@ export default function DayDetailPage() {
           </Card>
         </Section>
 
-        <div className="sticky-action">
-          <PrimaryButton href="/calendar">Back to Calendar</PrimaryButton>
+        <div className="stack">
+          <PrimaryButton href={`/workout/${coachxDemoState.workoutSession.id}`} className="focus-ring">
+            Start Workout
+          </PrimaryButton>
+          <Link href="/calendar" className="workout-secondary-button focus-ring">
+            Back to Calendar
+          </Link>
         </div>
       </main>
     </Screen>
