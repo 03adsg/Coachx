@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -18,7 +18,9 @@ async function transpileLibraryChain() {
     "coachx-data.ts",
     "progress-data.ts",
     "onboarding-data.ts",
-    "profile-settings-data.ts"
+    "profile-settings-data.ts",
+    "auth/navigation.ts",
+    "athlete-service.ts"
   ];
 
   for (const fileName of sourceFiles) {
@@ -26,7 +28,9 @@ async function transpileLibraryChain() {
     const sourceText = await readFile(sourcePath, "utf8");
     const rewrittenSource = sourceText
       .replaceAll("@/lib/", "./")
-      .replaceAll("@/components/", "./components/");
+      .replaceAll("@/components/", "./components/")
+      .replaceAll('from "zod"', `from "${pathToFileURL(path.join(repoRoot, "node_modules/zod/index.js")).href}"`)
+      .replaceAll("from 'zod'", `from '${pathToFileURL(path.join(repoRoot, "node_modules/zod/index.js")).href}'`);
 
     const transpiled = ts.transpileModule(rewrittenSource, {
       compilerOptions: {
@@ -42,7 +46,9 @@ async function transpileLibraryChain() {
       .replace(/from "(\.\/[^"]+)"/g, 'from "$1.mjs"')
       .replace(/from '(\.\/[^']+)'/g, "from '$1.mjs'");
 
-    await writeFile(path.join(tempDir, fileName.replace(/\.ts$/, ".mjs")), outputText, "utf8");
+    const outputPath = path.join(tempDir, fileName.replace(/\.ts$/, ".mjs"));
+    await mkdir(path.dirname(outputPath), { recursive: true });
+    await writeFile(outputPath, outputText, "utf8");
   }
 
   return import(pathToFileURL(path.join(tempDir, "onboarding-data.mjs")).href);
@@ -50,6 +56,8 @@ async function transpileLibraryChain() {
 
 const onboarding = await transpileLibraryChain();
 const profileSettings = await import(pathToFileURL(path.join(tempDir, "profile-settings-data.mjs")).href);
+const authNavigation = await import(pathToFileURL(path.join(tempDir, "auth/navigation.mjs")).href);
+const athleteService = await import(pathToFileURL(path.join(tempDir, "athlete-service.mjs")).href);
 
 test("onboarding step ordering works", () => {
   assert.equal(onboarding.getNextOnboardingStep("goals"), "training-experience");
@@ -147,6 +155,40 @@ test("program update remains explicit", () => {
   const updatedProgram = profileSettings.applySnapshotToProgram(onboarding.onboardingDemoState.program, current);
   assert.equal(updatedProgram.goal, current.goals.mainGoal);
   assert.equal(updatedProgram.status, onboarding.onboardingDemoState.program.status);
+});
+
+test("route helpers keep authenticated users out of entry", () => {
+  assert.equal(authNavigation.resolveAthleteRouteForStatus("not_started"), "/entry");
+  assert.equal(authNavigation.resolveAthleteRouteForStatus("in_progress"), "/onboarding");
+  assert.equal(authNavigation.resolveAthleteRouteForStatus("completed"), "/");
+});
+
+test("athlete rows preserve profile and snapshot data", () => {
+  const snapshot = profileSettings.createProfileSnapshot();
+  const profileRow = athleteService.buildAthleteProfileRow("00000000-0000-0000-0000-000000000001", snapshot, "completed", "2026-08-08T08:00:00.000Z");
+  const preferencesRow = athleteService.buildAthletePreferencesRow("00000000-0000-0000-0000-000000000001", snapshot);
+
+  assert.equal(profileRow.display_name, snapshot.profile.name);
+  assert.equal(profileRow.onboarding_status, "completed");
+  assert.equal(preferencesRow.user_id, "00000000-0000-0000-0000-000000000001");
+  assert.deepEqual(preferencesRow.goals, snapshot.goals);
+});
+
+test("remote snapshots hydrate onboarding state without changing the active program", () => {
+  const snapshot = profileSettings.createProfileSnapshot();
+  const remote = {
+    snapshot,
+    onboardingStatus: "in_progress",
+    onboardingCompletedAt: null,
+    profilePresent: true,
+    preferencesPresent: true,
+    source: "remote"
+  };
+  const hydrated = athleteService.mergeRemoteSnapshotIntoOnboardingState(onboarding.onboardingDemoState, remote);
+
+  assert.equal(hydrated.profile.name, snapshot.profile.name);
+  assert.equal(hydrated.progress.status, "in-progress");
+  assert.equal(hydrated.program.status, onboarding.onboardingDemoState.program.status);
 });
 
 await rm(tempDir, { recursive: true, force: true });

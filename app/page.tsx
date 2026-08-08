@@ -1,14 +1,15 @@
+"use client";
+
 import Link from "next/link";
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { useOnboardingStore } from "@/components/onboarding-provider";
 import { coachxDemoState, coachxToday } from "@/lib/coachx-data";
 import { Screen } from "@/components/screen";
 import { Card, IconButton, PrimaryButton, Section, StatTile } from "@/components/ui";
 import { AnatomyPreview } from "@/components/anatomy-preview";
 
-interface TodayPageProps {
-  searchParams?: Promise<{ state?: string }>;
-}
-
-function RestDayHero() {
+function RestDayHero({ athleteName }: { athleteName: string }) {
   return (
     <>
       <section className="section">
@@ -17,7 +18,7 @@ function RestDayHero() {
         </div>
         <h1 className="headline-xl">Recovery Day</h1>
         <p className="body-lg muted" style={{ marginTop: 12 }}>
-          {coachxDemoState.athlete.name} · {coachxToday.dateLabel}
+          {athleteName} · {coachxToday.dateLabel}
         </p>
       </section>
 
@@ -50,9 +51,11 @@ function RestDayHero() {
   );
 }
 
-export default async function TodayPage({ searchParams }: TodayPageProps) {
-  const resolvedSearchParams = (await searchParams) ?? {};
-  const isRestDay = resolvedSearchParams.state === "rest-day";
+function TodayContent() {
+  const searchParams = useSearchParams();
+  const { state } = useOnboardingStore();
+  const isRestDay = searchParams.get("state") === "rest-day";
+  const athleteName = state.profile.name || coachxDemoState.athlete.name;
 
   return (
     <Screen
@@ -69,13 +72,13 @@ export default async function TodayPage({ searchParams }: TodayPageProps) {
     >
       <main className="content">
         {isRestDay ? (
-          <RestDayHero />
+          <RestDayHero athleteName={athleteName} />
         ) : (
           <>
             <section className="section">
               <h1 className="headline-xl">{coachxToday.workoutTitle}</h1>
               <p className="body-lg muted" style={{ marginTop: 12 }}>
-                {coachxDemoState.athlete.name} · {coachxToday.dateLabel}
+                {athleteName} · {coachxToday.dateLabel}
               </p>
             </section>
 
@@ -162,5 +165,13 @@ export default async function TodayPage({ searchParams }: TodayPageProps) {
         </div>
       </main>
     </Screen>
+  );
+}
+
+export default function TodayPage() {
+  return (
+    <Suspense fallback={null}>
+      <TodayContent />
+    </Suspense>
   );
 }

@@ -1,10 +1,16 @@
+"use client";
+
 import Link from "next/link";
+import { useOnboardingStore } from "@/components/onboarding-provider";
 import { Screen } from "@/components/screen";
 import { AnatomyPreview } from "@/components/anatomy-preview";
 import { Card, PrimaryButton, Section } from "@/components/ui";
 import { coachxDemoState, coachxToday } from "@/lib/coachx-data";
 
 export default function DayDetailPage() {
+  const { state } = useOnboardingStore();
+  const athleteName = state.profile.name || coachxDemoState.athlete.name;
+
   return (
     <Screen
       activeTab="today"
@@ -22,7 +28,7 @@ export default function DayDetailPage() {
           <div className="row start">
             <div>
               <div className="eyebrow" style={{ marginBottom: 6 }}>
-                {coachxDemoState.athlete.name}
+                {athleteName}
               </div>
               <h1 className="headline-lg">{coachxToday.dateLabel}</h1>
               <p className="caption" style={{ marginTop: 8 }}>

@@ -1,7 +1,9 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useAuthStore } from "@/components/auth-provider";
 import { useOnboardingStore } from "@/components/onboarding-provider";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   applySnapshotToProgram,
   buildProfileReview,
@@ -19,6 +21,7 @@ import {
   type ProfileSnapshot,
   type ReminderIntensity
 } from "@/lib/profile-settings-data";
+import { buildProfileSnapshotFromOnboarding, loadAthleteSnapshot, mapOnboardingStatus, saveAthleteSnapshot } from "@/lib/athlete-service";
 
 interface ProfileSettingsStoreValue extends ProfileSettingsState {
   commitProfileSnapshot: (nextSnapshot: ProfileSnapshot) => ProfileImpactReview;
@@ -37,18 +40,121 @@ interface ProfileSettingsStoreValue extends ProfileSettingsState {
 const ProfileSettingsContext = createContext<ProfileSettingsStoreValue | null>(null);
 
 export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
+  const auth = useAuthStore();
+  const authRef = useRef(auth);
   const onboarding = useOnboardingStore();
+  const onboardingRef = useRef(onboarding);
   const [state, setState] = useState<ProfileSettingsState>(() =>
     typeof window === "undefined" ? reviveProfileSettingsState(null) : reviveProfileSettingsState(window.localStorage.getItem(profileStorageKey))
   );
 
   useEffect(() => {
+    onboardingRef.current = onboarding;
+  }, [onboarding]);
+
+  useEffect(() => {
+    authRef.current = auth;
+  }, [auth]);
+
+  useEffect(() => {
     window.localStorage.setItem(profileStorageKey, serializeProfileSettingsState(state));
   }, [state]);
 
+  useEffect(() => {
+    if (!auth.ready) {
+      return;
+    }
+
+    let active = true;
+
+    async function hydrateFromRemote() {
+      const client = getSupabaseBrowserClient();
+      const currentAuth = authRef.current;
+
+      if (!currentAuth.isConfigured || !currentAuth.user || !client) {
+        return;
+      }
+
+      try {
+        const remote = await loadAthleteSnapshot(client, currentAuth.user.id);
+        if (!active) {
+          return;
+        }
+
+        if (remote.source === "default") {
+          await saveAthleteSnapshot(
+            client,
+            currentAuth.user.id,
+            state.saved,
+            mapOnboardingStatus(onboardingRef.current.state.progress.status),
+            onboardingRef.current.state.progress.status === "complete" ? new Date().toISOString() : null
+          );
+          return;
+        }
+
+        setState((current) => ({
+          ...current,
+          saved: remote.snapshot,
+          pendingReview: null,
+          saveState: "saved",
+          saveError: null,
+          lastSavedLabel: "Loaded from Supabase"
+        }));
+        onboardingRef.current.setProfile(remote.snapshot.profile);
+        onboardingRef.current.setGoals(remote.snapshot.goals);
+        onboardingRef.current.setTrainingPreferences(remote.snapshot.trainingPreferences);
+        onboardingRef.current.setScheduleLifestyle(remote.snapshot.scheduleLifestyle);
+        onboardingRef.current.setHealthLimitations(remote.snapshot.healthLimitations);
+        onboardingRef.current.setNutritionPreferences(remote.snapshot.nutritionPreferences);
+        onboardingRef.current.setProgram(applySnapshotToProgram(onboardingRef.current.program, remote.snapshot));
+        if (!remote.preferencesPresent) {
+          await saveAthleteSnapshot(
+            client,
+            currentAuth.user.id,
+            remote.snapshot,
+            mapOnboardingStatus(onboardingRef.current.state.progress.status),
+            onboardingRef.current.state.progress.status === "complete" ? new Date().toISOString() : null
+          );
+        }
+      } catch {
+        if (active) {
+          setState((current) => ({
+            ...current,
+            saveState: "error",
+            saveError: "Unable to load saved profile from Supabase."
+          }));
+        }
+      }
+    }
+
+    void hydrateFromRemote();
+
+    return () => {
+      active = false;
+    };
+  }, [auth.isConfigured, auth.ready, auth.user?.id]);
+
+  async function persistSnapshot(nextSnapshot: ProfileSnapshot) {
+    const client = getSupabaseBrowserClient();
+    const currentAuth = authRef.current;
+
+    if (!currentAuth.isConfigured || !currentAuth.user || !client) {
+      return;
+    }
+
+    await saveAthleteSnapshot(
+      client,
+      currentAuth.user.id,
+      nextSnapshot,
+      mapOnboardingStatus(onboardingRef.current.state.progress.status),
+      onboardingRef.current.state.progress.status === "complete" ? new Date().toISOString() : null
+    );
+  }
+
   const value = useMemo<ProfileSettingsStoreValue>(() => {
     const commitProfileSnapshot: ProfileSettingsStoreValue["commitProfileSnapshot"] = (nextSnapshot) => {
-      const review = buildProfileReview(state.saved, nextSnapshot, onboarding.program);
+      const currentOnboarding = onboardingRef.current;
+      const review = buildProfileReview(state.saved, nextSnapshot, currentOnboarding.program);
       setState((current) => ({
         ...current,
         saved: nextSnapshot,
@@ -57,6 +163,13 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
         saveError: null,
         lastSavedLabel: "Saved just now"
       }));
+      void persistSnapshot(nextSnapshot).catch(() => {
+        setState((current) => ({
+          ...current,
+          saveState: "error",
+          saveError: "Unable to save profile to Supabase."
+        }));
+      });
       return review;
     };
 
@@ -130,13 +243,14 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      onboarding.setProfile(state.saved.profile);
-      onboarding.setGoals(state.saved.goals);
-      onboarding.setTrainingPreferences(state.saved.trainingPreferences);
-      onboarding.setScheduleLifestyle(state.saved.scheduleLifestyle);
-      onboarding.setHealthLimitations(state.saved.healthLimitations);
-      onboarding.setNutritionPreferences(state.saved.nutritionPreferences);
-      onboarding.setProgram(applySnapshotToProgram(onboarding.program, state.saved));
+      const currentOnboarding = onboardingRef.current;
+      currentOnboarding.setProfile(state.saved.profile);
+      currentOnboarding.setGoals(state.saved.goals);
+      currentOnboarding.setTrainingPreferences(state.saved.trainingPreferences);
+      currentOnboarding.setScheduleLifestyle(state.saved.scheduleLifestyle);
+      currentOnboarding.setHealthLimitations(state.saved.healthLimitations);
+      currentOnboarding.setNutritionPreferences(state.saved.nutritionPreferences);
+      currentOnboarding.setProgram(applySnapshotToProgram(currentOnboarding.program, state.saved));
 
       setState((current) => ({
         ...current,
@@ -190,7 +304,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
         { id: "notifications", label: "Notifications & Reminders", route: "/profile/notifications", summary: "Workout, progress and coaching reminders" }
       ]
     };
-  }, [onboarding, state]);
+  }, [state]);
 
   return <ProfileSettingsContext.Provider value={value}>{children}</ProfileSettingsContext.Provider>;
 }

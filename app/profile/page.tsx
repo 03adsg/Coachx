@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Screen } from "@/components/screen";
 import { Card } from "@/components/ui";
+import { useAuthStore } from "@/components/auth-provider";
 import { useProfileSettingsStore } from "@/components/profile-settings-provider";
 import { useOnboardingStore } from "@/components/onboarding-provider";
 
 export default function ProfilePage() {
+  const router = useRouter();
+  const auth = useAuthStore();
   const { saved, pendingReview } = useProfileSettingsStore();
   const { program } = useOnboardingStore();
 
@@ -30,6 +34,11 @@ export default function ProfilePage() {
               <p className="caption" style={{ marginTop: 8 }}>
                 Provisional profile hub and foundation settings
               </p>
+              {auth.user?.email ? (
+                <p className="caption" style={{ marginTop: 4 }}>
+                  Signed in as {auth.user.email}
+                </p>
+              ) : null}
             </div>
             <img className="profile-avatar" src="/coachx-avatar.svg" alt="Athlete profile" width={52} height={52} />
           </div>
@@ -141,6 +150,19 @@ export default function ProfilePage() {
           <Link href="/profile/preferences" className="button-secondary focus-ring" style={{ width: "100%" }}>
             Open Settings
           </Link>
+          {auth.isConfigured ? (
+            <button
+              className="button-secondary focus-ring"
+              type="button"
+              onClick={async () => {
+                await auth.signOut();
+                router.push("/entry");
+              }}
+              style={{ width: "100%" }}
+            >
+              Sign out
+            </button>
+          ) : null}
         </div>
       </main>
     </Screen>

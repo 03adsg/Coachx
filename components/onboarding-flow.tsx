@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, type HTMLAttributes, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type HTMLAttributes, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { OnboardingStickyActions, OnboardingStepHeader, ChoiceButton, PillToggle } from "@/components/onboarding-ui";
 import { useOnboardingStore } from "@/components/onboarding-provider";
+import { useAuthStore } from "@/components/auth-provider";
 import { type OnboardingStepId, type BaselinePose } from "@/lib/onboarding-data";
 
 function FlowShell({
@@ -186,6 +187,30 @@ function ReviewLine({ label, value }: { label: string; value: string }) {
 export function EntryScreen() {
   const router = useRouter();
   const { entryDestination } = useOnboardingStore();
+  const auth = useAuthStore();
+  const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitting(true);
+    setStatus(null);
+
+    const error =
+      mode === "sign-in" ? await auth.signInWithEmail(email, password) : await auth.signUpWithEmail(email, password);
+
+    setSubmitting(false);
+
+    if (error) {
+      setStatus(error);
+      return;
+    }
+
+    router.push("/");
+  }
 
   return (
     <Screen shellClassName="onboarding-shell" topbar={<header className="topbar center"><div className="brand">COACHX</div></header>}>
@@ -194,32 +219,108 @@ export function EntryScreen() {
           <div className="eyebrow" style={{ color: "#b6ff00" }}>PROVISIONAL ENTRY</div>
           <h1 className="headline-xl" style={{ marginTop: 12 }}>Welcome back</h1>
           <p className="body-lg muted" style={{ marginTop: 12 }}>
-            Continue with the demo athlete flow or resume your saved onboarding state.
+            {auth.isConfigured ? "Sign in to restore your athlete profile and resume the correct route." : "Continue with the demo athlete flow or resume your saved onboarding state."}
           </p>
         </section>
 
-        <section className="section stack">
-          <Card className="p-16 onboarding-callout">
-            <div className="stack" style={{ gap: 12 }}>
-              <div>
-                <div className="eyebrow">Entry routing</div>
-                <p className="caption" style={{ marginTop: 6 }}>
-                  New users start onboarding. Incomplete onboarding resumes at the saved step. Completed onboarding returns to Today.
-                </p>
-              </div>
-              <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
-                <span className="program-template-chip">Apple</span>
-                <span className="program-template-chip">Email</span>
-                <span className="program-template-chip">Sign In</span>
-              </div>
-            </div>
-          </Card>
-        </section>
+        {auth.isConfigured ? (
+          <>
+            <section className="section stack">
+              <Card className="p-16 onboarding-callout">
+                <div className="stack" style={{ gap: 12 }}>
+                  <div>
+                    <div className="eyebrow">Supabase auth</div>
+                    <p className="caption" style={{ marginTop: 6 }}>
+                      {auth.statusLabel}
+                    </p>
+                  </div>
 
-        <OnboardingStickyActions
-          secondary={<SecondaryButton className="focus-ring" onClick={() => router.push(entryDestination === "/" ? "/" : entryDestination)}>Resume saved flow</SecondaryButton>}
-          primary={<PrimaryButton className="focus-ring" onClick={() => router.push(entryDestination)}>Continue</PrimaryButton>}
-        />
+                  {auth.user ? (
+                    <div className="stack" style={{ gap: 12 }}>
+                      <div className="body-md" style={{ fontWeight: 700 }}>
+                        Signed in as {auth.user.email ?? "Athlete"}
+                      </div>
+                      <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
+                        <span className="program-template-chip">Session restored</span>
+                        <span className="program-template-chip">Auth ready</span>
+                      </div>
+                      <PrimaryButton className="focus-ring" onClick={() => router.push("/")}>Continue</PrimaryButton>
+                      <SecondaryButton
+                        className="focus-ring"
+                        onClick={async () => {
+                          await auth.signOut();
+                          router.refresh();
+                        }}
+                      >
+                        Sign out
+                      </SecondaryButton>
+                    </div>
+                  ) : (
+                    <form className="stack" onSubmit={handleSubmit}>
+                      <div className="row" style={{ gap: 8 }}>
+                        <button type="button" className={`program-template-chip focus-ring ${mode === "sign-in" ? "selected" : ""}`.trim()} onClick={() => setMode("sign-in")}>
+                          Sign In
+                        </button>
+                        <button type="button" className={`program-template-chip focus-ring ${mode === "sign-up" ? "selected" : ""}`.trim()} onClick={() => setMode("sign-up")}>
+                          Sign Up
+                        </button>
+                      </div>
+                      <label className="stack" style={{ gap: 8 }}>
+                        <span className="eyebrow">Email</span>
+                        <input className="input-field focus-ring" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+                      </label>
+                      <label className="stack" style={{ gap: 8 }}>
+                        <span className="eyebrow">Password</span>
+                        <input className="input-field focus-ring" type="password" autoComplete={mode === "sign-in" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} />
+                      </label>
+                      <PrimaryButton className="focus-ring" type="submit" disabled={submitting}>
+                        {submitting ? "Working..." : mode === "sign-in" ? "Continue" : "Create account"}
+                      </PrimaryButton>
+                      <p className="caption" style={{ marginTop: 4 }}>
+                        {mode === "sign-in" ? "Use an existing Supabase athlete account." : "Create a new athlete account with email confirmation if enabled."}
+                      </p>
+                      {status ? (
+                        <p className="caption" style={{ color: "#ff9b9b" }}>
+                          {status}
+                        </p>
+                      ) : null}
+                    </form>
+                  )}
+                </div>
+              </Card>
+            </section>
+
+            <OnboardingStickyActions
+              secondary={<SecondaryButton className="focus-ring" onClick={() => router.push(entryDestination === "/" ? "/" : entryDestination)}>Resume saved flow</SecondaryButton>}
+              primary={<PrimaryButton className="focus-ring" onClick={() => router.push(entryDestination)}>Open demo flow</PrimaryButton>}
+            />
+          </>
+        ) : (
+          <>
+            <section className="section stack">
+              <Card className="p-16 onboarding-callout">
+                <div className="stack" style={{ gap: 12 }}>
+                  <div>
+                    <div className="eyebrow">Entry routing</div>
+                    <p className="caption" style={{ marginTop: 6 }}>
+                      New users start onboarding. Incomplete onboarding resumes at the saved step. Completed onboarding returns to Today.
+                    </p>
+                  </div>
+                  <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
+                    <span className="program-template-chip">Apple</span>
+                    <span className="program-template-chip">Email</span>
+                    <span className="program-template-chip">Sign In</span>
+                  </div>
+                </div>
+              </Card>
+            </section>
+
+            <OnboardingStickyActions
+              secondary={<SecondaryButton className="focus-ring" onClick={() => router.push(entryDestination === "/" ? "/" : entryDestination)}>Resume saved flow</SecondaryButton>}
+              primary={<PrimaryButton className="focus-ring" onClick={() => router.push(entryDestination)}>Continue</PrimaryButton>}
+            />
+          </>
+        )}
       </main>
     </Screen>
   );

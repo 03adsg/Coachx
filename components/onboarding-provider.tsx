@@ -1,12 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   activateProgram,
   baselineSeed,
   createOnboardingDemoState,
   createProgramProposal,
-  finalizeOnboarding,
+  finalizeOnboarding as finalizeOnboardingState,
   getEntryDestination,
   getResumeOnboardingRoute,
   isNutritionChoiceAllowed,
@@ -26,6 +26,15 @@ import {
   type TrainingExperience,
   type TrainingPreferences
 } from "@/lib/onboarding-data";
+import { useAuthStore } from "@/components/auth-provider";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  buildProfileSnapshotFromOnboarding,
+  loadAthleteSnapshot,
+  mapOnboardingStatus,
+  mergeRemoteSnapshotIntoOnboardingState,
+  saveAthleteSnapshot
+} from "@/lib/athlete-service";
 import { createProgressDemoState } from "@/lib/progress-data";
 import type { MeasurementType } from "@/lib/progress-data";
 
@@ -156,7 +165,13 @@ function updateMeasurementBaseline(seed: typeof baselineSeed) {
 }
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
+  const auth = useAuthStore();
+  const authRef = useRef(auth);
   const [state, setState] = useState<OnboardingState>(() => createOnboardingDemoState());
+
+  useEffect(() => {
+    authRef.current = auth;
+  }, [auth]);
 
   useEffect(() => {
     setState(reviveState(window.localStorage.getItem(STORAGE_KEY)));
@@ -165,6 +180,83 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state]);
+
+  useEffect(() => {
+    if (!auth.ready) {
+      return;
+    }
+
+    let active = true;
+
+    async function hydrateFromRemote() {
+      const client = getSupabaseBrowserClient();
+
+      const currentAuth = authRef.current;
+
+      if (!currentAuth.isConfigured || !currentAuth.user || !client) {
+        setState(reviveState(window.localStorage.getItem(STORAGE_KEY)));
+        return;
+      }
+
+      try {
+        const remote = await loadAthleteSnapshot(client, currentAuth.user.id);
+        if (!active) {
+          return;
+        }
+
+        if (remote.source === "default") {
+          const localState = reviveState(window.localStorage.getItem(STORAGE_KEY));
+          setState(localState);
+          await saveAthleteSnapshot(
+            client,
+            currentAuth.user.id,
+            buildProfileSnapshotFromOnboarding(localState),
+            mapOnboardingStatus(localState.progress.status),
+            localState.progress.status === "complete" ? new Date().toISOString() : null
+          );
+          return;
+        }
+
+        setState((current) => mergeRemoteSnapshotIntoOnboardingState(current, remote));
+        if (!remote.preferencesPresent) {
+          await saveAthleteSnapshot(
+            client,
+            currentAuth.user.id,
+            remote.snapshot,
+            remote.onboardingStatus,
+            remote.onboardingCompletedAt
+          );
+        }
+      } catch {
+        if (active) {
+          setState(reviveState(window.localStorage.getItem(STORAGE_KEY)));
+        }
+      }
+    }
+
+    void hydrateFromRemote();
+
+    return () => {
+      active = false;
+    };
+  }, [auth.isConfigured, auth.ready, auth.user?.id]);
+
+  async function persistCurrentSnapshot(nextState: OnboardingState) {
+    const client = getSupabaseBrowserClient();
+    const currentAuth = authRef.current;
+
+    if (!currentAuth.isConfigured || !currentAuth.user || !client) {
+      return;
+    }
+
+    await saveAthleteSnapshot(
+      client,
+      currentAuth.user.id,
+      buildProfileSnapshotFromOnboarding(nextState),
+      mapOnboardingStatus(nextState.progress.status),
+      nextState.progress.status === "complete" ? new Date().toISOString() : null
+    );
+  }
 
   const value = useMemo<OnboardingStoreValue>(() => {
     const entryDestination = getEntryDestination(state.progress);
@@ -405,7 +497,11 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       const seed = updateMeasurementBaseline(baselineSeed);
       window.localStorage.setItem("coachx-demo-progress-state-v2", JSON.stringify(seed));
       window.dispatchEvent(new Event("coachx-progress-state-updated"));
-      setState((current) => finalizeOnboarding(current));
+      setState((current) => {
+        const nextState = finalizeOnboardingState(current);
+        void persistCurrentSnapshot(nextState);
+        return nextState;
+      });
     };
 
     const resetOnboardingAction: OnboardingStoreValue["resetOnboarding"] = () => {
