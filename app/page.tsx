@@ -155,7 +155,7 @@ export default async function TodayPage({ searchParams }: TodayPageProps) {
           </>
         )}
 
-        <div className="sticky-action">
+        <div className="page-cta">
           <PrimaryButton href={isRestDay ? "/day/2026-08-08" : `/workout/${coachxDemoState.workoutSession.id}`} className="focus-ring">
             {isRestDay ? "View Workout" : "Start Workout"}
           </PrimaryButton>

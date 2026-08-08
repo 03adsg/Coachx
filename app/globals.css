@@ -284,6 +284,10 @@ img {
   padding: 0 0 4px;
 }
 
+.page-cta {
+  margin-top: 24px;
+}
+
 .bottom-nav {
   position: fixed;
   left: 50%;
