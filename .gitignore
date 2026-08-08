@@ -11,3 +11,4 @@ profile*.png
 progress*.png
 
 .vercel
+.env*
