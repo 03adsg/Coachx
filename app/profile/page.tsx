@@ -1,8 +1,15 @@
+"use client";
+
+import Link from "next/link";
 import { Screen } from "@/components/screen";
-import { Card, SecondaryButton } from "@/components/ui";
-import { coachxDemoState, coachxProfile } from "@/lib/coachx-data";
+import { Card } from "@/components/ui";
+import { useProfileSettingsStore } from "@/components/profile-settings-provider";
+import { useOnboardingStore } from "@/components/onboarding-provider";
 
 export default function ProfilePage() {
+  const { saved, pendingReview } = useProfileSettingsStore();
+  const { program } = useOnboardingStore();
+
   return (
     <Screen
       activeTab="profile"
@@ -18,19 +25,13 @@ export default function ProfilePage() {
       <main className="content tight">
         <section className="section">
           <div className="row start">
-              <div>
-              <h1 className="headline-lg">{coachxDemoState.athlete.name}</h1>
+            <div>
+              <h1 className="headline-lg">{saved.profile.name}</h1>
               <p className="caption" style={{ marginTop: 8 }}>
-                Athlete profile and foundation settings
+                Provisional profile hub and foundation settings
               </p>
             </div>
-            <img
-              className="profile-avatar"
-              src="/coachx-avatar.svg"
-              alt="Athlete profile"
-              width={52}
-              height={52}
-            />
+            <img className="profile-avatar" src="/coachx-avatar.svg" alt="Athlete profile" width={52} height={52} />
           </div>
         </section>
 
@@ -40,52 +41,82 @@ export default function ProfilePage() {
               <div>
                 <div className="eyebrow">Current plan</div>
                 <h2 className="headline-md" style={{ marginTop: 6 }}>
-                  {coachxDemoState.athlete.goal}
+                  {saved.goals.mainGoal}
                 </h2>
               </div>
-              <span className="pill">Active</span>
+              <span className="pill">{program.status === "active" ? "Active" : "Proposed"}</span>
             </div>
             <div className="grid-3" style={{ marginTop: 16 }}>
               <div>
-                <div className="headline-md">4</div>
+                <div className="headline-md">{saved.trainingPreferences.daysPerWeek}</div>
                 <div className="eyebrow" style={{ marginTop: 4 }}>
                   Days / week
                 </div>
               </div>
               <div>
-                <div className="headline-md">60-75</div>
+                <div className="headline-md">{saved.trainingPreferences.duration}</div>
                 <div className="eyebrow" style={{ marginTop: 4 }}>
-                  Minutes
+                  Duration
                 </div>
               </div>
               <div>
-                <div className="headline-md">Full</div>
+                <div className="headline-md">{saved.trainingPreferences.location}</div>
                 <div className="eyebrow" style={{ marginTop: 4 }}>
-                  Gym access
+                  Location
                 </div>
               </div>
             </div>
           </Card>
         </section>
 
-        <section className="section">
-          <div className="stack">
-            {coachxProfile.map((section) => (
-              <Card key={section.label} className="p-16">
-                <div className="row start">
-                  <div>
-                    <div className="eyebrow">{section.label}</div>
-                    <div className="body-md" style={{ marginTop: 6 }}>
-                      {section.value}
-                    </div>
+        <section className="section stack">
+          <Link href="/profile/preferences" className="focus-ring">
+            <Card className="p-16">
+              <div className="row start">
+                <div>
+                  <div className="eyebrow">Profile editing</div>
+                  <div className="body-md" style={{ marginTop: 6, fontWeight: 700 }}>
+                    Open profile & preferences
                   </div>
-                  <button className="accent focus-ring" type="button" style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase" }}>
-                    Edit
-                  </button>
                 </div>
-              </Card>
-            ))}
-          </div>
+                <span className="icon" aria-hidden="true">
+                  chevron_right
+                </span>
+              </div>
+            </Card>
+          </Link>
+
+          <Link href="/profile/notifications" className="focus-ring">
+            <Card className="p-16">
+              <div className="row start">
+                <div>
+                  <div className="eyebrow">Notifications</div>
+                  <div className="body-md" style={{ marginTop: 6, fontWeight: 700 }}>
+                    Workout, progress and coaching reminders
+                  </div>
+                </div>
+                <span className="icon" aria-hidden="true">
+                  chevron_right
+                </span>
+              </div>
+            </Card>
+          </Link>
+
+          <Link href="/program" className="focus-ring">
+            <Card className="p-16">
+              <div className="row start">
+                <div>
+                  <div className="eyebrow">Program overview</div>
+                  <div className="body-md" style={{ marginTop: 6, fontWeight: 700 }}>
+                    Review the current phase
+                  </div>
+                </div>
+                <span className="icon" aria-hidden="true">
+                  chevron_right
+                </span>
+              </div>
+            </Card>
+          </Link>
         </section>
 
         <section className="section">
@@ -96,15 +127,20 @@ export default function ProfilePage() {
                 <p className="body-md" style={{ marginTop: 6, color: "var(--text-secondary)" }}>
                   This build uses local fixture data and can later switch to Supabase without changing the UI.
                 </p>
+                {pendingReview ? (
+                  <p className="caption" style={{ marginTop: 10 }}>
+                    Pending review: {pendingReview.title}
+                  </p>
+                ) : null}
               </div>
             </div>
           </Card>
         </section>
 
         <div className="stack">
-          <SecondaryButton className="focus-ring" style={{ width: "100%" }}>
+          <Link href="/profile/preferences" className="button-secondary focus-ring" style={{ width: "100%" }}>
             Open Settings
-          </SecondaryButton>
+          </Link>
         </div>
       </main>
     </Screen>

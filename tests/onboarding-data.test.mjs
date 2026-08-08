@@ -17,7 +17,8 @@ async function transpileLibraryChain() {
     "workout-data.ts",
     "coachx-data.ts",
     "progress-data.ts",
-    "onboarding-data.ts"
+    "onboarding-data.ts",
+    "profile-settings-data.ts"
   ];
 
   for (const fileName of sourceFiles) {
@@ -48,6 +49,7 @@ async function transpileLibraryChain() {
 }
 
 const onboarding = await transpileLibraryChain();
+const profileSettings = await import(pathToFileURL(path.join(tempDir, "profile-settings-data.mjs")).href);
 
 test("onboarding step ordering works", () => {
   assert.equal(onboarding.getNextOnboardingStep("goals"), "training-experience");
@@ -93,6 +95,58 @@ test("program activation is explicit", () => {
   const active = onboarding.activateProgram(proposal);
   assert.equal(active.status, "active");
   assert.equal(onboarding.finalizeOnboarding(onboarding.onboardingDemoState).progress.status, "complete");
+});
+
+test("profile review classifies program-impacting edits", () => {
+  const current = profileSettings.createProfileSnapshot();
+  const next = {
+    ...current,
+    trainingPreferences: {
+      ...current.trainingPreferences,
+      daysPerWeek: 3
+    }
+  };
+
+  const review = profileSettings.buildProfileReview(current, next, onboarding.onboardingDemoState.program);
+  assert.equal(review.classification, "PROGRAM_ADJUSTMENT_RECOMMENDED");
+  assert.ok(review.whatChanged.some((change) => change.field === "Training days"));
+});
+
+test("nutrition safety changes require coach review", () => {
+  const current = profileSettings.createProfileSnapshot();
+  const next = {
+    ...current,
+    nutritionPreferences: {
+      ...current.nutritionPreferences,
+      allergies: [...current.nutritionPreferences.allergies, "Shellfish"]
+    }
+  };
+
+  const review = profileSettings.buildProfileReview(current, next, onboarding.onboardingDemoState.program);
+  assert.equal(review.classification, "COACH_REVIEW_REQUIRED");
+});
+
+test("notification settings preserve categories when the master toggle changes", () => {
+  const settings = profileSettings.createNotificationSettings();
+  const disabled = {
+    ...settings,
+    masterEnabled: false
+  };
+
+  const revived = profileSettings.reviveProfileSettingsState(JSON.stringify({ notifications: disabled })).notifications;
+  assert.equal(revived.masterEnabled, false);
+  assert.equal(revived.categories.length, settings.categories.length);
+  assert.deepEqual(
+    revived.categories.map((category) => category.id),
+    settings.categories.map((category) => category.id)
+  );
+});
+
+test("program update remains explicit", () => {
+  const current = profileSettings.createProfileSnapshot();
+  const updatedProgram = profileSettings.applySnapshotToProgram(onboarding.onboardingDemoState.program, current);
+  assert.equal(updatedProgram.goal, current.goals.mainGoal);
+  assert.equal(updatedProgram.status, onboarding.onboardingDemoState.program.status);
 });
 
 await rm(tempDir, { recursive: true, force: true });

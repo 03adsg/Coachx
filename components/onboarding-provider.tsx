@@ -12,6 +12,7 @@ import {
   isNutritionChoiceAllowed,
   markStepComplete,
   reorderPriorityItems,
+  type GoalProfile,
   shouldRequireCoachReview,
   type AthleteProfile,
   type BaselinePose,
@@ -36,6 +37,7 @@ interface OnboardingStoreValue {
   startStep: (step: OnboardingStepId) => void;
   completeStep: (step: OnboardingStepId) => void;
   setProfile: (patch: Partial<AthleteProfile>) => void;
+  setGoals: (patch: Partial<GoalProfile>) => void;
   setMainGoal: (goal: string) => void;
   reorderPriorities: (fromIndex: number, toIndex: number) => void;
   setTrainingExperience: (patch: Partial<TrainingExperience>) => void;
@@ -50,6 +52,7 @@ interface OnboardingStoreValue {
   setGoalDecision: (value: "KEEP" | "ADJUST") => void;
   setPriorityDecision: (value: "KEEP" | "ADJUST") => void;
   setAthleteFeedback: (value: "Very Good" | "Good" | "Mixed" | "Too Hard" | "Too Easy" | "Not Sure") => void;
+  setProgram: (patch: Partial<ProgramState>) => void;
   createProgramProposal: () => void;
   activateProgram: () => void;
   finalizeOnboarding: () => void;
@@ -189,6 +192,17 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         profile: {
           ...current.profile,
           ...patch
+        }
+      }));
+    };
+
+    const setGoals: OnboardingStoreValue["setGoals"] = (patch) => {
+      setState((current) => ({
+        ...current,
+        goals: {
+          ...current.goals,
+          ...patch,
+          priorities: patch.priorities ? [...patch.priorities] : current.goals.priorities
         }
       }));
     };
@@ -353,6 +367,16 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       }));
     };
 
+    const setProgram: OnboardingStoreValue["setProgram"] = (patch) => {
+      setState((current) => ({
+        ...current,
+        program: {
+          ...current.program,
+          ...patch
+        }
+      }));
+    };
+
     const createProgramProposalAction: OnboardingStoreValue["createProgramProposal"] = () => {
       setState((current) => ({
         ...current,
@@ -401,6 +425,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       startStep,
       completeStep,
       setProfile,
+      setGoals,
       setMainGoal,
       reorderPriorities,
       setTrainingExperience,
@@ -415,6 +440,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       setGoalDecision,
       setPriorityDecision,
       setAthleteFeedback,
+      setProgram,
       createProgramProposal: createProgramProposalAction,
       activateProgram: activateProgramAction,
       finalizeOnboarding: finalizeOnboardingAction,

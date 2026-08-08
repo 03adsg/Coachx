@@ -384,3 +384,163 @@
 - `Entry` remains provisional because there is no standalone physical Stitch export for welcome/login.
 - Production auth is not connected yet.
 - `Meal Options` and the main `/progress` dashboard remain provisional from earlier batches.
+
+
+## Batch E — Profile, Notifications & Athlete MVP QA
+
+### Screens implemented
+
+- `Profile Preferences` hub for the editorial profile sections
+- `Personal Details` profile editor
+- `Goals & Priorities` editor
+- `Training Preferences` editor
+- `Schedule & Lifestyle` editor
+- `Nutrition Preferences` editor
+- `Health & Limitations` editor
+- `Program Impact Review`
+- `Notifications & Reminders`
+- `Profile` hub remains provisional and now links into the editing flow
+
+### Routes
+
+- `/profile`
+- `/profile/preferences`
+- `/profile/preferences/personal`
+- `/profile/preferences/goals`
+- `/profile/preferences/training`
+- `/profile/preferences/schedule`
+- `/profile/preferences/nutrition`
+- `/profile/preferences/health`
+- `/profile/notifications`
+- `/profile/program-impact-review`
+
+### Reused components and shared state
+
+- `ProfileSettingsProvider`
+- `useProfileSettingsStore`
+- `Screen`
+- `Card`
+- `ChoiceButton`
+- `PillToggle`
+- `PrimaryButton`
+- `SecondaryButton`
+- `OnboardingProvider` data slices for:
+  - `AthleteProfile`
+  - `GoalProfile`
+  - `TrainingPreferences`
+  - `ScheduleLifestyle`
+  - `HealthLimitations`
+  - `NutritionPreferences`
+- `ProfileSnapshot`
+- `NotificationSettings`
+- `ProfileImpactReview`
+
+### Data and impact model
+
+- Profile edits reuse the same underlying onboarding domain shapes instead of a second profile architecture.
+- `PROFILE CHANGE → IMPACT DETECTED → RECOMMENDATION → VALIDATION / REVIEW → PROGRAM CHANGE` is now represented as a typed fixture flow.
+- Impact classes are deterministic: `NO_IMPACT`, `MINOR_REVIEW`, `PROGRAM_ADJUSTMENT_RECOMMENDED`, `COACH_REVIEW_REQUIRED`.
+- Nutrition safety keeps allergy / restriction / intolerance priority above preference and variety.
+- Program mutation only happens after explicit confirmation; recommendation does not equal application.
+
+### Notifications
+
+- Master notification toggle preserves per-category selections when paused.
+- Permission state is modeled explicitly as `NOT_REQUESTED`, `ALLOWED`, or `DENIED`.
+- Quiet hours, reminder intensity, and per-category reminder scopes are fixture-backed and accessible.
+- Reminder state is separated from the underlying task/program state.
+
+### Accessibility and iOS navigation
+
+- Semantic switches use `role="switch"` with `aria-checked`.
+- Focus remains on visible controls and dialogs expose real headings/buttons.
+- Browser Back / visible Back / iOS edge-back remain coherent where feasible.
+- Large-text wrapping and 44px touch targets were preserved on the new screens.
+
+### GSAP
+
+- New profile screens reuse the centralized motion system.
+- Motion stays restrained: fade/translate on enter and subtle card staggers.
+- Reduced-motion behavior remains intact.
+
+### Validation
+
+- `pnpm typecheck` via bundled Node: passed.
+- `pnpm lint` via bundled Node: passed.
+- `pnpm build` via bundled Node: passed.
+- `pnpm test` via bundled Node: passed.
+- 375px, 390px, and 430px browser sweeps: no horizontal overflow and no console errors on `/`, `/calendar`, `/day/2026-08-08`, `/progress`, `/profile`, `/profile/preferences`, `/profile/notifications`, and `/profile/program-impact-review`.
+
+### Remaining provisional / temporary states
+
+- `/profile` is still the provisional hub because the main Profile & Settings screen does not have a standalone physical export.
+- `Profile Preferences` editing screens are matched where a physical export exists; the hub itself remains an integration surface.
+- The app still uses local fixture persistence for profile settings and notifications.
+- Earlier Batch C limitations still apply: `/progress` remains provisional until its dedicated physical Stitch export exists.
+
+## Batch E — Profile, Notifications & Athlete MVP QA
+
+### Screens and routes
+
+- Profile preferences hub: `/profile/preferences`
+- Personal information editor: `/profile/preferences/personal`
+- Goals and priorities editor: `/profile/preferences/goals`
+- Training preferences editor: `/profile/preferences/training`
+- Schedule and lifestyle editor: `/profile/preferences/schedule`
+- Nutrition preferences editor: `/profile/preferences/nutrition`
+- Health and limitations editor: `/profile/preferences/health`
+- Notifications and reminders: `/profile/notifications`
+- Program impact review: `/profile/program-impact-review`
+
+### Shared state and models
+
+- Reused the Batch D onboarding domains as the single source of truth:
+  - `AthleteProfile`
+  - `GoalProfile`
+  - `TrainingExperience`
+  - `TrainingPreferences`
+  - `ScheduleLifestyle`
+  - `HealthLimitations`
+  - `NutritionPreferences`
+- Added typed profile settings state for saved snapshot, draft review, notification settings, and save status.
+- Added deterministic impact classification for `NO_IMPACT`, `MINOR_REVIEW`, `PROGRAM_ADJUSTMENT_RECOMMENDED`, and `COACH_REVIEW_REQUIRED`.
+
+### Program safety
+
+- Profile edits now flow through `PROFILE CHANGE â†’ IMPACT DETECTED â†’ RECOMMENDATION â†’ VALIDATION / REVIEW â†’ PROGRAM CHANGE`.
+- Recommendation does not equal application.
+- Goal, schedule, equipment, nutrition safety, and health changes can raise review states without mutating the active program.
+- Allergy and restriction changes escalate to coach review instead of silently rewriting the meal plan.
+
+### Notifications
+
+- Implemented master notifications control with category-level reminder persistence.
+- Modeled permission state, reminder intensity, and quiet hours as fixture-backed state.
+- Reminder toggles remain separate from the underlying workout, measurement, or review tasks.
+
+### Accessibility and iOS QA
+
+- Semantic switches, dialog headings, labels, and status text were verified on the new flows.
+- Focus management remains predictable across editor open, save, review, and unsaved-change confirmation states.
+- Browser Back, visible Back, and iOS edge-back remain coherent where feasible.
+- 375px, 390px, and 430px sweeps stayed within viewport with no horizontal overflow.
+
+### Motion
+
+- New flows reuse the shared GSAP motion layer.
+- Animation remains restrained: enter fades, light translate, subtle stagger, and low-key success transitions.
+- Reduced-motion support remains intact.
+
+### Validation
+
+- `pnpm typecheck`: passed.
+- `pnpm lint`: passed.
+- `pnpm build`: passed.
+- `pnpm test`: passed.
+- Mobile smoke checks: passed on `/`, `/calendar`, `/day/2026-08-08`, `/progress`, `/profile`, and all Batch E editor routes.
+
+### Remaining provisional / temporary states
+
+- `/profile` stays provisional as the hub for the editing flows.
+- `Notifications & Reminders` is fixture-backed until production permission and push delivery exist.
+- Active program changes still require explicit confirmation; no automatic program rewrite was added.
