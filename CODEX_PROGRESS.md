@@ -276,3 +276,111 @@
 - `pnpm build` via bundled Node: passed.
 - 375px, 390px, and 430px browser sweeps: no horizontal overflow and no console errors on the implemented routes.
 - 390px screenshots reviewed for `/progress/measurements`, `/progress/measurements/success`, `/progress/photos`, `/progress/photos/capture/front`, `/progress/photos/compare`, `/progress/trends`, and `/progress/phase-review`.
+
+
+## Batch D ??? Onboarding + Program
+
+### Screens implemented
+
+- `Entry` ??? provisional login / entry flow
+- `Onboarding` ??? intro
+- `Profile` ??? name, age, height, weight, units
+- `Goals` ??? main goal and reorderable priorities
+- `Training Experience` ??? experience, confidence, loads, and movement familiarity
+- `Training Preferences` ??? weekly structure, duration, equipment, style, and movement preferences
+- `Schedule & Lifestyle` ??? work pattern, sleep, energy, hydration, and reminders
+- `Health & Limitations` ??? calm private limitation capture with coach review detection
+- `Nutrition Preferences` ??? safety-first preference capture with allergy priority preserved
+- `Baseline` ??? measurements and optional private progress photo setup
+- `Final Review` ??? edit-before-build summary
+- `Building Your Plan` ??? deterministic processing state
+- `Plan Reveal` ??? proposed phase, structure, and activation CTA
+- `Program Overview` ??? active plan summary
+
+### Routes
+
+- `/entry`
+- `/onboarding`
+- `/onboarding/profile`
+- `/onboarding/goals`
+- `/onboarding/training-experience`
+- `/onboarding/training-preferences`
+- `/onboarding/schedule`
+- `/onboarding/health`
+- `/onboarding/nutrition`
+- `/onboarding/baseline`
+- `/onboarding/review`
+- `/onboarding/building-plan`
+- `/onboarding/plan-ready`
+- `/program`
+
+### Reused components
+
+- `Screen`
+- `Card`
+- `PrimaryButton`
+- `SecondaryButton`
+- `ChoiceButton`
+- `PillToggle`
+- `OnboardingStepHeader`
+- `OnboardingStickyActions`
+- `ProgressProvider`
+- `OnboardingProvider`
+
+### Data models
+
+- `AthleteProfile`
+- `GoalProfile`
+- `TrainingExperience`
+- `TrainingPreferences`
+- `ScheduleLifestyle`
+- `HealthLimitations`
+- `NutritionPreferences`
+- `BaselineState`
+- `OnboardingProgress`
+- `ProgramState`
+- `ProgramRecommendation`
+
+### Conditional logic
+
+- Progression through onboarding preserves state when moving Back or resuming later.
+- `coachReviewRequired` becomes true for meaningful limitation language and remains calm/private in the UI.
+- Allergy and restriction safety remain above preference and variety.
+- `START MY PROGRAM` activates the fixture program state and seeds the progress baseline.
+- `ENTRY` routes new users to onboarding, incomplete users to resume, and completed users back to Today.
+
+### Baseline integration
+
+- Onboarding baseline measurements and photos hydrate the existing progress fixture store.
+- Baseline photos remain optional and private by default.
+- No duplicate baseline architecture was introduced.
+
+### Program activation
+
+- `Plan Reveal` keeps the program in `proposed` state until confirmation.
+- `START MY PROGRAM` transitions the fixture program to `active` and routes to Today.
+- `Program Overview` reflects the same typed program state.
+
+### Accessibility
+
+- Semantic headings are present on each implemented route.
+- Buttons remain real buttons with labels, not gesture-only controls.
+- Browser Back / visible Back / iOS edge-back remain coherent where possible.
+- Large-text wrapping and 44px touch targets were preserved.
+
+### GSAP
+
+- Reused the centralized motion layer for onboarding and program cards.
+- Kept transitions restrained: fade/translate on enter and small card staggers.
+- Preserved reduced-motion behavior.
+
+### Viewport QA
+
+- 375px, 390px, and 430px mobile passes were rerun on the onboarding and program routes.
+- No horizontal overflow was found on `/`, `/entry`, `/onboarding`, `/onboarding/profile`, `/onboarding/review`, `/onboarding/plan-ready`, or `/program`.
+
+### Remaining gaps
+
+- `Entry` remains provisional because there is no standalone physical Stitch export for welcome/login.
+- Production auth is not connected yet.
+- `Meal Options` and the main `/progress` dashboard remain provisional from earlier batches.

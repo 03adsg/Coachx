@@ -93,7 +93,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<ProgressState>(() => createProgressDemoState());
 
   useEffect(() => {
-    setState(reviveState(window.localStorage.getItem(STORAGE_KEY)));
+    const syncState = () => setState(reviveState(window.localStorage.getItem(STORAGE_KEY)));
+    syncState();
+    window.addEventListener("coachx-progress-state-updated", syncState);
+
+    return () => {
+      window.removeEventListener("coachx-progress-state-updated", syncState);
+    };
   }, []);
 
   useEffect(() => {
