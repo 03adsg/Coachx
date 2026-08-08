@@ -22,6 +22,7 @@
 - Replaced the remote profile portrait with a local placeholder avatar asset so the UI renders reliably offline.
 - Tightened mobile spacing and button widths to avoid overlap in the 390px viewport.
 - Kept the black/charcoal section rhythm inside the Stitch layout instead of changing page composition.
+- Added local favicon and Apple touch icon assets to remove the remaining COACHX 404 for standalone and browser installs.
 
 ## GSAP corrections
 
@@ -34,6 +35,7 @@
 - Preserved safe-area padding for iPhone-style bottom navigation.
 - Kept sticky CTAs and the bottom nav aligned to the 390px mobile target.
 - Verified no horizontal overflow in the implemented routes during the 390px pass.
+- Verified the icon metadata references and install-time asset paths are local and resolvable.
 
 ## Placeholder assets
 
@@ -78,6 +80,9 @@
 - `public/manifest.json`
 - `public/coachx-icon.svg`
 - `public/coachx-avatar.svg`
+- `public/favicon.ico`
+- `public/apple-touch-icon.png`
+- `public/icon.png`
 - `public/stitch-assets/hip_thrust.png`
 - `public/stitch-assets/romanian_deadlift.png`
 

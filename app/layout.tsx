@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: "COACHX",
   description: "COACHX athlete app",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png"
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
