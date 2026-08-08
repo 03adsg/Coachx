@@ -3,6 +3,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true
   },
+  outputFileTracingRoot: process.cwd(),
   images: {
     remotePatterns: [
       {

@@ -111,6 +111,11 @@ export default function DayDetailPage() {
                 </div>
               </div>
             </div>
+            <div style={{ marginTop: 16 }}>
+              <Link href={`/day/${coachxToday.dateKey}/nutrition`} className="workout-secondary-button focus-ring">
+                Open Nutrition
+              </Link>
+            </div>
           </Card>
         </Section>
 

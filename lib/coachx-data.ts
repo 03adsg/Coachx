@@ -1,4 +1,5 @@
 import { createDemoWorkoutSession, getExerciseDefinition } from "@/lib/workout-data";
+import { createNutritionSession, type NutritionDay } from "@/lib/nutrition-data";
 
 export type BottomTab = "today" | "calendar" | "progress" | "profile";
 
@@ -96,11 +97,12 @@ const demoAthlete: DemoAthlete = {
 };
 
 const demoWorkoutSession = createDemoWorkoutSession();
+const demoNutritionDay: NutritionDay = createNutritionSession("2026-08-08");
 
 const demoDay: DemoDay = {
-  dateKey: "2026-08-08",
-  dateLabel: demoWorkoutSession.dateLabel,
-  calendarLabel: "Saturday August 8",
+  dateKey: demoNutritionDay.dateKey,
+  dateLabel: demoNutritionDay.dateLabel,
+  calendarLabel: demoNutritionDay.calendarLabel,
   phase: demoWorkoutSession.phaseLabel,
   workoutTitle: demoWorkoutSession.workoutLabel,
   workoutType: "Posterior chain emphasis",
@@ -110,8 +112,8 @@ const demoDay: DemoDay = {
   primaryTarget: "Glutes",
   secondaryTarget: "Hamstrings",
   workoutCount: `${demoWorkoutSession.totalExercises} exercises`,
-  nutritionCalories: "2050 kcal",
-  macros: "140P · 220C · 60F",
+  nutritionCalories: `${demoNutritionDay.target.calories} kcal`,
+  macros: `${demoNutritionDay.target.protein}P · ${demoNutritionDay.target.carbs}C · ${demoNutritionDay.target.fat}F`,
   cardio: "Zone 2 · 20 min",
   habits: "Daily habits 0/5",
   coachInsight:
@@ -170,6 +172,7 @@ const demoCalendarDays = buildAugustCalendar();
 export const coachxDemoState = {
   athlete: demoAthlete,
   day: demoDay,
+  nutrition: demoNutritionDay,
   workoutSession: demoWorkoutSession,
   calendar: {
     monthLabel: "August 2026",
@@ -198,6 +201,7 @@ export const coachxDemoState = {
 };
 
 export const coachxToday = coachxDemoState.day;
+export const coachxNutrition = coachxDemoState.nutrition;
 export const coachxCalendarDays = coachxDemoState.calendar.days;
 export const coachxCalendarWeekdays = coachxDemoState.calendar.weekdays;
 export const coachxProgressMetrics = coachxDemoState.progress.metrics;

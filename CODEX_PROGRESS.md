@@ -181,3 +181,46 @@
 ## Next autonomous action
 
 - Refine shared primitives only if a newly implemented Stitch screen demands them, or connect the existing data layer to Supabase behind the current interfaces.
+
+## Batch B — Nutrition
+
+### Visual Fidelity Pass
+
+- `Daily Nutrition` — MATCHED TO STITCH
+- `Meal Options` — TEMPORARY / PROVISIONAL
+
+### Visual corrections made
+
+- Added a shared nutrition fixture layer so Today, Day Detail, and Nutrition all derive from the same demo day data.
+- Implemented the physical `/day/[date]/nutrition` screen from the v2 export structure.
+- Kept Meal Options provisional and lightweight, with a confirmable chooser flow instead of a redesigned surface.
+- Reused the exported breakfast image locally as a hostable asset instead of relying on a remote dependency.
+
+### GSAP corrections
+
+- Extended the shared screen motion targets to include the nutrition surfaces and chooser.
+- Added a restrained nutrition sheet entrance that respects `prefers-reduced-motion`.
+
+### Responsive corrections
+
+- Kept the nutrition shell inside the same iPhone-first 390px layout grid.
+- Preserved safe-area-aware spacing for the sticky shell and chooser.
+- Kept the nutrition cards and sheet touch targets at mobile-friendly sizes.
+
+### Placeholder assets
+
+- `public/stitch-assets/nutrition-breakfast.png` is a locally hosted export asset for the meal card image.
+
+### Remaining differences
+
+- `Meal Options` remains provisional until Stitch provides a dedicated physical export.
+- `/progress` remains temporary.
+
+### Batch B Live QA
+
+- 375px, 390px, and 430px route sweeps showed no horizontal overflow.
+- 390px routes tested: `/`, `/calendar`, `/day/2026-08-08`, `/day/2026-08-08/nutrition`, `/progress`, `/profile`.
+- `390px` screenshots reviewed for `/day/2026-08-08` and `/day/2026-08-08/nutrition`.
+- Local mobile render is clean after the nutrition typography fix.
+- Preview deployment URL: `https://coachx-gn2kd2nb7-projectmanagmentnotion-costacleans-projects.vercel.app`
+- Live preview is currently gated at `/login` in anonymous/headless browser sessions, so browser-side QA on the hosted preview remains blocked by external access protection.

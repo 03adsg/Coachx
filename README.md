@@ -1,4 +1,4 @@
-# COACHX
+﻿# COACHX
 
 COACHX is an iPhone-first athlete app built from Stitch references and the repository design rules.
 
@@ -7,6 +7,7 @@ COACHX is an iPhone-first athlete app built from Stitch references and the repos
 - `/` Today
 - `/calendar`
 - `/day/[date]`
+- `/day/[date]/nutrition`
 - `/progress`
 - `/profile`
 
@@ -42,3 +43,4 @@ pnpm build
 3. Choose `Add to Home Screen`.
 4. Launch COACHX from the Home Screen icon.
 5. Verify the app opens in standalone mode with minimal browser chrome.
+6. Open a day detail screen and confirm the nutrition route uses the same demo day.
