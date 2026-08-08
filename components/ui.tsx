@@ -37,7 +37,21 @@ export function Card({
   );
 }
 
-export function PrimaryButton({ href, children, className = "" }: { href?: string; children: ReactNode; className?: string }) {
+export function PrimaryButton({
+  href,
+  children,
+  className = "",
+  onClick,
+  disabled,
+  type = "button"
+}: {
+  href?: string;
+  children: ReactNode;
+  className?: string;
+  onClick?: () => void;
+  disabled?: boolean;
+  type?: "button" | "submit";
+}) {
   if (href) {
     return (
       <Link href={href} className={`button-primary focus-ring ${className}`.trim()}>
@@ -46,12 +60,30 @@ export function PrimaryButton({ href, children, className = "" }: { href?: strin
     );
   }
 
-  return <button className={`button-primary focus-ring ${className}`.trim()} type="button">{children}</button>;
+  return (
+    <button className={`button-primary focus-ring ${className}`.trim()} type={type} onClick={onClick} disabled={disabled}>
+      {children}
+    </button>
+  );
 }
 
-export function SecondaryButton({ children, className = "", style }: { children: ReactNode; className?: string; style?: CSSProperties }) {
+export function SecondaryButton({
+  children,
+  className = "",
+  style,
+  onClick,
+  disabled,
+  type = "button"
+}: {
+  children: ReactNode;
+  className?: string;
+  style?: CSSProperties;
+  onClick?: () => void;
+  disabled?: boolean;
+  type?: "button" | "submit";
+}) {
   return (
-    <button className={`button-secondary focus-ring ${className}`.trim()} type="button" style={style}>
+    <button className={`button-secondary focus-ring ${className}`.trim()} type={type} style={style} onClick={onClick} disabled={disabled}>
       {children}
     </button>
   );

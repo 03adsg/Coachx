@@ -224,3 +224,55 @@
 - Local mobile render is clean after the nutrition typography fix.
 - Preview deployment URL: `https://coachx-gn2kd2nb7-projectmanagmentnotion-costacleans-projects.vercel.app`
 - Live preview is currently gated at `/login` in anonymous/headless browser sessions, so browser-side QA on the hosted preview remains blocked by external access protection.
+
+## Batch C — Progress + Reviews
+
+### Visual Fidelity Pass
+
+- `Measurements Update` â MATCHED TO STITCH
+- `Progress Photos` â MATCHED TO STITCH
+- `Detailed Trends` â MATCHED TO STITCH
+- `Phase Review` â MATCHED TO STITCH
+- `Progress` â TEMPORARY / provisional hub only
+
+### Visual corrections made
+
+- Added a centralized progress data/provider layer so measurements, photos, trends, and phase review all share one fixture-backed state.
+- Implemented the physical Batch C routes: `/progress/measurements`, `/progress/measurements/success`, `/progress/photos`, `/progress/photos/capture/[pose]`, `/progress/photos/compare`, `/progress/trends`, and `/progress/phase-review`.
+- Kept `/progress` as the provisional entry hub and did not redesign it into a false Stitch match.
+- Added local placeholder progress-photo SVG assets instead of relying on remote imagery.
+- Added the measurement guidance modal, photo preparation guidance, accessible compare slider fallback, and review decision controls.
+- Normalized the measurement decimal input so it renders as `72.8` instead of a locale comma variant.
+- Fixed a stale localStorage photo asset reference that was producing a 404 on the capture screen.
+
+### GSAP corrections
+
+- Extended the shared motion targets to include the new progress surfaces, comparison cards, and review cards.
+- Kept screen entry and card motion restrained and transform-based.
+- Preserved reduced-motion handling across the new Batch C surfaces.
+
+### Responsive corrections
+
+- Verified 375px, 390px, and 430px layouts for the Batch C routes.
+- Removed the measurement screen overflow caused by the numeric input width.
+- Kept the capture, compare, and review flows inside the same iPhone-first shell with safe-area-aware fixed actions.
+
+### Placeholder assets
+
+- `public/progress-photo-front.svg` is a development placeholder.
+- `public/progress-photo-side.svg` is a development placeholder.
+- `public/progress-photo-back.svg` is a development placeholder.
+
+### Remaining differences
+
+- `/progress` is still provisional because the Stitch ZIP does not contain a dedicated physical export for the main dashboard.
+- The progress-photo assets are local placeholders until approved production imagery exists.
+- The review photos are fixture-backed mock comparisons, not camera captures.
+
+### Batch C validation
+
+- `pnpm typecheck` via bundled Node: passed.
+- `pnpm lint` via bundled Node: passed.
+- `pnpm build` via bundled Node: passed.
+- 375px, 390px, and 430px browser sweeps: no horizontal overflow and no console errors on the implemented routes.
+- 390px screenshots reviewed for `/progress/measurements`, `/progress/measurements/success`, `/progress/photos`, `/progress/photos/capture/front`, `/progress/photos/compare`, `/progress/trends`, and `/progress/phase-review`.

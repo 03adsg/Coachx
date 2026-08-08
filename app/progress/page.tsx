@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Screen } from "@/components/screen";
 import { Card, IconButton } from "@/components/ui";
 import { coachxDemoState, coachxProgressMetrics } from "@/lib/coachx-data";
@@ -10,7 +11,7 @@ export default function ProgressPage() {
       topbar={
         <header className="topbar center">
           <div className="eyebrow" style={{ margin: 0, color: "#c6c6c7" }}>
-            Progress
+            Progress · Provisional
           </div>
         </header>
       }
@@ -68,6 +69,55 @@ export default function ProgressPage() {
               ))}
             </div>
           </Card>
+        </section>
+
+        <section className="section">
+          <div className="stack">
+            <Link href="/progress/measurements" className="list-card focus-ring">
+              <div style={{ flex: 1 }}>
+                <div className="body-md" style={{ fontWeight: 700 }}>
+                  Measurements Update
+                </div>
+                <div className="caption">Physical Stitch-backed flow</div>
+              </div>
+              <span className="icon muted" aria-hidden="true">
+                chevron_right
+              </span>
+            </Link>
+            <Link href="/progress/photos" className="list-card focus-ring">
+              <div style={{ flex: 1 }}>
+                <div className="body-md" style={{ fontWeight: 700 }}>
+                  Progress Photos
+                </div>
+                <div className="caption">Entry · capture · compare</div>
+              </div>
+              <span className="icon muted" aria-hidden="true">
+                chevron_right
+              </span>
+            </Link>
+            <Link href="/progress/trends" className="list-card focus-ring">
+              <div style={{ flex: 1 }}>
+                <div className="body-md" style={{ fontWeight: 700 }}>
+                  Detailed Trends
+                </div>
+                <div className="caption">Body, strength, recovery</div>
+              </div>
+              <span className="icon muted" aria-hidden="true">
+                chevron_right
+              </span>
+            </Link>
+            <Link href="/progress/phase-review" className="list-card focus-ring">
+              <div style={{ flex: 1 }}>
+                <div className="body-md" style={{ fontWeight: 700 }}>
+                  Phase Review
+                </div>
+                <div className="caption">Week 8 review and next phase</div>
+              </div>
+              <span className="icon muted" aria-hidden="true">
+                chevron_right
+              </span>
+            </Link>
+          </div>
         </section>
 
         <section className="section">

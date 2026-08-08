@@ -28,7 +28,7 @@ export function Screen({ children, activeTab, shellClassName, topbar }: ScreenPr
 
     const context = gsap.context(() => {
       const motionTargets = root.querySelectorAll(
-        ".topbar, .calendar-toolbar, .card, .list-card, .day-cell, .nav-item, .workout-overview-card, .workout-set-row, .workout-alternative-card, .workout-library-card, .workout-detail-card, .workout-choice-card, .workout-summary-tile, .nutrition-hero-card, .nutrition-progress-card, .nutrition-meal-card, .nutrition-support-card, .nutrition-note-card, .nutrition-state-card, .nutrition-sheet, .nutrition-option-card, .nutrition-supplement-row"
+        ".topbar, .calendar-toolbar, .card, .list-card, .day-cell, .nav-item, .workout-overview-card, .workout-set-row, .workout-alternative-card, .workout-library-card, .workout-detail-card, .workout-choice-card, .workout-summary-tile, .nutrition-hero-card, .nutrition-progress-card, .nutrition-meal-card, .nutrition-support-card, .nutrition-note-card, .nutrition-state-card, .nutrition-sheet, .nutrition-option-card, .nutrition-supplement-row, .progress-measurement-card, .progress-summary-card, .progress-next-card, .progress-photo-entry-card, .progress-photo-stage, .progress-compare-card, .progress-chart-card, .progress-trend-tile, .progress-strength-card, .progress-review-photo, .progress-review-metric, .progress-review-strength, .progress-review-list, .progress-review-outcome, .progress-support-card, .progress-link-card, .progress-compare-selector, .progress-compare-panel"
       );
       if (reducedMotion) {
         gsap.set(motionTargets, { opacity: 1, y: 0 });
