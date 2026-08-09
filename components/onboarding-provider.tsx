@@ -263,15 +263,21 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     const resumeRoute = getResumeOnboardingRoute(state.progress);
 
     const startStep: OnboardingStoreValue["startStep"] = (step) => {
-      setState((current) => ({
-        ...current,
-        progress: {
-          ...current.progress,
-          currentStep: step,
-          resumeStep: step,
-          status: current.progress.status === "complete" ? "complete" : "in-progress"
+      setState((current) => {
+        if (current.progress.currentStep === step && current.progress.resumeStep === step) {
+          return current;
         }
-      }));
+
+        return {
+          ...current,
+          progress: {
+            ...current.progress,
+            currentStep: step,
+            resumeStep: step,
+            status: current.progress.status === "complete" ? "complete" : "in-progress"
+          }
+        };
+      });
     };
 
     const completeStep: OnboardingStoreValue["completeStep"] = (step) => {

@@ -160,6 +160,17 @@
 - `pnpm lint` via bundled Node: passed.
 - `pnpm build` via bundled Node: passed.
 
+## Slice 1 Live Supabase Verification
+
+- Disposable authenticated user: `mywebproyectnow+coachx-1786268784498@gmail.com`.
+- Sign-up now returns an immediate authenticated session with `user_id = 218224e2-9b87-480c-b453-f7e2e93269d0`.
+- `athlete_profiles` and `athlete_preferences` each exist once for that user, and both rows share the same auth user ID.
+- RLS allows the authenticated owner to read/write their own rows and blocks anonymous writes.
+- Onboarding completes into Supabase, including `onboarding_status = completed` and a populated `onboarding_completed_at`.
+- Remote profile and preference data now restore into the UI after refresh/re-sign-in; profile editors hydrate from the saved Supabase snapshot instead of staying on stale fixture state.
+- Harmless profile edits persist to the same remote row without mutating the active program automatically.
+- The authenticated owner can sign out and return to protected route redirects, then sign in again and restore the remote state.
+
 ## Batch A Live QA
 
 - Preview URL: `https://coachx-33007opj6-projectmanagmentnotion-costacleans-projects.vercel.app`

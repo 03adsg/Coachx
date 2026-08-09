@@ -369,6 +369,21 @@ function dirtyFromState(previous: ProfileSnapshot, next: ProfileSnapshot) {
   return JSON.stringify(previous) !== JSON.stringify(next);
 }
 
+function useSyncedProfileDraft(saved: ProfileSnapshot) {
+  const [draft, setDraft] = useState(saved);
+  const lastSavedRef = useRef(saved);
+
+  useEffect(() => {
+    if (JSON.stringify(draft) === JSON.stringify(lastSavedRef.current)) {
+      setDraft(saved);
+    }
+
+    lastSavedRef.current = saved;
+  }, [draft, saved]);
+
+  return [draft, setDraft] as const;
+}
+
 function saveButtonLabel(saveState: "idle" | "saved" | "error") {
   if (saveState === "error") {
     return "Try again";
@@ -504,7 +519,7 @@ export function ProfilePreferencesIndexScreen() {
 export function ProfilePersonalInfoScreen() {
   const router = useRouter();
   const { saved, commitProfileSnapshot, saveState } = useProfileSettingsStore();
-  const [draft, setDraft] = useState(saved);
+  const [draft, setDraft] = useSyncedProfileDraft(saved);
   const [lastReview, setLastReview] = useState<string | null>(null);
   const guard = useUnsavedGuard(dirtyFromState(saved, draft), "/profile/preferences");
 
@@ -573,7 +588,7 @@ export function ProfilePersonalInfoScreen() {
 export function ProfileGoalsScreen() {
   const router = useRouter();
   const { saved, commitProfileSnapshot, saveState } = useProfileSettingsStore();
-  const [draft, setDraft] = useState(saved);
+  const [draft, setDraft] = useSyncedProfileDraft(saved);
   const guard = useUnsavedGuard(dirtyFromState(saved, draft), "/profile/preferences");
 
   const save = () => {
@@ -635,7 +650,7 @@ export function ProfileGoalsScreen() {
 export function ProfileTrainingPreferencesScreen() {
   const router = useRouter();
   const { saved, commitProfileSnapshot, saveState } = useProfileSettingsStore();
-  const [draft, setDraft] = useState(saved);
+  const [draft, setDraft] = useSyncedProfileDraft(saved);
   const guard = useUnsavedGuard(dirtyFromState(saved, draft), "/profile/preferences");
 
   const toggleDay = (day: string) => {
@@ -753,7 +768,7 @@ export function ProfileTrainingPreferencesScreen() {
 export function ProfileScheduleLifestyleScreen() {
   const router = useRouter();
   const { saved, commitProfileSnapshot, saveState } = useProfileSettingsStore();
-  const [draft, setDraft] = useState(saved);
+  const [draft, setDraft] = useSyncedProfileDraft(saved);
   const guard = useUnsavedGuard(dirtyFromState(saved, draft), "/profile/preferences");
 
   const save = () => {
@@ -804,7 +819,7 @@ export function ProfileScheduleLifestyleScreen() {
 export function ProfileNutritionPreferencesScreen() {
   const router = useRouter();
   const { saved, commitProfileSnapshot, saveState } = useProfileSettingsStore();
-  const [draft, setDraft] = useState(saved);
+  const [draft, setDraft] = useSyncedProfileDraft(saved);
   const guard = useUnsavedGuard(dirtyFromState(saved, draft), "/profile/preferences");
 
   const toggleList = (field: keyof ProfileSnapshot["nutritionPreferences"], value: string) => {
@@ -863,7 +878,7 @@ export function ProfileNutritionPreferencesScreen() {
 export function ProfileHealthLimitationsScreen() {
   const router = useRouter();
   const { saved, commitProfileSnapshot, saveState } = useProfileSettingsStore();
-  const [draft, setDraft] = useState(saved);
+  const [draft, setDraft] = useSyncedProfileDraft(saved);
   const guard = useUnsavedGuard(dirtyFromState(saved, draft), "/profile/preferences");
 
   const save = () => {

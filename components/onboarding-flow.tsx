@@ -804,7 +804,7 @@ export function BuildingPlanScreen() {
 
 export function PlanRevealScreen() {
   const router = useRouter();
-  const { state, activateProgram, completeStep } = useOnboardingStore();
+  const { state, finalizeOnboarding, completeStep } = useOnboardingStore();
 
   return (
     <FlowShell step="plan-ready" title="Your Plan is Ready" subtitle="Phase 1 is proposed until you start the program." backHref="/onboarding/building-plan">
@@ -832,7 +832,7 @@ export function PlanRevealScreen() {
 
       <OnboardingStickyActions
         secondary={<SecondaryButton className="focus-ring" onClick={() => router.back()}>Back</SecondaryButton>}
-        primary={<PrimaryButton className="focus-ring" onClick={() => { completeStep("plan-ready"); activateProgram(); router.push("/"); }}>Start my program</PrimaryButton>}
+        primary={<PrimaryButton className="focus-ring" onClick={() => { completeStep("plan-ready"); finalizeOnboarding(); router.push("/"); }}>Start my program</PrimaryButton>}
       />
     </FlowShell>
   );
