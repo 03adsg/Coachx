@@ -647,6 +647,8 @@
 
 - IMPLEMENTED
 - LIVE VERIFICATION PENDING
+- Live Supabase auth/profile verification succeeded for the current disposable athlete, including onboarding completion and persisted `athlete_profiles` / `athlete_preferences` rows.
+- Live workout persistence verification is currently blocked because the Supabase project does not expose `public.workout_sessions`, `public.workout_session_exercises`, `public.workout_sets`, or `public.complete_workout_session(session_id)` through the live schema cache.
 
 ## Slice 4 — Nutrition Persistence
 

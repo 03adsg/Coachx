@@ -127,6 +127,7 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 ### Migration risk
 
 - High
+- Live verification still depends on the `workout_sessions` slice being present in the remote Supabase schema cache; if the dashboard migration has not been applied or has not refreshed, the app will remain fixture-driven for workout persistence.
 
 ### Definition of done
 
