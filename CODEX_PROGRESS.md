@@ -10,7 +10,7 @@
 - Added the Batch A workout foundation: workout overview, active log, alternatives, summary, adjust flows, exercise library/detail, and safety flows.
 - Centralized the demo day and workout session so the public screens and workout routes share one fixture state.
 - Added agent docs and routing guidance under `.agents/`, `AGENTS.md`, and `AGENT_ROUTING.md`.
-- Slice 5 is now locally implemented for progress persistence + private photos; live Supabase verification remains pending.
+- Slice 5 is now complete and live verified for progress persistence + private photos.
 
 ## Visual Fidelity Pass
 
@@ -721,7 +721,7 @@
 ### Remaining provisional states
 
 - Live Supabase verification now reaches the progress tables, and authenticated measurement inserts and updates succeed.
-- The live `progress-photos` Storage bucket is present, but authenticated photo uploads still fail at the `progress_photos` metadata insert step because the live table RLS path is incomplete.
-- Added a dedicated `progress_photos` RLS fix migration to enforce both photo ownership and parent `progress_entries` ownership on insert/update/delete.
+- The live `progress-photos` Storage bucket is present and private, and authenticated photo uploads, signed access, owner isolation, refresh restore, replacement, and compare flows now pass live verification.
+- The dedicated `progress_photos` RLS fix migration is in place to enforce both photo ownership and parent `progress_entries` ownership on insert/update/delete.
 - Anonymous reads against the progress tables return empty arrays, which is consistent with RLS.
 - The main `/progress` dashboard remains a provisional hub because the Stitch ZIP still does not contain a dedicated physical export for that screen.

@@ -16,7 +16,7 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - Slice 2: complete + live verified
 - Slice 3: complete + live verified
 - Slice 4: complete + live verified
-- Slice 5: local implementation complete; live verification is partial because the `progress_photos` metadata insert path still needs the live RLS fix migration even though the private `progress-photos` Storage bucket is present
+- Slice 5: complete + live verified
 
 ## Phase S0 - Supabase project + env + typed client
 
@@ -217,7 +217,7 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - Raw measurements persist separately from derived charts
 - Photo checkpoints and assets are private by default
 - Trends are derived from stored facts, not manually maintained as primary truth
-- Local implementation is complete, but live migration and authenticated browser verification still need to be applied
+- Live migration and authenticated browser verification are complete
 
 ## Phase S6 - Notifications preferences
 
