@@ -1145,10 +1145,10 @@ export function ProfileNotificationsScreen() {
 
         <SectionCard title="Adaptive alerts">
           <div className="body-md" style={{ fontWeight: 700 }}>
-            Calendar, workout, and check-in reminders stay coordinated with the demo athlete state.
+            Calendar, workout, and check-in reminders stay coordinated with the athlete state.
           </div>
           <p className="caption" style={{ marginTop: 8 }}>
-            Reminder preferences are stored locally and can be restored after toggling the master switch.
+            Reminder preferences are stored remotely and can be restored after toggling the master switch.
           </p>
         </SectionCard>
       </section>

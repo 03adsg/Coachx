@@ -13,6 +13,9 @@ const tempDir = await mkdtemp(path.join(tmpdir(), "coachx-onboarding-tests-"));
 async function transpileLibraryChain() {
   const sourceFiles = [
     "anatomy.ts",
+    "checkin-data.ts",
+    "checkin-service.ts",
+    "notification-service.ts",
     "nutrition-data.ts",
     "workout-data.ts",
     "coachx-data.ts",
@@ -67,6 +70,9 @@ const athleteService = await import(pathToFileURL(path.join(tempDir, "athlete-se
 const progressService = await import(pathToFileURL(path.join(tempDir, "progress-service.mjs")).href);
 const workoutSessionService = await import(pathToFileURL(path.join(tempDir, "workout-session-service.mjs")).href);
 const programService = await import(pathToFileURL(path.join(tempDir, "program-service.mjs")).href);
+const checkinData = await import(pathToFileURL(path.join(tempDir, "checkin-data.mjs")).href);
+const checkinService = await import(pathToFileURL(path.join(tempDir, "checkin-service.mjs")).href);
+const notificationService = await import(pathToFileURL(path.join(tempDir, "notification-service.mjs")).href);
 
 test("onboarding step ordering works", () => {
   assert.equal(onboarding.getNextOnboardingStep("goals"), "training-experience");
@@ -157,6 +163,117 @@ test("notification settings preserve categories when the master toggle changes",
     revived.categories.map((category) => category.id),
     settings.categories.map((category) => category.id)
   );
+});
+
+test("weekly check-in windows run sunday through saturday", () => {
+  const window = checkinData.resolveWeeklyCheckinWindow("2026-08-09");
+  assert.equal(window.weekStartDate, "2026-08-09");
+  assert.equal(window.weekEndDate, "2026-08-15");
+});
+
+test("weekly check-in review escalates safety and recovery signals", () => {
+  const summary = checkinData.deriveWeeklyCheckinReviewSummary(
+    checkinData.computeSignalFromScoredQuestions({
+      training_adherence: 2,
+      nutrition_adherence: 3,
+      energy: 2,
+      sleep: 3,
+      stress: 4,
+      recovery: 2,
+      pain_discomfort: "moderate"
+    })
+  );
+
+  assert.equal(summary.recommendationType, "coach_review");
+  assert.ok(summary.reviewReason.triggerKeys.includes("pain_discomfort"));
+});
+
+test("notification preferences round-trip through the service boundary", () => {
+  const settings = profileSettings.createNotificationSettings();
+  const row = notificationService.buildNotificationPreferencesRow("00000000-0000-4000-8000-000000000099", {
+    ...settings,
+    masterEnabled: false,
+    intensity: "more-support",
+    categories: settings.categories.map((category) => ({ ...category, enabled: category.id === "weekly-check-in" }))
+  });
+
+  const revived = notificationService.notificationPreferencesRowToSettings({
+    id: "00000000-0000-4000-8000-000000000099",
+    user_id: "00000000-0000-4000-8000-000000000099",
+    master_enabled: row.master_enabled ?? false,
+    workout_reminders_enabled: row.workout_reminders_enabled ?? false,
+    program_updates_enabled: row.program_updates_enabled ?? false,
+    weekly_check_in_enabled: row.weekly_check_in_enabled ?? false,
+    measurements_enabled: row.measurements_enabled ?? false,
+    progress_photos_enabled: row.progress_photos_enabled ?? false,
+    phase_reviews_enabled: row.phase_reviews_enabled ?? false,
+    nutrition_reminders_enabled: row.nutrition_reminders_enabled ?? false,
+    hydration_enabled: row.hydration_enabled ?? false,
+    supplements_enabled: row.supplements_enabled ?? false,
+    sleep_routine_enabled: row.sleep_routine_enabled ?? false,
+    adaptive_alerts_enabled: row.adaptive_alerts_enabled ?? false,
+    reminder_intensity: row.reminder_intensity ?? "minimal",
+    quiet_hours_enabled: row.quiet_hours_enabled ?? false,
+    quiet_hours_start: row.quiet_hours_start ?? null,
+    quiet_hours_end: row.quiet_hours_end ?? null,
+    preferred_timezone: row.preferred_timezone ?? null,
+    created_at: "2026-08-09T12:00:00.000Z",
+    updated_at: "2026-08-09T12:00:00.000Z"
+  });
+
+  assert.equal(revived.masterEnabled, false);
+  assert.equal(revived.intensity, "more-support");
+  assert.equal(revived.categories.find((category) => category.id === "weekly-check-in")?.enabled, true);
+});
+
+test("weekly check-in service creates one record and updates the same response row", async () => {
+  const client = createFakeCheckinClient({
+    weekly_checkins: [],
+    weekly_checkin_responses: [],
+    weekly_checkin_reviews: [],
+    scheduled_workouts: [
+      { id: "00000000-0000-4000-8000-000000000031", user_id: "00000000-0000-4000-8000-000000000099", scheduled_date: "2026-08-09", status: "completed", created_at: "2026-08-09T08:00:00.000Z", updated_at: "2026-08-09T08:00:00.000Z" },
+      { id: "00000000-0000-4000-8000-000000000032", user_id: "00000000-0000-4000-8000-000000000099", scheduled_date: "2026-08-10", status: "scheduled", created_at: "2026-08-09T08:00:00.000Z", updated_at: "2026-08-09T08:00:00.000Z" }
+    ],
+    nutrition_days: [
+      { id: "00000000-0000-4000-8000-000000000033", user_id: "00000000-0000-4000-8000-000000000099", calendar_date: "2026-08-09", status: "completed", created_at: "2026-08-09T08:00:00.000Z", updated_at: "2026-08-09T08:00:00.000Z" },
+      { id: "00000000-0000-4000-8000-000000000034", user_id: "00000000-0000-4000-8000-000000000099", calendar_date: "2026-08-10", status: "planned", created_at: "2026-08-09T08:00:00.000Z", updated_at: "2026-08-09T08:00:00.000Z" }
+    ],
+    progress_entries: [
+      { id: "00000000-0000-4000-8000-000000000035", user_id: "00000000-0000-4000-8000-000000000099", entry_date: "2026-08-09", entry_type: "measurement", weight_kg: 62, notes: null, source: "manual", created_at: "2026-08-09T08:00:00.000Z", updated_at: "2026-08-09T08:00:00.000Z" }
+    ]
+  });
+
+  const created = await checkinService.getOrCreateWeeklyCheckin(
+    client,
+    "00000000-0000-4000-8000-000000000099",
+    "2026-08-09",
+    "00000000-0000-4000-8000-000000000090",
+    "00000000-0000-4000-8000-000000000091"
+  );
+  assert.equal(client.state.weekly_checkins.length, 1);
+  assert.equal(created.checkin.user_id, "00000000-0000-4000-8000-000000000099");
+
+  const responseA = await checkinService.saveCheckinResponse(client, "00000000-0000-4000-8000-000000000099", created.checkin.id, {
+    questionKey: "training_adherence",
+    responseType: "scale",
+    numericValue: 4
+  });
+  const responseB = await checkinService.saveCheckinResponse(client, "00000000-0000-4000-8000-000000000099", created.checkin.id, {
+    questionKey: "training_adherence",
+    responseType: "scale",
+    numericValue: 5
+  });
+
+  assert.equal(client.state.weekly_checkin_responses.length, 1);
+  assert.equal(responseA.numeric_value, 4);
+  assert.equal(responseB.numeric_value, 5);
+
+  const submitted = await checkinService.submitWeeklyCheckin(client, "00000000-0000-4000-8000-000000000099", created.checkin.id, "steady week");
+  assert.equal(submitted.checkin.status, "submitted");
+  assert.equal(client.state.weekly_checkins[0].submitted_at != null, true);
+  assert.equal(client.state.weekly_checkin_reviews.length, 1);
+  assert.equal(submitted.summary.reviewReason.triggerKeys.length >= 0, true);
 });
 
 test("program update remains explicit", () => {
@@ -567,6 +684,179 @@ function createFakeWorkoutClient(seedState) {
       }
 
       return { data: null, error: new Error("Unexpected rpc") };
+    }
+  };
+}
+
+function createFakeCheckinClient(seedState) {
+  const state = structuredClone(seedState);
+
+  function createId() {
+    return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  function matchesRow(row, filters) {
+    return filters.every((filter) => {
+      if (filter.kind === "eq") {
+        return row[filter.column] === filter.value;
+      }
+
+      if (filter.kind === "gte") {
+        return row[filter.column] >= filter.value;
+      }
+
+      if (filter.kind === "lte") {
+        return row[filter.column] <= filter.value;
+      }
+
+      return true;
+    });
+  }
+
+  function applyOrdering(rows, order) {
+    if (!order) {
+      return rows;
+    }
+
+    return rows.slice().sort((left, right) => {
+      const leftValue = left[order.column];
+      const rightValue = right[order.column];
+
+      if (leftValue === rightValue) {
+        return 0;
+      }
+
+      return order.ascending ? (leftValue > rightValue ? 1 : -1) : leftValue > rightValue ? -1 : 1;
+    });
+  }
+
+  function applyUpsert(tableName, payload, conflictColumns) {
+    const table = state[tableName];
+    const rows = Array.isArray(payload) ? payload : [payload];
+    const inserted = [];
+
+    for (const candidate of rows) {
+      const existing = table.find((row) => conflictColumns.every((column) => row[column] === candidate[column]));
+      if (existing) {
+        Object.assign(existing, candidate, { updated_at: "2026-08-09T12:00:00.000Z" });
+        inserted.push(existing);
+      } else {
+        const row = {
+          id: candidate.id ?? createId(),
+          created_at: "2026-08-09T12:00:00.000Z",
+          updated_at: "2026-08-09T12:00:00.000Z",
+          reviewed_at: candidate.reviewed_at ?? null,
+          ...structuredClone(candidate)
+        };
+        table.push(row);
+        inserted.push(row);
+      }
+    }
+
+    return inserted;
+  }
+
+  function runQuery(tableName, query) {
+    const table = state[tableName];
+
+    if (query.type === "insert") {
+      const inserted = query.payload.map((row) => ({
+        id: row.id ?? createId(),
+        created_at: "2026-08-09T12:00:00.000Z",
+        updated_at: "2026-08-09T12:00:00.000Z",
+        ...structuredClone(row)
+      }));
+      table.push(...inserted);
+      return inserted;
+    }
+
+    if (query.type === "update") {
+      const rows = table.filter((row) => matchesRow(row, query.filters));
+      for (const row of rows) {
+        Object.assign(row, query.payload, { updated_at: "2026-08-09T12:00:00.000Z" });
+      }
+      return rows;
+    }
+
+    if (query.type === "upsert") {
+      return applyUpsert(tableName, query.payload, query.conflictColumns);
+    }
+
+    let rows = table.filter((row) => matchesRow(row, query.filters));
+    rows = applyOrdering(rows, query.order);
+    if (typeof query.limit === "number") {
+      rows = rows.slice(0, query.limit);
+    }
+    return rows;
+  }
+
+  function createQuery(tableName) {
+    const query = {
+      type: "select",
+      filters: [],
+      payload: null,
+      order: null,
+      limit: null,
+      conflictColumns: []
+    };
+
+    const api = {
+      select() {
+        return api;
+      },
+      eq(column, value) {
+        query.filters.push({ kind: "eq", column, value });
+        return api;
+      },
+      gte(column, value) {
+        query.filters.push({ kind: "gte", column, value });
+        return api;
+      },
+      lte(column, value) {
+        query.filters.push({ kind: "lte", column, value });
+        return api;
+      },
+      order(column, options) {
+        query.order = { column, ascending: options?.ascending !== false };
+        return api;
+      },
+      limit(count) {
+        query.limit = count;
+        return api;
+      },
+      update(values) {
+        query.type = "update";
+        query.payload = values;
+        return api;
+      },
+      insert(values) {
+        query.type = "insert";
+        query.payload = Array.isArray(values) ? values : [values];
+        return api;
+      },
+      upsert(values, options) {
+        query.type = "upsert";
+        query.payload = Array.isArray(values) ? values : [values];
+        query.conflictColumns = String(options?.onConflict ?? "").split(",").map((value) => value.trim()).filter(Boolean);
+        return api;
+      },
+      async maybeSingle() {
+        const rows = runQuery(tableName, query);
+        return { data: rows[0] ?? null, error: null };
+      },
+      async single() {
+        const rows = runQuery(tableName, query);
+        return { data: rows[0] ?? null, error: rows[0] ? null : new Error("Not found") };
+      }
+    };
+
+    return api;
+  }
+
+  return {
+    state,
+    from(tableName) {
+      return createQuery(tableName);
     }
   };
 }

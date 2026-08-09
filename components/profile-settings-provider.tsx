@@ -23,6 +23,7 @@ import {
   type ReminderIntensity
 } from "@/lib/profile-settings-data";
 import { buildProfileSnapshotFromOnboarding, loadAthleteSnapshot, mapOnboardingStatus, saveAthleteSnapshot } from "@/lib/athlete-service";
+import { loadNotificationPreferences, saveNotificationPreferences } from "@/lib/notification-service";
 
 interface ProfileSettingsStoreValue extends ProfileSettingsState {
   commitProfileSnapshot: (nextSnapshot: ProfileSnapshot) => ProfileImpactReview;
@@ -47,9 +48,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
   const programStoreRef = useRef(programStore);
   const onboarding = useOnboardingStore();
   const onboardingRef = useRef(onboarding);
-  const [state, setState] = useState<ProfileSettingsState>(() =>
-    typeof window === "undefined" ? reviveProfileSettingsState(null) : reviveProfileSettingsState(window.localStorage.getItem(profileStorageKey))
-  );
+  const [state, setState] = useState<ProfileSettingsState>(() => reviveProfileSettingsState(null));
 
   useEffect(() => {
     onboardingRef.current = onboarding;
@@ -64,8 +63,12 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
   }, [programStore]);
 
   useEffect(() => {
+    if (!auth.ready || auth.isConfigured || typeof window === "undefined") {
+      return;
+    }
+
     window.localStorage.setItem(profileStorageKey, serializeProfileSettingsState(state));
-  }, [state]);
+  }, [auth.isConfigured, auth.ready, state]);
 
   useEffect(() => {
     if (!auth.ready) {
@@ -79,11 +82,17 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
       const currentAuth = authRef.current;
 
       if (!currentAuth.isConfigured || !currentAuth.user || !client) {
+        if (!currentAuth.isConfigured && typeof window !== "undefined") {
+          setState(reviveProfileSettingsState(window.localStorage.getItem(profileStorageKey)));
+        }
         return;
       }
 
       try {
-        const remote = await loadAthleteSnapshot(client, currentAuth.user.id);
+        const [remote, notificationResult] = await Promise.all([
+          loadAthleteSnapshot(client, currentAuth.user.id),
+          loadNotificationPreferences(client, currentAuth.user.id, state.notifications.permission)
+        ]);
         if (!active) {
           return;
         }
@@ -96,12 +105,17 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
             mapOnboardingStatus(onboardingRef.current.state.progress.status),
             onboardingRef.current.state.progress.status === "complete" ? new Date().toISOString() : null
           );
+          if (notificationResult.source === "default") {
+            await saveNotificationPreferences(client, currentAuth.user.id, notificationResult.settings);
+          }
           return;
         }
 
+        const nextNotifications = notificationResult.settings;
         setState((current) => ({
           ...current,
           saved: remote.snapshot,
+          notifications: nextNotifications,
           pendingReview: null,
           saveState: "saved",
           saveError: null,
@@ -122,6 +136,9 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
             mapOnboardingStatus(onboardingRef.current.state.progress.status),
             onboardingRef.current.state.progress.status === "complete" ? new Date().toISOString() : null
           );
+        }
+        if (notificationResult.source === "default") {
+          await saveNotificationPreferences(client, currentAuth.user.id, nextNotifications);
         }
       } catch {
         if (active) {
@@ -189,6 +206,18 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
         pendingReview: null,
         lastSavedLabel: "Notifications saved"
       }));
+
+      const client = getSupabaseBrowserClient();
+      const currentAuth = authRef.current;
+      if (currentAuth.isConfigured && currentAuth.user && client) {
+        void saveNotificationPreferences(client, currentAuth.user.id, nextNotifications).catch(() => {
+          setState((current) => ({
+            ...current,
+            saveState: "error",
+            saveError: "Unable to save notification preferences to Supabase."
+          }));
+        });
+      }
     };
 
     const updateNotificationCategory: ProfileSettingsStoreValue["updateNotificationCategory"] = (categoryId, enabled) => {
@@ -287,6 +316,20 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
         saveError: null,
         lastSavedLabel: "Draft not saved yet"
       });
+
+      if (!authRef.current.isConfigured && typeof window !== "undefined") {
+        window.localStorage.setItem(
+          profileStorageKey,
+          serializeProfileSettingsState({
+            saved: snapshot,
+            notifications,
+            pendingReview: null,
+            saveState: "idle",
+            saveError: null,
+            lastSavedLabel: "Draft not saved yet"
+          })
+        );
+      }
     };
 
     return {

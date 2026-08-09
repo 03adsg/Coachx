@@ -223,16 +223,23 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 
 ### Scope
 
-- Persist reminder preferences and quiet hours
+- Persist weekly check-ins, check-in responses, check-in reviews, reminder preferences, and quiet hours
 - Keep device/browser permission state separate from preference state
+- Preserve the weekly check-in review boundary so recommendations do not automatically mutate the active program
 
 ### Tables / entities
 
+- `weekly_checkins`
+- `weekly_checkin_responses`
+- `weekly_checkin_reviews`
 - `notification_preferences`
 
 ### Routes affected
 
+- `/progress/check-in`
+- `/progress/check-in/completion`
 - `/profile/notifications`
+- `/profile/program-impact-review`
 
 ### Migration risk
 
@@ -240,9 +247,13 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 
 ### Definition of done
 
+- Weekly check-ins persist per athlete and week
+- Check-in responses persist and restore on revisit
+- Weekly review summaries persist without auto-applying program changes
 - Master toggle, category toggles, and quiet hours persist
 - Device permission is still requested client-side
 - Turning off reminders does not delete underlying tasks/events
+- Live verification is complete for the connected Supabase project
 
 ## Phase S7 - OpenAI recommendation infrastructure
 

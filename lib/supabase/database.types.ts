@@ -17,6 +17,11 @@ export type ProgressEntryType = "measurement" | "photo" | "combined" | "checkpoi
 export type ProgressEntrySource = "manual" | "onboarding_baseline" | "phase_review" | "other";
 export type ProgressMeasurementKey = "waist" | "hips" | "thigh";
 export type ProgressPhotoPose = "front" | "side" | "back";
+export type WeeklyCheckinStatus = "not_started" | "in_progress" | "completed" | "submitted" | "reviewed";
+export type WeeklyCheckinResponseType = "scale" | "boolean" | "text" | "single_choice" | "multiple_choice" | "numeric";
+export type WeeklyCheckinReviewStatus = "pending" | "needs_attention" | "reviewed" | "acknowledged";
+export type WeeklyCheckinRecommendationType = "none" | "light_review" | "coach_review" | "program_adjustment";
+export type NotificationReminderIntensity = "minimal" | "recommended" | "more-support";
 
 export interface ProgramsRow {
   id: string;
@@ -837,6 +842,204 @@ export interface ProgressPhotosUpdate {
   updated_at?: string;
 }
 
+export interface WeeklyCheckinsRow {
+  id: string;
+  user_id: string;
+  program_id: string | null;
+  program_phase_id: string | null;
+  week_start_date: string;
+  week_end_date: string;
+  status: WeeklyCheckinStatus;
+  started_at: string | null;
+  completed_at: string | null;
+  submitted_at: string | null;
+  overall_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WeeklyCheckinsInsert {
+  id?: string;
+  user_id: string;
+  program_id?: string | null;
+  program_phase_id?: string | null;
+  week_start_date: string;
+  week_end_date: string;
+  status?: WeeklyCheckinStatus;
+  started_at?: string | null;
+  completed_at?: string | null;
+  submitted_at?: string | null;
+  overall_notes?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface WeeklyCheckinsUpdate {
+  program_id?: string | null;
+  program_phase_id?: string | null;
+  week_start_date?: string;
+  week_end_date?: string;
+  status?: WeeklyCheckinStatus;
+  started_at?: string | null;
+  completed_at?: string | null;
+  submitted_at?: string | null;
+  overall_notes?: string | null;
+  updated_at?: string;
+}
+
+export interface WeeklyCheckinResponsesRow {
+  id: string;
+  user_id: string;
+  weekly_checkin_id: string;
+  question_key: string;
+  response_type: WeeklyCheckinResponseType;
+  numeric_value: number | null;
+  text_value: string | null;
+  boolean_value: boolean | null;
+  choice_value: string | null;
+  json_value: Json | null;
+  answered_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WeeklyCheckinResponsesInsert {
+  id?: string;
+  user_id: string;
+  weekly_checkin_id: string;
+  question_key: string;
+  response_type: WeeklyCheckinResponseType;
+  numeric_value?: number | null;
+  text_value?: string | null;
+  boolean_value?: boolean | null;
+  choice_value?: string | null;
+  json_value?: Json | null;
+  answered_at?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface WeeklyCheckinResponsesUpdate {
+  user_id?: string;
+  weekly_checkin_id?: string;
+  question_key?: string;
+  response_type?: WeeklyCheckinResponseType;
+  numeric_value?: number | null;
+  text_value?: string | null;
+  boolean_value?: boolean | null;
+  choice_value?: string | null;
+  json_value?: Json | null;
+  answered_at?: string;
+  updated_at?: string;
+}
+
+export interface WeeklyCheckinReviewsRow {
+  id: string;
+  user_id: string;
+  weekly_checkin_id: string;
+  status: WeeklyCheckinReviewStatus;
+  review_reason: Json;
+  review_notes: string | null;
+  recommendation_type: WeeklyCheckinRecommendationType | null;
+  created_at: string;
+  reviewed_at: string | null;
+  updated_at: string;
+}
+
+export interface WeeklyCheckinReviewsInsert {
+  id?: string;
+  user_id: string;
+  weekly_checkin_id: string;
+  status?: WeeklyCheckinReviewStatus;
+  review_reason?: Json;
+  review_notes?: string | null;
+  recommendation_type?: WeeklyCheckinRecommendationType | null;
+  created_at?: string;
+  reviewed_at?: string | null;
+  updated_at?: string;
+}
+
+export interface WeeklyCheckinReviewsUpdate {
+  user_id?: string;
+  weekly_checkin_id?: string;
+  status?: WeeklyCheckinReviewStatus;
+  review_reason?: Json;
+  review_notes?: string | null;
+  recommendation_type?: WeeklyCheckinRecommendationType | null;
+  reviewed_at?: string | null;
+  updated_at?: string;
+}
+
+export interface NotificationPreferencesRow {
+  id: string;
+  user_id: string;
+  master_enabled: boolean;
+  workout_reminders_enabled: boolean;
+  program_updates_enabled: boolean;
+  weekly_check_in_enabled: boolean;
+  measurements_enabled: boolean;
+  progress_photos_enabled: boolean;
+  phase_reviews_enabled: boolean;
+  nutrition_reminders_enabled: boolean;
+  hydration_enabled: boolean;
+  supplements_enabled: boolean;
+  sleep_routine_enabled: boolean;
+  adaptive_alerts_enabled: boolean;
+  reminder_intensity: NotificationReminderIntensity;
+  quiet_hours_enabled: boolean;
+  quiet_hours_start: string | null;
+  quiet_hours_end: string | null;
+  preferred_timezone: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationPreferencesInsert {
+  id?: string;
+  user_id: string;
+  master_enabled?: boolean;
+  workout_reminders_enabled?: boolean;
+  program_updates_enabled?: boolean;
+  weekly_check_in_enabled?: boolean;
+  measurements_enabled?: boolean;
+  progress_photos_enabled?: boolean;
+  phase_reviews_enabled?: boolean;
+  nutrition_reminders_enabled?: boolean;
+  hydration_enabled?: boolean;
+  supplements_enabled?: boolean;
+  sleep_routine_enabled?: boolean;
+  adaptive_alerts_enabled?: boolean;
+  reminder_intensity?: NotificationReminderIntensity;
+  quiet_hours_enabled?: boolean;
+  quiet_hours_start?: string | null;
+  quiet_hours_end?: string | null;
+  preferred_timezone?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface NotificationPreferencesUpdate {
+  user_id?: string;
+  master_enabled?: boolean;
+  workout_reminders_enabled?: boolean;
+  program_updates_enabled?: boolean;
+  weekly_check_in_enabled?: boolean;
+  measurements_enabled?: boolean;
+  progress_photos_enabled?: boolean;
+  phase_reviews_enabled?: boolean;
+  nutrition_reminders_enabled?: boolean;
+  hydration_enabled?: boolean;
+  supplements_enabled?: boolean;
+  sleep_routine_enabled?: boolean;
+  adaptive_alerts_enabled?: boolean;
+  reminder_intensity?: NotificationReminderIntensity;
+  quiet_hours_enabled?: boolean;
+  quiet_hours_start?: string | null;
+  quiet_hours_end?: string | null;
+  preferred_timezone?: string | null;
+  updated_at?: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -910,6 +1113,30 @@ export interface Database {
         Row: ProgressPhotosRow;
         Insert: ProgressPhotosInsert;
         Update: ProgressPhotosUpdate;
+        Relationships: [];
+      };
+      weekly_checkins: {
+        Row: WeeklyCheckinsRow;
+        Insert: WeeklyCheckinsInsert;
+        Update: WeeklyCheckinsUpdate;
+        Relationships: [];
+      };
+      weekly_checkin_responses: {
+        Row: WeeklyCheckinResponsesRow;
+        Insert: WeeklyCheckinResponsesInsert;
+        Update: WeeklyCheckinResponsesUpdate;
+        Relationships: [];
+      };
+      weekly_checkin_reviews: {
+        Row: WeeklyCheckinReviewsRow;
+        Insert: WeeklyCheckinReviewsInsert;
+        Update: WeeklyCheckinReviewsUpdate;
+        Relationships: [];
+      };
+      notification_preferences: {
+        Row: NotificationPreferencesRow;
+        Insert: NotificationPreferencesInsert;
+        Update: NotificationPreferencesUpdate;
         Relationships: [];
       };
       programs: {

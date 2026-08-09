@@ -110,6 +110,17 @@ export default function ProgressPage() {
                 chevron_right
               </span>
             </Link>
+            <Link href="/progress/check-in" className="list-card focus-ring">
+              <div style={{ flex: 1 }}>
+                <div className="body-md" style={{ fontWeight: 700 }}>
+                  Weekly Check-in
+                </div>
+                <div className="caption">Training, nutrition, recovery, and notes</div>
+              </div>
+              <span className="icon muted" aria-hidden="true">
+                chevron_right
+              </span>
+            </Link>
             <Link href="/progress/phase-review" className="list-card focus-ring">
               <div style={{ flex: 1 }}>
                 <div className="body-md" style={{ fontWeight: 700 }}>

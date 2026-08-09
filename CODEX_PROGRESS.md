@@ -581,6 +581,56 @@
 - `Notifications & Reminders` is fixture-backed until production permission and push delivery exist.
 - Active program changes still require explicit confirmation; no automatic program rewrite was added.
 
+## Batch F â€” Weekly Check-in + Notifications + Review Workflow
+
+### Screens and routes
+
+- Weekly check-in entry: `/progress/check-in`
+- Weekly check-in completion: `/progress/check-in/completion`
+- Notifications and reminders: `/profile/notifications`
+- Program impact review: `/profile/program-impact-review`
+
+### Shared state and models
+
+- Added typed weekly check-in domains for:
+  - weekly check-in window resolution
+  - question definitions
+  - response drafts
+  - review summaries and recommendation signals
+- Added typed notification preference helpers for:
+  - master notifications toggle
+  - category toggles
+  - reminder intensity
+  - quiet hours
+- Reused the existing profile, program, and athlete state boundaries instead of introducing duplicate authorities.
+
+### Workflow
+
+- Weekly check-in now follows a single sequential review flow with deterministic summary signals.
+- Check-in responses persist per question and restore on revisit.
+- Completion creates a review summary without mutating the active program automatically.
+- Notification preferences persist separately from device/browser permission state.
+- Profile review keeps recommendation and application separate.
+
+### Accessibility and motion
+
+- Semantic headings, real buttons, switch roles, and status text were kept intact.
+- The new flow reuses the shared GSAP motion layer with restrained entry, stagger, and completion motion.
+- Reduced-motion support remains intact.
+- Browser Back, visible Back, and iOS edge-back remain usable where feasible.
+
+### Validation
+
+- `pnpm typecheck`: passed.
+- `pnpm lint`: passed.
+- `pnpm test`: passed.
+- `pnpm build`: passed.
+
+### Remaining provisional / temporary states
+
+- Live Supabase verification for the new check-in and notification persistence remains pending.
+- The check-in completion route and notification permissions are still browser/app-session driven until live verification is completed.
+
 
 ## Batch F ??? Supabase Migration Slice 2 ??? Program + Calendar Persistence
 
