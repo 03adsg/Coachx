@@ -130,9 +130,11 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 
 ### Definition of done
 
-- Session state persists incrementally
+- Session state persists incrementally and restores after refresh
 - Completed sets are saved as they happen
-- Rest timer and swap actions remain client-side only where appropriate
+- Session start/resume is idempotent for the same scheduled workout
+- Prescribed vs performed exercise identity stays separate across swaps
+- Rest timer remains client-side only while the durable set/session state lives in Supabase
 
 ## Phase S4 - Nutrition persistence
 
@@ -322,4 +324,3 @@ If a slightly larger but still safe slice is acceptable, expand it to:
 - It removes the most important duplicate source-of-truth problem early.
 - It gives the app a real user/profile record before workout, nutrition, and progress history are migrated.
 - It keeps the highest-risk persistence domains out of the first backend pass.
-

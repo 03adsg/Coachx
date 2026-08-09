@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Screen } from "@/components/screen";
 import { Card } from "@/components/ui";
@@ -10,8 +11,9 @@ import { getExerciseDefinition, getWorkoutExercise } from "@/lib/workout-data";
 export default function ActiveExercisePage() {
   const params = useParams<{ sessionId: string; exerciseId: string }>();
   const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
   const exerciseId = params?.exerciseId ?? "hip-thrust";
-  const { session, updateSetDraft, completeSet, skipRestTimer, addThirtySeconds } = useWorkoutStore();
+  const { session, updateSetDraft, completeSet, skipRestTimer, addThirtySeconds, finishWorkout } = useWorkoutStore();
   const exercise = getWorkoutExercise(session, exerciseId);
   const definition = getExerciseDefinition(exercise.performedExerciseId);
   const currentSet = exercise.sets.find((set) => !set.completed) ?? exercise.sets[exercise.sets.length - 1];
@@ -19,15 +21,26 @@ export default function ActiveExercisePage() {
   const progressLabel = `${exercise.order} / ${session.totalExercises}`;
   const isFinalSet = currentSet.setNumber >= exercise.totalSets;
 
-  const handleComplete = () => {
-    completeSet(exercise.id, currentSet.setNumber, {
-      kilograms: currentSet.kilograms,
-      reps: currentSet.reps,
-      rir: currentSet.rir
-    });
+  const handleComplete = async () => {
+    if (submitting) {
+      return;
+    }
 
-    if (completedCount + 1 >= exercise.totalSets) {
-      router.push(`/workout/${session.id}/summary`);
+    setSubmitting(true);
+
+    try {
+      await completeSet(exercise.id, currentSet.setNumber, {
+        kilograms: currentSet.kilograms,
+        reps: currentSet.reps,
+        rir: currentSet.rir
+      });
+
+      if (isFinalSet || completedCount + 1 >= exercise.totalSets) {
+        await finishWorkout();
+        router.push(`/workout/${session.id}/summary`);
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -172,7 +185,7 @@ export default function ActiveExercisePage() {
                     aria-label={`Complete set ${set.setNumber}`}
                     className={`workout-set-button ${set.completed ? "done" : ""}`}
                     type="button"
-                    onClick={() => completeSet(exercise.id, set.setNumber, { kilograms: set.kilograms, reps: set.reps, rir: set.rir })}
+                    onClick={() => void completeSet(exercise.id, set.setNumber, { kilograms: set.kilograms, reps: set.reps, rir: set.rir })}
                   >
                     <span className="icon filled" aria-hidden="true">
                       check
@@ -224,8 +237,8 @@ export default function ActiveExercisePage() {
         </div>
 
         <div className="sticky-action">
-          <button className="button-primary focus-ring" type="button" onClick={handleComplete}>
-            {isFinalSet || completedCount >= exercise.totalSets ? "Finish Workout" : "Complete Set"}
+          <button className="button-primary focus-ring" disabled={submitting} type="button" onClick={handleComplete}>
+            {submitting ? "Saving..." : isFinalSet || completedCount >= exercise.totalSets ? "Finish Workout" : "Complete Set"}
           </button>
         </div>
       </main>

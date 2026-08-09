@@ -10,6 +10,10 @@ export interface SetPrescription {
   reps: string;
   rir?: string;
   completed: boolean;
+  workoutSetId?: string;
+  status?: "planned" | "completed" | "skipped";
+  completedAt?: string | null;
+  notes?: string | null;
 }
 
 export interface CompletedSet {
@@ -55,6 +59,8 @@ export interface ExerciseAlternative {
 
 export interface SessionExercise {
   id: string;
+  sessionExerciseId?: string;
+  prescribedTemplateExerciseId?: string | null;
   prescribedExerciseId: string;
   performedExerciseId: string;
   order: number;
@@ -66,6 +72,10 @@ export interface SessionExercise {
   suggestedTarget: string;
   sets: SetPrescription[];
   completedSets: CompletedSet[];
+  status?: "planned" | "completed" | "skipped";
+  startedAt?: string | null;
+  completedAt?: string | null;
+  swapReason?: string | null;
 }
 
 export interface RestTimerState {
@@ -102,6 +112,9 @@ export interface WorkoutSummaryState {
 
 export interface WorkoutSessionState {
   id: string;
+  workoutSessionId?: string;
+  scheduledWorkoutId?: string | null;
+  workoutTemplateId?: string | null;
   dateLabel: string;
   workoutLabel: string;
   phaseLabel: string;
@@ -116,6 +129,26 @@ export interface WorkoutSessionState {
   adjustment: SessionAdjustmentState;
   safety: SafetySelectionState;
   summary: WorkoutSummaryState;
+  status?: "in_progress" | "completed" | "abandoned";
+  startedAt?: string | null;
+  completedAt?: string | null;
+  durationSeconds?: number | null;
+  notes?: string | null;
+  sessionMetadata?: Record<string, unknown> | null;
+  saveState?: "idle" | "pending" | "saved" | "error";
+  saveError?: string | null;
+  source?: "demo" | "remote" | "cache";
+  persistence?: {
+    workoutSessionId: string;
+    scheduledWorkoutId: string | null;
+    workoutTemplateId: string | null;
+    status: "in_progress" | "completed" | "abandoned";
+    startedAt: string | null;
+    completedAt: string | null;
+    durationSeconds: number | null;
+    notes: string | null;
+    sessionMetadata: Record<string, unknown> | null;
+  };
 }
 
 export const coachxExerciseCatalog: ExerciseDefinition[] = [

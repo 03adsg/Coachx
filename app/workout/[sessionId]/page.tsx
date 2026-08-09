@@ -1,13 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useMemo, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton } from "@/components/ui";
-import { useWorkoutStore } from "@/components/workout-provider";
+import { useAuthStore } from "@/components/auth-provider";
 import { useProgramStore } from "@/components/program-provider";
-import { countCompletedExercises, getExerciseDefinition } from "@/lib/workout-data";
+import { useWorkoutStore } from "@/components/workout-provider";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getExerciseDefinition, countCompletedExercises } from "@/lib/workout-data";
+import { getOrCreateWorkoutSession, type WorkoutSessionSeed } from "@/lib/workout-session-service";
+import type { ProgramTemplateExercise, ProgramTemplateView } from "@/lib/program-service";
 
 function resolveSessionId(param: string | string[] | undefined) {
   if (Array.isArray(param)) {
@@ -17,28 +21,128 @@ function resolveSessionId(param: string | string[] | undefined) {
   return param ?? "";
 }
 
+function buildTemplateView(
+  templateRow: { id: string; code: string; name: string; focus: string; estimated_duration_minutes: number; sort_order: number },
+  templateExercises: Array<ProgramTemplateExercise & { id: string }>
+): ProgramTemplateView {
+  return {
+    id: templateRow.id,
+    code: templateRow.code,
+    name: templateRow.name,
+    focus: templateRow.focus,
+    estimatedDurationMinutes: templateRow.estimated_duration_minutes,
+    sortOrder: templateRow.sort_order,
+    exercises: templateExercises.map(({ id: _exerciseId, ...exercise }) => exercise)
+  };
+}
+
 export default function WorkoutOverviewPage() {
   const params = useParams<{ sessionId?: string | string[] }>();
-  const workoutId = resolveSessionId(params.sessionId);
+  const router = useRouter();
+  const auth = useAuthStore();
   const { session, hydrateSession } = useWorkoutStore();
-  const { scheduledWorkouts, getDaySummary, buildWorkoutSessionForScheduledWorkout } = useProgramStore();
+  const { scheduledWorkouts, templates, templateExercises, getDaySummary, ready: programReady } = useProgramStore();
+  const workoutId = resolveSessionId(params.sessionId);
+  const loadedRouteIdRef = useRef<string | null>(null);
 
-  const scheduledWorkout = scheduledWorkouts.find((workout) => workout.id === workoutId);
+  const scheduledWorkout =
+    scheduledWorkouts.find((workout) => workout.id === workoutId) ??
+    (session.workoutSessionId === workoutId && session.scheduledWorkoutId
+      ? scheduledWorkouts.find((workout) => workout.id === session.scheduledWorkoutId) ?? null
+      : null);
+
   const day = scheduledWorkout ? getDaySummary(scheduledWorkout.scheduled_date) : null;
 
+  const templateExercisesForSeed = useMemo<Array<ProgramTemplateExercise & { id: string }>>(() => {
+    if (!day) {
+      return [];
+    }
+
+    const templateRow = templates.find((template) => template.code === day.templateCode);
+    if (!templateRow) {
+      return [];
+    }
+
+    return templateExercises
+      .filter((exercise) => exercise.workout_template_id === templateRow.id)
+      .sort((left, right) => left.sort_order - right.sort_order)
+      .map((exercise) => ({
+        id: exercise.id,
+        exerciseKey: exercise.exercise_key,
+        sortOrder: exercise.sort_order,
+        sets: exercise.sets,
+        repMin: exercise.rep_min,
+        repMax: exercise.rep_max,
+        rirMin: exercise.rir_min,
+        rirMax: exercise.rir_max,
+        restSeconds: exercise.rest_seconds,
+        notes: exercise.notes ?? ""
+      }));
+  }, [day, templateExercises, templates]);
+
+  const templateView = useMemo(() => {
+    if (!day) {
+      return null;
+    }
+
+    const templateRow = templates.find((template) => template.code === day.templateCode);
+    if (!templateRow || templateExercisesForSeed.length === 0) {
+      return null;
+    }
+
+    return buildTemplateView(templateRow, templateExercisesForSeed);
+  }, [day, templateExercisesForSeed, templates]);
+
   useEffect(() => {
-    if (!workoutId) {
+    if (!auth.ready || !programReady || !auth.isConfigured || !auth.user || !workoutId || !scheduledWorkout || !day || !templateView) {
       return;
     }
 
-    const nextSession = buildWorkoutSessionForScheduledWorkout(workoutId);
-    if (nextSession && nextSession.id !== session.id) {
-      hydrateSession({
-        ...nextSession,
-        id: workoutId
-      });
+    const resolvedScheduledWorkout = scheduledWorkout;
+    const resolvedDay = day;
+    const resolvedTemplateView = templateView;
+    const resolvedTemplateExercises = templateExercisesForSeed;
+
+    if (loadedRouteIdRef.current === workoutId && session.workoutSessionId === workoutId) {
+      return;
     }
-  }, [buildWorkoutSessionForScheduledWorkout, hydrateSession, session.id, workoutId]);
+
+    let active = true;
+
+    async function hydrate() {
+      const client = getSupabaseBrowserClient();
+      if (!client) {
+        return;
+      }
+
+      const seed: WorkoutSessionSeed = {
+        routeSessionId: workoutId,
+        userId: auth.user!.id,
+        scheduledWorkout: resolvedScheduledWorkout,
+        day: resolvedDay,
+        template: resolvedTemplateView,
+        templateExercises: resolvedTemplateExercises
+      };
+
+      const result = await getOrCreateWorkoutSession(client, seed);
+      if (!active) {
+        return;
+      }
+
+      hydrateSession(result.session);
+      loadedRouteIdRef.current = workoutId;
+
+      if (result.session.id !== workoutId) {
+        router.replace(`/workout/${result.session.id}`);
+      }
+    }
+
+    void hydrate();
+
+    return () => {
+      active = false;
+    };
+  }, [auth.isConfigured, auth.ready, auth.user?.id, day, hydrateSession, programReady, router, scheduledWorkout, session.workoutSessionId, templateView, workoutId]);
 
   const backHref = day ? `/day/${day.dateKey}` : "/calendar";
 

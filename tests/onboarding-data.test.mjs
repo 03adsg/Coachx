@@ -17,10 +17,12 @@ async function transpileLibraryChain() {
     "workout-data.ts",
     "coachx-data.ts",
     "progress-data.ts",
+    "program-service.ts",
     "onboarding-data.ts",
     "profile-settings-data.ts",
     "auth/navigation.ts",
-    "athlete-service.ts"
+    "athlete-service.ts",
+    "workout-session-service.ts"
   ];
 
   for (const fileName of sourceFiles) {
@@ -58,6 +60,7 @@ const onboarding = await transpileLibraryChain();
 const profileSettings = await import(pathToFileURL(path.join(tempDir, "profile-settings-data.mjs")).href);
 const authNavigation = await import(pathToFileURL(path.join(tempDir, "auth/navigation.mjs")).href);
 const athleteService = await import(pathToFileURL(path.join(tempDir, "athlete-service.mjs")).href);
+const workoutSessionService = await import(pathToFileURL(path.join(tempDir, "workout-session-service.mjs")).href);
 
 test("onboarding step ordering works", () => {
   assert.equal(onboarding.getNextOnboardingStep("goals"), "training-experience");
@@ -189,6 +192,320 @@ test("remote snapshots hydrate onboarding state without changing the active prog
   assert.equal(hydrated.profile.name, snapshot.profile.name);
   assert.equal(hydrated.progress.status, "in-progress");
   assert.equal(hydrated.program.status, onboarding.onboardingDemoState.program.status);
+});
+
+function createFakeWorkoutClient(seedState) {
+  const state = structuredClone(seedState);
+  state.rpcCalls = [];
+
+  function matchesRow(row, filters) {
+    return filters.every((filter) => {
+      if (filter.kind === "eq") {
+        return row[filter.column] === filter.value;
+      }
+
+      if (filter.kind === "in") {
+        return filter.values.includes(row[filter.column]);
+      }
+
+      return true;
+    });
+  }
+
+  function applyOrdering(rows, order) {
+    if (!order) {
+      return rows;
+    }
+
+    return rows.slice().sort((left, right) => {
+      const leftValue = left[order.column];
+      const rightValue = right[order.column];
+
+      if (leftValue === rightValue) {
+        return 0;
+      }
+
+      if (leftValue == null) {
+        return order.ascending ? -1 : 1;
+      }
+
+      if (rightValue == null) {
+        return order.ascending ? 1 : -1;
+      }
+
+      return order.ascending ? (leftValue > rightValue ? 1 : -1) : leftValue > rightValue ? -1 : 1;
+    });
+  }
+
+  function runQuery(tableName, query) {
+    const table = state[tableName];
+
+    if (query.type === "update") {
+      const rows = table.filter((row) => matchesRow(row, query.filters));
+      for (const row of rows) {
+        Object.assign(row, query.payload);
+      }
+      return rows;
+    }
+
+    if (query.type === "insert") {
+      const inserted = query.payload.map((row) => ({
+        created_at: "2026-08-09T08:00:00.000Z",
+        updated_at: "2026-08-09T08:00:00.000Z",
+        ...structuredClone(row)
+      }));
+      table.push(...inserted);
+      return inserted;
+    }
+
+    let rows = table.filter((row) => matchesRow(row, query.filters));
+    rows = applyOrdering(rows, query.order);
+    if (typeof query.limit === "number") {
+      rows = rows.slice(0, query.limit);
+    }
+    return rows;
+  }
+
+  function createQuery(tableName) {
+    const query = {
+      type: "select",
+      filters: [],
+      payload: null,
+      order: null,
+      limit: null
+    };
+
+    const api = {
+      select() {
+        return api;
+      },
+      eq(column, value) {
+        query.filters.push({ kind: "eq", column, value });
+        return api;
+      },
+      in(column, values) {
+        query.filters.push({ kind: "in", column, values });
+        return api;
+      },
+      order(column, options) {
+        query.order = { column, ascending: options?.ascending !== false };
+        return api;
+      },
+      limit(count) {
+        query.limit = count;
+        return api;
+      },
+      update(values) {
+        query.type = "update";
+        query.payload = values;
+        return api;
+      },
+      insert(values) {
+        query.type = "insert";
+        query.payload = Array.isArray(values) ? values : [values];
+        return api;
+      },
+      async maybeSingle() {
+        const rows = runQuery(tableName, query);
+        return { data: rows[0] ?? null, error: null };
+      },
+      async single() {
+        const rows = runQuery(tableName, query);
+        return { data: rows[0] ?? null, error: rows[0] ? null : new Error("Not found") };
+      }
+    };
+
+    return api;
+  }
+
+  return {
+    state,
+    from(tableName) {
+      return createQuery(tableName);
+    },
+    async rpc(name, args) {
+      state.rpcCalls.push({ name, args });
+
+      if (name === "complete_workout_session") {
+        const row = state.workout_sessions.find((item) => item.id === args.p_workout_session_id);
+        if (!row) {
+          return { data: null, error: new Error("Not found") };
+        }
+
+        row.status = "completed";
+        row.completed_at = "2026-08-09T10:00:00.000Z";
+        row.duration_seconds = args.p_duration_seconds ?? row.duration_seconds;
+        row.notes = args.p_notes ?? row.notes;
+        return { data: row, error: null };
+      }
+
+      return { data: null, error: new Error("Unexpected rpc") };
+    }
+  };
+}
+
+test("workout set saves update the same row and complete the exercise only when all sets are done", async () => {
+  const client = createFakeWorkoutClient({
+    workout_sessions: [
+      {
+        id: "00000000-0000-4000-8000-000000000001",
+        user_id: "00000000-0000-4000-8000-000000000002",
+        scheduled_workout_id: "00000000-0000-4000-8000-000000000003",
+        workout_template_id: "00000000-0000-4000-8000-000000000004",
+        status: "in_progress",
+        started_at: "2026-08-09T08:00:00.000Z",
+        completed_at: null,
+        duration_seconds: null,
+        notes: null,
+        session_metadata: {},
+        created_at: "2026-08-09T08:00:00.000Z",
+        updated_at: "2026-08-09T08:00:00.000Z"
+      }
+    ],
+    workout_session_exercises: [
+      {
+        id: "00000000-0000-4000-8000-000000000005",
+        workout_session_id: "00000000-0000-4000-8000-000000000001",
+        prescribed_template_exercise_id: "00000000-0000-4000-8000-000000000006",
+        prescribed_exercise_key: "barbell-hip-thrust",
+        performed_exercise_key: "barbell-hip-thrust",
+        sort_order: 1,
+        target_sets: 2,
+        rep_min: 8,
+        rep_max: 10,
+        rir_min: 1,
+        rir_max: 2,
+        rest_seconds: 120,
+        notes: null,
+        swap_reason: null,
+        status: "planned",
+        started_at: null,
+        completed_at: null,
+        created_at: "2026-08-09T08:00:00.000Z",
+        updated_at: "2026-08-09T08:00:00.000Z"
+      }
+    ],
+    workout_sets: [
+      {
+        id: "00000000-0000-4000-8000-000000000007",
+        workout_session_exercise_id: "00000000-0000-4000-8000-000000000005",
+        set_number: 1,
+        status: "planned",
+        weight_kg: null,
+        reps: null,
+        rir: null,
+        completed_at: null,
+        notes: null,
+        created_at: "2026-08-09T08:00:00.000Z",
+        updated_at: "2026-08-09T08:00:00.000Z"
+      }
+    ]
+  });
+
+  await workoutSessionService.saveWorkoutSet(client, {
+    workoutSessionExerciseId: "00000000-0000-4000-8000-000000000005",
+    workoutSetId: "00000000-0000-4000-8000-000000000007",
+    setNumber: 1,
+    payload: { kilograms: "80", reps: "10", rir: "2" }
+  });
+
+  assert.equal(client.state.workout_sets.length, 1);
+  assert.equal(client.state.workout_sets[0].weight_kg, 80);
+  assert.equal(client.state.workout_session_exercises[0].status, "planned");
+  assert.equal(workoutSessionService.isWorkoutSessionExerciseComplete(2, client.state.workout_sets), false);
+
+  await workoutSessionService.saveWorkoutSet(client, {
+    workoutSessionExerciseId: "00000000-0000-4000-8000-000000000005",
+    workoutSetId: "00000000-0000-4000-8000-000000000007",
+    setNumber: 1,
+    payload: { kilograms: "85", reps: "10", rir: "1" }
+  });
+
+  assert.equal(client.state.workout_sets.length, 1);
+  assert.equal(client.state.workout_sets[0].weight_kg, 85);
+  assert.equal(workoutSessionService.isWorkoutSessionExerciseComplete(2, client.state.workout_sets), false);
+
+  await workoutSessionService.saveWorkoutSet(client, {
+    workoutSessionExerciseId: "00000000-0000-4000-8000-000000000005",
+    setNumber: 2,
+    payload: { kilograms: "85", reps: "9", rir: "1" }
+  });
+
+  assert.equal(client.state.workout_sets.length, 2);
+  assert.equal(workoutSessionService.isWorkoutSessionExerciseComplete(2, client.state.workout_sets), true);
+});
+
+test("exercise swaps preserve the prescribed identity", async () => {
+  const client = createFakeWorkoutClient({
+    workout_sessions: [],
+    workout_session_exercises: [
+      {
+        id: "00000000-0000-4000-8000-000000000005",
+        workout_session_id: "00000000-0000-4000-8000-000000000001",
+        prescribed_template_exercise_id: "00000000-0000-4000-8000-000000000006",
+        prescribed_exercise_key: "barbell-hip-thrust",
+        performed_exercise_key: "barbell-hip-thrust",
+        sort_order: 1,
+        target_sets: 4,
+        rep_min: 8,
+        rep_max: 10,
+        rir_min: 1,
+        rir_max: 2,
+        rest_seconds: 120,
+        notes: null,
+        swap_reason: null,
+        status: "planned",
+        started_at: null,
+        completed_at: null,
+        created_at: "2026-08-09T08:00:00.000Z",
+        updated_at: "2026-08-09T08:00:00.000Z"
+      }
+    ],
+    workout_sets: []
+  });
+
+  const swapped = await workoutSessionService.swapWorkoutSessionExercise(client, {
+    workoutSessionExerciseId: "00000000-0000-4000-8000-000000000005",
+    performedExerciseKey: "glute-drive-machine",
+    swapReason: "pain"
+  });
+
+  assert.equal(swapped.prescribed_exercise_key, "barbell-hip-thrust");
+  assert.equal(swapped.performed_exercise_key, "glute-drive-machine");
+  assert.equal(client.state.workout_session_exercises[0].performed_exercise_key, "glute-drive-machine");
+});
+
+test("workout completion persists through the RPC boundary", async () => {
+  const client = createFakeWorkoutClient({
+    workout_sessions: [
+      {
+        id: "00000000-0000-4000-8000-000000000001",
+        user_id: "00000000-0000-4000-8000-000000000002",
+        scheduled_workout_id: "00000000-0000-4000-8000-000000000003",
+        workout_template_id: "00000000-0000-4000-8000-000000000004",
+        status: "in_progress",
+        started_at: "2026-08-09T08:00:00.000Z",
+        completed_at: null,
+        duration_seconds: null,
+        notes: null,
+        session_metadata: {},
+        created_at: "2026-08-09T08:00:00.000Z",
+        updated_at: "2026-08-09T08:00:00.000Z"
+      }
+    ],
+    workout_session_exercises: [],
+    workout_sets: []
+  });
+
+  const completed = await workoutSessionService.completeWorkoutSession(client, {
+    workoutSessionId: "00000000-0000-4000-8000-000000000001",
+    durationSeconds: 3600,
+    notes: "done"
+  });
+
+  assert.equal(completed.status, "completed");
+  assert.equal(client.state.workout_sessions[0].status, "completed");
+  assert.equal(client.state.workout_sessions[0].duration_seconds, 3600);
 });
 
 await rm(tempDir, { recursive: true, force: true });

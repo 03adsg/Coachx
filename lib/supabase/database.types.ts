@@ -4,6 +4,9 @@ export type AthleteOnboardingStatus = "not_started" | "in_progress" | "completed
 export type ProgramStatus = "proposed" | "active" | "completed" | "archived";
 export type ProgramPhaseStatus = "upcoming" | "active" | "completed" | "archived";
 export type ScheduledWorkoutStatus = "scheduled" | "completed" | "skipped" | "rescheduled" | "cancelled";
+export type WorkoutSessionStatus = "in_progress" | "completed" | "abandoned";
+export type WorkoutSessionExerciseStatus = "planned" | "completed" | "skipped";
+export type WorkoutSetStatus = "planned" | "completed" | "skipped";
 
 export interface ProgramsRow {
   id: string;
@@ -194,6 +197,149 @@ export interface ScheduledWorkoutsUpdate {
   updated_at?: string;
 }
 
+export interface WorkoutSessionsRow {
+  id: string;
+  user_id: string;
+  scheduled_workout_id: string | null;
+  workout_template_id: string | null;
+  status: WorkoutSessionStatus;
+  started_at: string;
+  completed_at: string | null;
+  duration_seconds: number | null;
+  notes: string | null;
+  session_metadata: Json | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkoutSessionsInsert {
+  id?: string;
+  user_id: string;
+  scheduled_workout_id?: string | null;
+  workout_template_id?: string | null;
+  status?: WorkoutSessionStatus;
+  started_at?: string;
+  completed_at?: string | null;
+  duration_seconds?: number | null;
+  notes?: string | null;
+  session_metadata?: Json | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface WorkoutSessionsUpdate {
+  scheduled_workout_id?: string | null;
+  workout_template_id?: string | null;
+  status?: WorkoutSessionStatus;
+  started_at?: string;
+  completed_at?: string | null;
+  duration_seconds?: number | null;
+  notes?: string | null;
+  session_metadata?: Json | null;
+  updated_at?: string;
+}
+
+export interface WorkoutSessionExercisesRow {
+  id: string;
+  workout_session_id: string;
+  prescribed_template_exercise_id: string | null;
+  prescribed_exercise_key: string;
+  performed_exercise_key: string;
+  sort_order: number;
+  target_sets: number | null;
+  rep_min: number | null;
+  rep_max: number | null;
+  rir_min: number | null;
+  rir_max: number | null;
+  rest_seconds: number | null;
+  notes: string | null;
+  swap_reason: string | null;
+  status: WorkoutSessionExerciseStatus;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkoutSessionExercisesInsert {
+  id?: string;
+  workout_session_id: string;
+  prescribed_template_exercise_id?: string | null;
+  prescribed_exercise_key: string;
+  performed_exercise_key: string;
+  sort_order: number;
+  target_sets?: number | null;
+  rep_min?: number | null;
+  rep_max?: number | null;
+  rir_min?: number | null;
+  rir_max?: number | null;
+  rest_seconds?: number | null;
+  notes?: string | null;
+  swap_reason?: string | null;
+  status?: WorkoutSessionExerciseStatus;
+  started_at?: string | null;
+  completed_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface WorkoutSessionExercisesUpdate {
+  prescribed_template_exercise_id?: string | null;
+  prescribed_exercise_key?: string;
+  performed_exercise_key?: string;
+  sort_order?: number;
+  target_sets?: number | null;
+  rep_min?: number | null;
+  rep_max?: number | null;
+  rir_min?: number | null;
+  rir_max?: number | null;
+  rest_seconds?: number | null;
+  notes?: string | null;
+  swap_reason?: string | null;
+  status?: WorkoutSessionExerciseStatus;
+  started_at?: string | null;
+  completed_at?: string | null;
+  updated_at?: string;
+}
+
+export interface WorkoutSetsRow {
+  id: string;
+  workout_session_exercise_id: string;
+  set_number: number;
+  status: WorkoutSetStatus;
+  weight_kg: number | null;
+  reps: number | null;
+  rir: number | null;
+  completed_at: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkoutSetsInsert {
+  id?: string;
+  workout_session_exercise_id: string;
+  set_number: number;
+  status?: WorkoutSetStatus;
+  weight_kg?: number | null;
+  reps?: number | null;
+  rir?: number | null;
+  completed_at?: string | null;
+  notes?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface WorkoutSetsUpdate {
+  status?: WorkoutSetStatus;
+  weight_kg?: number | null;
+  reps?: number | null;
+  rir?: number | null;
+  completed_at?: string | null;
+  notes?: string | null;
+  updated_at?: string;
+}
+
 export interface AthleteProfilesRow {
   id: string;
   display_name: string;
@@ -315,9 +461,36 @@ export interface Database {
         Update: ScheduledWorkoutsUpdate;
         Relationships: [];
       };
+      workout_sessions: {
+        Row: WorkoutSessionsRow;
+        Insert: WorkoutSessionsInsert;
+        Update: WorkoutSessionsUpdate;
+        Relationships: [];
+      };
+      workout_session_exercises: {
+        Row: WorkoutSessionExercisesRow;
+        Insert: WorkoutSessionExercisesInsert;
+        Update: WorkoutSessionExercisesUpdate;
+        Relationships: [];
+      };
+      workout_sets: {
+        Row: WorkoutSetsRow;
+        Insert: WorkoutSetsInsert;
+        Update: WorkoutSetsUpdate;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      complete_workout_session: {
+        Args: {
+          p_workout_session_id: string;
+          p_duration_seconds?: number | null;
+          p_notes?: string | null;
+        };
+        Returns: WorkoutSessionsRow;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

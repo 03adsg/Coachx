@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useAuthStore } from "@/components/auth-provider";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  completeWorkoutSession,
+  saveWorkoutSet,
+  swapWorkoutSessionExercise,
+} from "@/lib/workout-session-service";
 import {
   coachxExerciseAlternativeMap,
   createDemoWorkoutSession,
@@ -15,20 +22,23 @@ interface WorkoutStoreValue {
   session: WorkoutSessionState;
   hydrateSession: (nextSession: WorkoutSessionState) => void;
   updateSetDraft: (exerciseId: string, setNumber: number, patch: Partial<SessionExercise["sets"][number]>) => void;
-  completeSet: (exerciseId: string, setNumber: number, payload: { kilograms: string; reps: string; rir?: string }) => void;
-  swapExercise: (exerciseId: string, alternativeId: string) => void;
+  completeSet: (exerciseId: string, setNumber: number, payload: { kilograms: string; reps: string; rir?: string }) => Promise<void>;
+  swapExercise: (exerciseId: string, alternativeId: string) => Promise<void>;
   startRestTimer: (exerciseId: string, setNumber: number, seconds: number) => void;
   addThirtySeconds: () => void;
   skipRestTimer: () => void;
   selectAdjustmentTime: (minutes: "20 min" | "30 min" | "45 min") => void;
   applyAdjustment: () => void;
   updateSafety: (patch: Partial<WorkoutSessionState["safety"]>) => void;
-  finishWorkout: () => void;
+  finishWorkout: () => Promise<void>;
   resetDemoWorkout: () => void;
 }
 
 const WorkoutStoreContext = createContext<WorkoutStoreValue | null>(null);
-const STORAGE_KEY = "coachx-demo-workout-session";
+
+function getStorageKey(userId: string | null) {
+  return `coachx-workout-session:${userId ?? "demo"}`;
+}
 
 function reviveSession(raw: string | null) {
   if (!raw) {
@@ -51,16 +61,110 @@ function computeRestTimer(exerciseId: string, setNumber: number, seconds: number
   };
 }
 
+function getSessionExercise(session: WorkoutSessionState, exerciseId: string) {
+  return session.exercises.find((exercise) => exercise.id === exerciseId) ?? session.exercises[0];
+}
+
+function updateSessionExerciseDraft(
+  session: WorkoutSessionState,
+  exerciseId: string,
+  setNumber: number,
+  patch: Partial<SessionExercise["sets"][number]>
+) {
+  return {
+    ...session,
+    exercises: session.exercises.map((exercise) =>
+      exercise.id !== exerciseId
+        ? exercise
+        : {
+            ...exercise,
+            sets: exercise.sets.map((set) => (set.setNumber === setNumber ? { ...set, ...patch } : set))
+          }
+    )
+  };
+}
+
+function markCompletedSetOnSession(session: WorkoutSessionState, exerciseId: string, setNumber: number, payload: { kilograms: string; reps: string; rir?: string }): WorkoutSessionState {
+  const completedAt = new Date().toISOString();
+
+  return {
+    ...session,
+    exercises: session.exercises.map((exercise) => {
+      if (exercise.id !== exerciseId) {
+        return exercise;
+      }
+
+      const alreadyCompleted = exercise.completedSets.some((set) => set.setNumber === setNumber);
+      const nextCompletedSets = alreadyCompleted
+        ? exercise.completedSets
+        : [
+            ...exercise.completedSets,
+            {
+              setNumber,
+              kilograms: Number(payload.kilograms || 0),
+              reps: Number(payload.reps || 0),
+              rir: payload.rir ? Number(payload.rir) : undefined,
+              performedAt: completedAt
+            } satisfies CompletedSet
+          ];
+
+      const completedCount = nextCompletedSets.length;
+      const exerciseCompleted = completedCount >= exercise.totalSets;
+
+      return {
+        ...exercise,
+        sets: exercise.sets.map((set) =>
+          set.setNumber === setNumber
+            ? {
+                ...set,
+                kilograms: payload.kilograms,
+                reps: payload.reps,
+                rir: payload.rir,
+                completed: true,
+                status: "completed" as const,
+                completedAt
+              }
+            : set
+        ),
+        completedSets: nextCompletedSets,
+        status: exerciseCompleted ? "completed" : exercise.status,
+        startedAt: exercise.startedAt ?? completedAt,
+        completedAt: exerciseCompleted ? completedAt : exercise.completedAt
+      };
+    }),
+    restTimer: computeRestTimer(exerciseId, setNumber, getExerciseDefinition(getSessionExercise(session, exerciseId).performedExerciseId).restSeconds)
+  } satisfies WorkoutSessionState;
+}
+
 export function WorkoutProvider({ children }: { children: ReactNode }) {
+  const auth = useAuthStore();
+  const sessionRef = useRef<WorkoutSessionState>(createDemoWorkoutSession());
   const [session, setSession] = useState<WorkoutSessionState>(createDemoWorkoutSession);
 
   useEffect(() => {
-    setSession(reviveSession(window.localStorage.getItem(STORAGE_KEY)));
-  }, []);
+    sessionRef.current = session;
+  }, [session]);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-  }, [session]);
+    if (!auth.ready) {
+      return;
+    }
+
+    const key = getStorageKey(auth.isConfigured && auth.user ? auth.user.id : null);
+    const cached = typeof window === "undefined" ? null : window.localStorage.getItem(key);
+    const revived = reviveSession(cached);
+    setSession(revived);
+    sessionRef.current = revived;
+  }, [auth.isConfigured, auth.ready, auth.user?.id]);
+
+  useEffect(() => {
+    if (!auth.ready || typeof window === "undefined") {
+      return;
+    }
+
+    const key = getStorageKey(auth.isConfigured && auth.user ? auth.user.id : null);
+    window.localStorage.setItem(key, JSON.stringify(session));
+  }, [auth.isConfigured, auth.ready, auth.user?.id, session]);
 
   useEffect(() => {
     if (!session.restTimer?.active) {
@@ -89,68 +193,103 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   }, [session.restTimer?.active]);
 
   const value = useMemo<WorkoutStoreValue>(() => {
-    const updateSetDraft: WorkoutStoreValue["updateSetDraft"] = (exerciseId, setNumber, patch) => {
-      setSession((current) => ({
-        ...current,
-        exercises: current.exercises.map((exercise) =>
-          exercise.id !== exerciseId
-            ? exercise
-            : {
-                ...exercise,
-                sets: exercise.sets.map((set) => (set.setNumber === setNumber ? { ...set, ...patch } : set))
-              }
-        )
-      }));
+    const hydrateSession: WorkoutStoreValue["hydrateSession"] = (nextSession) => {
+      setSession(nextSession);
+      sessionRef.current = nextSession;
     };
 
-    const completeSet: WorkoutStoreValue["completeSet"] = (exerciseId, setNumber, payload) => {
-      setSession((current) => {
-        const exercises = current.exercises.map((exercise) => {
-          if (exercise.id !== exerciseId) {
-            return exercise;
-          }
+    const updateSetDraft: WorkoutStoreValue["updateSetDraft"] = (exerciseId, setNumber, patch) => {
+      setSession((current) => updateSessionExerciseDraft(current, exerciseId, setNumber, patch));
+    };
 
-          const alreadyCompleted = exercise.completedSets.some((set) => set.setNumber === setNumber);
-          if (alreadyCompleted) {
-            return exercise;
-          }
+    const completeSet: WorkoutStoreValue["completeSet"] = async (exerciseId, setNumber, payload) => {
+      const currentSession = sessionRef.current;
+      const currentExercise = getSessionExercise(currentSession, exerciseId);
+      const currentSet = currentExercise.sets.find((set) => set.setNumber === setNumber) ?? currentExercise.sets[currentExercise.sets.length - 1];
+      const savedWorkoutSessionExerciseId = currentExercise.sessionExerciseId ?? currentExercise.id;
 
-          const completedSet: CompletedSet = {
-            setNumber,
-            kilograms: Number(payload.kilograms || 0),
-            reps: Number(payload.reps || 0),
-            rir: payload.rir ? Number(payload.rir) : undefined,
-            performedAt: new Date().toISOString()
-          };
+      setSession((current) => ({
+        ...markCompletedSetOnSession(current, exerciseId, setNumber, payload),
+        saveState: "pending",
+        saveError: null
+      }));
 
-          return {
-            ...exercise,
-            sets: exercise.sets.map((set) =>
+      const client = getSupabaseBrowserClient();
+      if (!auth.isConfigured || !auth.user || !client || !currentSession.workoutSessionId) {
+        return;
+      }
+
+      try {
+        const saved = await saveWorkoutSet(client, {
+          workoutSessionExerciseId: savedWorkoutSessionExerciseId,
+          workoutSetId: currentSet?.workoutSetId ?? null,
+          setNumber,
+          payload
+        });
+
+        setSession((current) => ({
+          ...current,
+          saveState: "saved",
+          saveError: null,
+          exercises: current.exercises.map((exercise) => {
+            if (exercise.id !== exerciseId) {
+              return exercise;
+            }
+
+            const nextSets = exercise.sets.map((set) =>
               set.setNumber === setNumber
                 ? {
                     ...set,
-                    kilograms: payload.kilograms,
-                    reps: payload.reps,
-                    rir: payload.rir,
-                    completed: true
+                    workoutSetId: saved.id,
+                    kilograms: saved.weight_kg == null ? "" : String(saved.weight_kg),
+                    reps: saved.reps == null ? "" : String(saved.reps),
+                    rir: saved.rir == null ? undefined : String(saved.rir),
+                    completed: saved.status === "completed",
+                    status: saved.status,
+                    completedAt: saved.completed_at,
+                    notes: saved.notes
                   }
                 : set
-            ),
-            completedSets: [...exercise.completedSets, completedSet]
-          };
-        });
+            );
+            const completedSets = exercise.completedSets.some((set) => set.setNumber === setNumber)
+              ? exercise.completedSets
+              : [
+                  ...exercise.completedSets,
+                  {
+                    setNumber,
+                    kilograms: saved.weight_kg ?? 0,
+                    reps: saved.reps ?? 0,
+                    rir: saved.rir ?? undefined,
+                    performedAt: saved.completed_at ?? new Date().toISOString()
+                  }
+                ];
+            const completedCount = completedSets.length;
+            const exerciseCompleted = completedCount >= exercise.totalSets;
 
-        return {
+            return {
+              ...exercise,
+              sets: nextSets,
+              completedSets,
+              status: exerciseCompleted ? "completed" : exercise.status,
+              completedAt: exerciseCompleted ? saved.completed_at ?? exercise.completedAt : exercise.completedAt
+            };
+          })
+        }));
+      } catch (error) {
+        setSession((current) => ({
           ...current,
-          exercises,
-          restTimer: computeRestTimer(exerciseId, setNumber, getExerciseDefinition(getSessionExercise(current, exerciseId).performedExerciseId).restSeconds)
-        };
-      });
+          saveState: "error",
+          saveError: error instanceof Error ? error.message : "Unable to save workout set."
+        }));
+        throw error;
+      }
     };
 
-    const swapExercise: WorkoutStoreValue["swapExercise"] = (exerciseId, alternativeId) => {
+    const swapExercise: WorkoutStoreValue["swapExercise"] = async (exerciseId, alternativeId) => {
       setSession((current) => ({
         ...current,
+        saveState: "pending",
+        saveError: null,
         exercises: current.exercises.map((exercise) =>
           exercise.id !== exerciseId
             ? exercise
@@ -160,6 +299,32 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
               }
         )
       }));
+
+      const client = getSupabaseBrowserClient();
+      if (!auth.isConfigured || !auth.user || !client || !sessionRef.current.workoutSessionId) {
+        return;
+      }
+
+      try {
+        await swapWorkoutSessionExercise(client, {
+          workoutSessionExerciseId: getSessionExercise(sessionRef.current, exerciseId).sessionExerciseId ?? exerciseId,
+          performedExerciseKey: alternativeId,
+          swapReason: "manual swap"
+        });
+
+        setSession((current) => ({
+          ...current,
+          saveState: "saved",
+          saveError: null
+        }));
+      } catch (error) {
+        setSession((current) => ({
+          ...current,
+          saveState: "error",
+          saveError: error instanceof Error ? error.message : "Unable to swap workout exercise."
+        }));
+        throw error;
+      }
     };
 
     const startRestTimer: WorkoutStoreValue["startRestTimer"] = (exerciseId, setNumber, seconds) => {
@@ -205,11 +370,6 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       }));
     };
 
-    const hydrateSession: WorkoutStoreValue["hydrateSession"] = (nextSession) => {
-      setSession(nextSession);
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextSession));
-    };
-
     const applyAdjustment: WorkoutStoreValue["applyAdjustment"] = () => {
       setSession((current) => ({
         ...current,
@@ -230,17 +390,64 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       }));
     };
 
-    const finishWorkout: WorkoutStoreValue["finishWorkout"] = () => {
+    const finishWorkout: WorkoutStoreValue["finishWorkout"] = async () => {
       setSession((current) => ({
         ...current,
-        restTimer: null
+        restTimer: null,
+        saveState: "pending",
+        saveError: null
       }));
+
+      const client = getSupabaseBrowserClient();
+      if (!auth.isConfigured || !auth.user || !client || !sessionRef.current.workoutSessionId) {
+        return;
+      }
+
+      try {
+        const finished = await completeWorkoutSession(client, {
+          workoutSessionId: sessionRef.current.workoutSessionId,
+          durationSeconds: sessionRef.current.durationSeconds ?? null,
+          notes: sessionRef.current.notes ?? null
+        });
+
+        setSession((current) => ({
+          ...current,
+          status: finished.status,
+          completedAt: finished.completed_at,
+          durationSeconds: finished.duration_seconds,
+          notes: finished.notes,
+          persistence: {
+            workoutSessionId: finished.id,
+            scheduledWorkoutId: finished.scheduled_workout_id,
+            workoutTemplateId: finished.workout_template_id,
+            status: finished.status,
+            startedAt: finished.started_at,
+            completedAt: finished.completed_at,
+            durationSeconds: finished.duration_seconds,
+            notes: finished.notes,
+            sessionMetadata: (finished.session_metadata as Record<string, unknown> | null) ?? null
+          },
+          saveState: "saved",
+          saveError: null,
+          source: "remote"
+        }));
+      } catch (error) {
+        setSession((current) => ({
+          ...current,
+          saveState: "error",
+          saveError: error instanceof Error ? error.message : "Unable to complete workout."
+        }));
+        throw error;
+      }
     };
 
     const resetDemoWorkout: WorkoutStoreValue["resetDemoWorkout"] = () => {
       const demo = createDemoWorkoutSession();
       setSession(demo);
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(demo));
+      sessionRef.current = demo;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(getStorageKey(null), JSON.stringify(demo));
+      }
     };
 
     return {
@@ -258,13 +465,9 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       finishWorkout,
       resetDemoWorkout
     };
-  }, [session]);
+  }, [auth.isConfigured, auth.user, session]);
 
   return <WorkoutStoreContext.Provider value={value}>{children}</WorkoutStoreContext.Provider>;
-}
-
-function getSessionExercise(session: WorkoutSessionState, exerciseId: string) {
-  return session.exercises.find((exercise) => exercise.id === exerciseId) ?? session.exercises[0];
 }
 
 export function useWorkoutStore() {

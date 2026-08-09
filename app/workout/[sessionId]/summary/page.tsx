@@ -104,7 +104,7 @@ export default function WorkoutSummaryPage() {
             </div>
             <div className="workout-divider" />
             <div className="stack">
-              {["Hip Thrust — 80 → 85 kg (+5 kg)", "Romanian Deadlift — 30 kg | Target completed", "Bulgarian Split Squat — +2 reps vs last session"].map((item) => (
+              {["Hip Thrust — 80 → 85 kg (+5 kg)", "Romanian Deadlift — 30 kg | Target completed", "Bulgarian Split Squat — +2 reps vs last session"].map((item: string) => (
                 <div key={item} className="caption" style={{ color: "var(--text-primary)" }}>
                   {item}
                 </div>
@@ -117,7 +117,7 @@ export default function WorkoutSummaryPage() {
           <Card className="workout-next-card">
             <div className="eyebrow">Next Time</div>
             <div className="stack" style={{ marginTop: 12 }}>
-              {session.summary.nextTime.map((item) => (
+              {session.summary.nextTime.map((item: { label: string; detail: string }) => (
                 <div key={item.label} className="workout-next-card__item">
                   <div className="body-md" style={{ fontWeight: 700 }}>
                     {item.label}
@@ -134,7 +134,7 @@ export default function WorkoutSummaryPage() {
             How did that session feel?
           </div>
           <div className="workout-chip-row">
-            {session.summary.feedback.map((item) => (
+            {session.summary.feedback.map((item: "Too Easy" | "Good" | "Challenging") => (
               <button key={item} className={`workout-filter-chip ${item === "Good" ? "active" : ""}`} type="button">
                 {item.toUpperCase()}
               </button>

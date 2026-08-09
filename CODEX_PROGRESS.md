@@ -602,3 +602,43 @@
 
 - `Profile` remains a provisional hub from the prior batch where the main Stitch export was not available.
 - The existing fixture/demo fallback still exists for unauthenticated or unconfigured states.
+
+
+## Batch G — Supabase Migration Slice 3 — Workout Session + Set Persistence
+
+### Persistence scope
+
+- Added Supabase persistence for workout execution history:
+  - `workout_sessions`
+  - `workout_session_exercises`
+  - `workout_sets`
+- Added a dedicated `workout-session-service` boundary for create/resume, incremental set saves, exercise swaps, and workout completion.
+- The workout provider now treats Supabase-backed session state as authoritative for authenticated flows and keeps localStorage as cache only.
+
+### Routes and flows
+
+- `/workout/[sessionId]` now hydrates a remote workout session from the scheduled workout and template bundle.
+- `/workout/[sessionId]/exercise/[exerciseId]` now awaits remote set persistence before advancing to workout completion.
+- Exercise swaps preserve the prescribed exercise identity while updating the performed exercise identity remotely.
+- Session completion uses the `complete_workout_session` RPC and persists the completed session back to Supabase.
+
+### Validation
+
+- `pnpm typecheck`: passed.
+- `pnpm lint`: passed.
+- `pnpm test`: passed.
+- `pnpm build`: passed.
+
+### Test coverage
+
+- Added targeted tests for:
+  - set save deduplication
+  - exercise completion rules
+  - prescribed vs performed identity preservation
+  - workout completion RPC boundary
+
+### Remaining provisional / temporary states
+
+- Live authenticated Supabase verification still depends on the remote preview/session state.
+- Rest timer behavior remains client-side only by design.
+- The fixture/demo fallback still exists for unauthenticated or unconfigured states.

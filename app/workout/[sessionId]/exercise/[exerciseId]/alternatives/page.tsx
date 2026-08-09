@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Screen } from "@/components/screen";
 import { Card } from "@/components/ui";
@@ -10,6 +11,7 @@ import { getExerciseDefinition, getWorkoutAlternativeCards, getWorkoutExercise }
 export default function ExerciseAlternativesPage() {
   const params = useParams<{ sessionId: string; exerciseId: string }>();
   const router = useRouter();
+  const [saving, setSaving] = useState(false);
   const exerciseId = params?.exerciseId ?? "hip-thrust";
   const { session, swapExercise } = useWorkoutStore();
   const exercise = getWorkoutExercise(session, exerciseId);
@@ -114,11 +116,21 @@ export default function ExerciseAlternativesPage() {
                     </div>
                   </div>
                   <button
+                    disabled={saving}
                     className="workout-secondary-button focus-ring"
                     type="button"
-                    onClick={() => {
-                      swapExercise(exercise.id, alternative.exerciseId);
-                      router.push(`/workout/${session.id}/exercise/${exercise.id}`);
+                    onClick={async () => {
+                      if (saving) {
+                        return;
+                      }
+
+                      setSaving(true);
+                      try {
+                        await swapExercise(exercise.id, alternative.exerciseId);
+                        router.push(`/workout/${session.id}/exercise/${exercise.id}`);
+                      } finally {
+                        setSaving(false);
+                      }
                     }}
                   >
                     <span className="icon" aria-hidden="true">
