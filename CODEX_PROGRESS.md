@@ -722,5 +722,6 @@
 
 - Live Supabase verification now reaches the progress tables, and authenticated measurement inserts and updates succeed.
 - The live `progress-photos` Storage bucket is present, but authenticated photo uploads still fail at the `progress_photos` metadata insert step because the live table RLS path is incomplete.
+- Added a dedicated `progress_photos` RLS fix migration to enforce both photo ownership and parent `progress_entries` ownership on insert/update/delete.
 - Anonymous reads against the progress tables return empty arrays, which is consistent with RLS.
 - The main `/progress` dashboard remains a provisional hub because the Stitch ZIP still does not contain a dedicated physical export for that screen.
