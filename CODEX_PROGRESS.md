@@ -628,8 +628,13 @@
 
 ### Remaining provisional / temporary states
 
-- Live Supabase verification for the new check-in and notification persistence remains pending.
-- The check-in completion route and notification permissions are still browser/app-session driven until live verification is completed.
+- Live Supabase verification for Slice 6 is now complete for the current disposable athlete:
+  - `weekly_checkins`
+  - `weekly_checkin_responses`
+  - `weekly_checkin_reviews`
+  - `notification_preferences`
+- Submitted check-ins, check-in reviews, and notification preferences are now authoritative in Supabase for authenticated athletes.
+- LocalStorage remains only a fallback/demo cache for legacy fixture state; it is not authoritative for submitted check-ins or notification preferences.
 
 
 ## Batch F ??? Supabase Migration Slice 2 ??? Program + Calendar Persistence

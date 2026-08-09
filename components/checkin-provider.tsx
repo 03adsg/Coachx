@@ -56,6 +56,7 @@ function createFallbackSnapshot(dateKey: string): WeeklyCheckinSnapshot {
   const { weekStartDate, weekEndDate } = resolveWeeklyCheckinWindow(dateKey);
   const checkinId = createId();
   const userId = "00000000-0000-0000-0000-000000000000";
+  const now = new Date().toISOString();
   const responses = createEmptyWeeklyCheckinResponses().map((response) => ({
     ...response,
     answeredAt: now
@@ -70,7 +71,6 @@ function createFallbackSnapshot(dateKey: string): WeeklyCheckinSnapshot {
     pain_discomfort: "none"
   });
   const review = deriveWeeklyCheckinReviewSummary(summarySignals);
-  const now = new Date().toISOString();
 
   return {
     checkin: {

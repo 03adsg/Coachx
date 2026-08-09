@@ -227,6 +227,12 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - Keep device/browser permission state separate from preference state
 - Preserve the weekly check-in review boundary so recommendations do not automatically mutate the active program
 
+### Status
+
+- LIVE VERIFIED
+- Submitted check-ins, weekly reviews, and notification preferences are now authoritative in Supabase for authenticated athletes.
+- LocalStorage remains a fallback/demo cache only.
+
 ### Tables / entities
 
 - `weekly_checkins`
