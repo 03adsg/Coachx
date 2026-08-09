@@ -17,6 +17,7 @@ async function transpileLibraryChain() {
     "workout-data.ts",
     "coachx-data.ts",
     "progress-data.ts",
+    "progress-service.ts",
     "program-service.ts",
     "onboarding-data.ts",
     "profile-settings-data.ts",
@@ -58,10 +59,12 @@ async function transpileLibraryChain() {
 }
 
 const onboarding = await transpileLibraryChain();
+const progressData = await import(pathToFileURL(path.join(tempDir, "progress-data.mjs")).href);
 const profileSettings = await import(pathToFileURL(path.join(tempDir, "profile-settings-data.mjs")).href);
 const nutritionService = await import(pathToFileURL(path.join(tempDir, "nutrition-service.mjs")).href);
 const authNavigation = await import(pathToFileURL(path.join(tempDir, "auth/navigation.mjs")).href);
 const athleteService = await import(pathToFileURL(path.join(tempDir, "athlete-service.mjs")).href);
+const progressService = await import(pathToFileURL(path.join(tempDir, "progress-service.mjs")).href);
 const workoutSessionService = await import(pathToFileURL(path.join(tempDir, "workout-session-service.mjs")).href);
 const programService = await import(pathToFileURL(path.join(tempDir, "program-service.mjs")).href);
 
@@ -305,6 +308,117 @@ test("nutrition snapshots survive serialize and revive without changing the sour
   assert.equal(roundTrip.day.dayType, "rest");
   assert.equal(roundTrip.plan.userId, "00000000-0000-4000-8000-000000000017");
   assert.equal(nutritionService.buildNutritionDayView(roundTrip).dateKey, "2026-08-09");
+});
+
+test("progress payloads keep weight separate from centimeter measurements", () => {
+  const state = progressData.createProgressDemoState();
+  state.measurement.definitions = state.measurement.definitions.map((definition) =>
+    definition.type === "weight"
+      ? { ...definition, todayValue: "62.8" }
+      : {
+          ...definition,
+          todayValue:
+            definition.type === "waist" ? "72.8" : definition.type === "hips" ? "97.4" : definition.type === "thigh" ? "56.0" : definition.todayValue
+        }
+  );
+
+  const payload = progressService.buildProgressEntriesPayload(state, "manual");
+
+  assert.equal(payload.entry.entry_type, "measurement");
+  assert.equal(payload.entry.weight_kg, 62.8);
+  assert.deepEqual(
+    payload.measurements.map((measurement) => measurement.measurement_key).sort(),
+    ["hips", "thigh", "waist"]
+  );
+});
+
+test("progress snapshots hydrate remote measurement history and photo paths", () => {
+  const snapshot = {
+    entries: [
+      {
+        id: "00000000-0000-4000-8000-000000000021",
+        user_id: "00000000-0000-4000-8000-000000000022",
+        entry_date: "2026-08-08",
+        entry_type: "checkpoint",
+        weight_kg: 63,
+        notes: null,
+        source: "onboarding_baseline",
+        created_at: "2026-08-08T08:00:00.000Z",
+        updated_at: "2026-08-08T08:00:00.000Z"
+      },
+      {
+        id: "00000000-0000-4000-8000-000000000023",
+        user_id: "00000000-0000-4000-8000-000000000022",
+        entry_date: "2026-08-15",
+        entry_type: "measurement",
+        weight_kg: 62.8,
+        notes: null,
+        source: "manual",
+        created_at: "2026-08-15T08:00:00.000Z",
+        updated_at: "2026-08-15T08:00:00.000Z"
+      }
+    ],
+    measurements: [
+      {
+        id: "00000000-0000-4000-8000-000000000024",
+        progress_entry_id: "00000000-0000-4000-8000-000000000021",
+        measurement_key: "waist",
+        value_cm: 74,
+        created_at: "2026-08-08T08:00:00.000Z",
+        updated_at: "2026-08-08T08:00:00.000Z"
+      },
+      {
+        id: "00000000-0000-4000-8000-000000000025",
+        progress_entry_id: "00000000-0000-4000-8000-000000000023",
+        measurement_key: "waist",
+        value_cm: 72.8,
+        created_at: "2026-08-15T08:00:00.000Z",
+        updated_at: "2026-08-15T08:00:00.000Z"
+      }
+    ],
+    photos: [
+      {
+        id: "00000000-0000-4000-8000-000000000026",
+        user_id: "00000000-0000-4000-8000-000000000022",
+        progress_entry_id: "00000000-0000-4000-8000-000000000021",
+        pose: "front",
+        storage_bucket: "progress-photos",
+        storage_path: "user/entry/front-a.jpg",
+        captured_at: null,
+        uploaded_at: "2026-08-08T08:00:00.000Z",
+        width: null,
+        height: null,
+        mime_type: "image/jpeg",
+        file_size_bytes: 1234,
+        created_at: "2026-08-08T08:00:00.000Z",
+        updated_at: "2026-08-08T08:00:00.000Z"
+      },
+      {
+        id: "00000000-0000-4000-8000-000000000027",
+        user_id: "00000000-0000-4000-8000-000000000022",
+        progress_entry_id: "00000000-0000-4000-8000-000000000023",
+        pose: "front",
+        storage_bucket: "progress-photos",
+        storage_path: "user/entry/front-b.jpg",
+        captured_at: null,
+        uploaded_at: "2026-08-15T08:00:00.000Z",
+        width: null,
+        height: null,
+        mime_type: "image/jpeg",
+        file_size_bytes: 1234,
+        created_at: "2026-08-15T08:00:00.000Z",
+        updated_at: "2026-08-15T08:00:00.000Z"
+      }
+    ]
+  };
+
+  const hydrated = progressService.buildProgressStateFromPersistedSnapshot(progressData.createProgressDemoState(), snapshot);
+
+  assert.equal(hydrated.measurement.histories.find((history) => history.type === "waist")?.entries.at(-1)?.value, 72.8);
+  assert.equal(hydrated.measurement.lastSavedRows.find((row) => row.type === "waist")?.difference, -1.2);
+  assert.equal(hydrated.photos.checkpoints[0].photos.front.storagePath, "user/entry/front-a.jpg");
+  assert.equal(hydrated.photos.checkpoints[1].photos.front.storagePath, "user/entry/front-b.jpg");
+  assert.equal(hydrated.trends.keyMetrics[1].value, "72.8 cm");
 });
 
 function createFakeWorkoutClient(seedState) {

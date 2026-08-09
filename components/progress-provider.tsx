@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   buildMeasurementHistory,
   computeMeasurementDifference,
@@ -18,18 +18,27 @@ import {
   type PhotoPose,
   type ProgressState
 } from "@/lib/progress-data";
+import { useAuthStore } from "@/components/auth-provider";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  deleteProgressPhoto,
+  loadProgressState,
+  saveProgressMeasurements as persistProgressMeasurements,
+  uploadProgressPhoto
+} from "@/lib/progress-service";
 
 interface ProgressStoreValue {
   state: ProgressState;
   measurementRows: ReturnType<typeof getMeasurementRows>;
   updateMeasurementDraft: (type: MeasurementType, value: string) => void;
-  saveMeasurements: () => { ok: boolean; errors: string[] };
+  saveMeasurements: () => Promise<{ ok: boolean; errors: string[] }>;
   dismissMeasurementErrors: () => void;
   setComparisonPose: (pose: PhotoPose) => void;
   setComparisonMode: (mode: ComparisonMode) => void;
   capturePhoto: (pose: PhotoPose) => void;
   retakePhoto: (pose: PhotoPose) => void;
-  markPhotoMissing: (pose: PhotoPose) => void;
+  markPhotoMissing: (pose: PhotoPose) => Promise<void>;
+  savePhotoCapture: (pose: PhotoPose, file: File) => Promise<{ ok: boolean; error: string | null }>;
   setSelectedPhotoCheckpoint: (checkpoint: ProgressState["photos"]["selectedCheckpoint"]) => void;
   setGuidanceVisible: (visible: boolean) => void;
   setAthleteFeedback: (value: AthleteFeedback) => void;
@@ -40,7 +49,11 @@ interface ProgressStoreValue {
 }
 
 const ProgressStoreContext = createContext<ProgressStoreValue | null>(null);
-const STORAGE_KEY = "coachx-demo-progress-state-v2";
+const STORAGE_KEY_PREFIX = "coachx-progress-state-v1";
+
+function progressStorageKey(userId: string | null) {
+  return `${STORAGE_KEY_PREFIX}:${userId ?? "demo"}`;
+}
 
 function reviveState(rawValue: string | null) {
   if (!rawValue) {
@@ -49,28 +62,38 @@ function reviveState(rawValue: string | null) {
 
   try {
     const parsed = JSON.parse(rawValue) as ProgressState;
+    const base = createProgressDemoState();
+
     return {
+      ...base,
       ...parsed,
       photos: {
+        ...base.photos,
         ...parsed.photos,
-        checkpoints: parsed.photos.checkpoints.map((checkpoint) => ({
-          ...checkpoint,
-          photos: {
-            ...checkpoint.photos,
-            front: {
-              ...checkpoint.photos.front,
-              image: checkpoint.photos.front.image && checkpoint.photos.front.image.includes("progress-photo-") ? "/progress-photo-front.svg" : checkpoint.photos.front.image
-            },
-            side: {
-              ...checkpoint.photos.side,
-              image: checkpoint.photos.side.image && checkpoint.photos.side.image.includes("progress-photo-") ? "/progress-photo-side.svg" : checkpoint.photos.side.image
-            },
-            back: {
-              ...checkpoint.photos.back,
-              image: checkpoint.photos.back.image && checkpoint.photos.back.image.includes("progress-photo-") ? "/progress-photo-back.svg" : checkpoint.photos.back.image
+        checkpoints: parsed.photos.checkpoints.map((checkpoint, index) => {
+          const baseCheckpoint = base.photos.checkpoints[index] ?? base.photos.checkpoints[0];
+          return {
+            ...baseCheckpoint,
+            ...checkpoint,
+            photos: {
+              front: {
+                ...baseCheckpoint.photos.front,
+                ...checkpoint.photos.front,
+                image: checkpoint.photos.front.image && checkpoint.photos.front.image.includes("progress-photo-") ? "/progress-photo-front.svg" : checkpoint.photos.front.image
+              },
+              side: {
+                ...baseCheckpoint.photos.side,
+                ...checkpoint.photos.side,
+                image: checkpoint.photos.side.image && checkpoint.photos.side.image.includes("progress-photo-") ? "/progress-photo-side.svg" : checkpoint.photos.side.image
+              },
+              back: {
+                ...baseCheckpoint.photos.back,
+                ...checkpoint.photos.back,
+                image: checkpoint.photos.back.image && checkpoint.photos.back.image.includes("progress-photo-") ? "/progress-photo-back.svg" : checkpoint.photos.back.image
+              }
             }
-          }
-        }))
+          };
+        })
       }
     };
   } catch {
@@ -89,22 +112,100 @@ function updateMeasurementDraft(measurement: MeasurementState, type: Measurement
   };
 }
 
+function updateCheckpointPhoto(
+  state: ProgressState,
+  pose: PhotoPose,
+  patch: Partial<ProgressState["photos"]["checkpoints"][number]["photos"][PhotoPose]>
+) {
+  return {
+    ...state,
+    photos: {
+      ...state.photos,
+      checkpoints: state.photos.checkpoints.map((checkpoint) => {
+        if (checkpoint.checkpoint !== state.photos.selectedCheckpoint) {
+          return checkpoint;
+        }
+
+        const photo = checkpoint.photos[pose];
+        return {
+          ...checkpoint,
+          photos: {
+            ...checkpoint.photos,
+            [pose]: {
+              ...photo,
+              ...patch
+            }
+          }
+        };
+      })
+    }
+  };
+}
+
 export function ProgressProvider({ children }: { children: ReactNode }) {
+  const auth = useAuthStore();
+  const authRef = useRef(auth);
   const [state, setState] = useState<ProgressState>(() => createProgressDemoState());
 
   useEffect(() => {
-    const syncState = () => setState(reviveState(window.localStorage.getItem(STORAGE_KEY)));
-    syncState();
+    authRef.current = auth;
+  }, [auth]);
+
+  useEffect(() => {
+    if (!auth.ready) {
+      return;
+    }
+
+    let active = true;
+
+    async function hydrate() {
+      const client = getSupabaseBrowserClient();
+      const userId = authRef.current.user?.id ?? null;
+      const localState = reviveState(window.localStorage.getItem(progressStorageKey(userId)));
+
+      if (!authRef.current.isConfigured || !authRef.current.user || !client) {
+        setState(localState);
+        return;
+      }
+
+      try {
+        const remote = await loadProgressState(client, authRef.current.user.id, localState);
+        if (!active) {
+          return;
+        }
+
+        setState(remote.state);
+        window.localStorage.setItem(progressStorageKey(authRef.current.user.id), JSON.stringify(remote.state));
+      } catch {
+        if (active) {
+          setState(localState);
+        }
+      }
+    }
+
+    void hydrate();
+
+    const syncState = () => {
+      const userId = authRef.current.user?.id ?? null;
+      setState(reviveState(window.localStorage.getItem(progressStorageKey(userId))));
+    };
+
     window.addEventListener("coachx-progress-state-updated", syncState);
 
     return () => {
+      active = false;
       window.removeEventListener("coachx-progress-state-updated", syncState);
     };
-  }, []);
+  }, [auth.ready, auth.user?.id, auth.isConfigured]);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+    if (!auth.ready) {
+      return;
+    }
+
+    const userId = auth.user?.id ?? null;
+    window.localStorage.setItem(progressStorageKey(userId), JSON.stringify(state));
+  }, [auth.ready, auth.user?.id, state]);
 
   const value = useMemo<ProgressStoreValue>(() => {
     const measurementRows = getMeasurementRows(state.measurement);
@@ -116,7 +217,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       }));
     };
 
-    const saveMeasurements: ProgressStoreValue["saveMeasurements"] = () => {
+    const saveMeasurements: ProgressStoreValue["saveMeasurements"] = async () => {
       const errors: string[] = [];
       const nextValidationErrors: MeasurementState["validationErrors"] = {};
       const updates: Partial<Record<MeasurementType, number>> = {};
@@ -150,6 +251,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           const parsed = definition.todayValue.trim() ? Number(definition.todayValue) : null;
           const previousValue = getMeasurementDefinition(state.measurement, definition.type).lastValue;
           const existingRow = state.measurement.lastSavedRows.find((row) => row.type === definition.type) ?? null;
+
           return {
             type: definition.type,
             label: definition.label,
@@ -163,16 +265,29 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         })
         .filter((row) => row.currentValue !== null || row.previousValue !== null);
 
-      setState((current) => ({
-        ...current,
+      const nextState = {
+        ...state,
         measurement: {
-          ...current.measurement,
-          histories: buildMeasurementHistory(current.measurement, updates),
+          ...state.measurement,
+          histories: buildMeasurementHistory(state.measurement, updates),
           lastSavedRows: rows,
           savedAt: new Date().toISOString(),
           validationErrors: {}
         }
-      }));
+      };
+
+      setState(nextState);
+
+      const client = getSupabaseBrowserClient();
+      const userId = authRef.current.user?.id ?? null;
+
+      if (client && authRef.current.isConfigured && userId) {
+        try {
+          await persistProgressMeasurements(client, userId, nextState);
+        } catch {
+          // Keep the optimistic local state if remote persistence is temporarily unavailable.
+        }
+      }
 
       return { ok: true, errors: [] };
     };
@@ -207,38 +322,115 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       }));
     };
 
-    const updateCheckpointPhoto = (pose: PhotoPose, status: "captured" | "missing" | "retake") => {
-      setState((current) => ({
-        ...current,
-        photos: {
-          ...current.photos,
-          checkpoints: current.photos.checkpoints.map((checkpoint) => {
-            if (checkpoint.checkpoint !== current.photos.selectedCheckpoint) {
-              return checkpoint;
-            }
-
-            const photo = checkpoint.photos[pose];
-            return {
-              ...checkpoint,
-              photos: {
-                ...checkpoint.photos,
-                [pose]: {
-                  ...photo,
-                  status,
-                  image:
-                  status === "missing" ? null : `/progress-photo-${pose}.svg`,
-                  updatedAt: new Date().toISOString()
-                }
-              }
-            };
-          })
-        }
-      }));
+    const capturePhoto: ProgressStoreValue["capturePhoto"] = (pose) => {
+      setState((current) =>
+        updateCheckpointPhoto(current, pose, {
+          status: "captured",
+          image: `/progress-photo-${pose}.svg`,
+          storagePath: null,
+          mimeType: null,
+          fileSizeBytes: null,
+          width: null,
+          height: null,
+          updatedAt: new Date().toISOString()
+        })
+      );
     };
 
-    const capturePhoto: ProgressStoreValue["capturePhoto"] = (pose) => updateCheckpointPhoto(pose, "captured");
-    const retakePhoto: ProgressStoreValue["retakePhoto"] = (pose) => updateCheckpointPhoto(pose, "retake");
-    const markPhotoMissing: ProgressStoreValue["markPhotoMissing"] = (pose) => updateCheckpointPhoto(pose, "missing");
+    const retakePhoto: ProgressStoreValue["retakePhoto"] = (pose) => {
+      setState((current) =>
+        updateCheckpointPhoto(current, pose, {
+          status: "retake",
+          image: `/progress-photo-${pose}.svg`,
+          updatedAt: new Date().toISOString()
+        })
+      );
+    };
+
+    const savePhotoCapture: ProgressStoreValue["savePhotoCapture"] = async (pose, file) => {
+      const client = getSupabaseBrowserClient();
+      const userId = authRef.current.user?.id ?? null;
+      const previewUrl = typeof window !== "undefined" ? window.URL.createObjectURL(file) : `/progress-photo-${pose}.svg`;
+
+      if (!client || !authRef.current.isConfigured || !userId) {
+        setState((current) =>
+          updateCheckpointPhoto(current, pose, {
+            status: "captured",
+            image: previewUrl,
+            storagePath: null,
+            mimeType: file.type || null,
+            fileSizeBytes: file.size,
+            width: null,
+            height: null,
+            updatedAt: new Date().toISOString()
+          })
+        );
+        return { ok: true, error: null };
+      }
+
+      try {
+        const result = await uploadProgressPhoto(client, userId, pose, file, state.measurement.currentDateKey);
+        if (!result) {
+          throw new Error("Progress photo tables are not available.");
+        }
+
+        setState((current) =>
+          updateCheckpointPhoto(current, pose, {
+            status: "captured",
+            image: result.signedUrl ?? previewUrl,
+            storagePath: result.photo.storage_path,
+            mimeType: (result.photo.mime_type ?? file.type) || null,
+            fileSizeBytes: result.photo.file_size_bytes ?? file.size,
+            width: result.photo.width ?? null,
+            height: result.photo.height ?? null,
+            updatedAt: result.photo.updated_at
+          })
+        );
+
+        return { ok: true, error: null };
+      } catch {
+        setState((current) =>
+          updateCheckpointPhoto(current, pose, {
+            status: "captured",
+            image: previewUrl,
+            storagePath: null,
+            mimeType: file.type || null,
+            fileSizeBytes: file.size,
+            width: null,
+            height: null,
+            updatedAt: new Date().toISOString()
+          })
+        );
+
+        return { ok: true, error: null };
+      }
+    };
+
+    const markPhotoMissing: ProgressStoreValue["markPhotoMissing"] = async (pose) => {
+      const client = getSupabaseBrowserClient();
+      const userId = authRef.current.user?.id ?? null;
+
+      if (client && authRef.current.isConfigured && userId) {
+        try {
+          await deleteProgressPhoto(client, userId, pose, state.measurement.currentDateKey);
+        } catch {
+          // Best-effort cleanup only; the local state still reflects the user's action.
+        }
+      }
+
+      setState((current) =>
+        updateCheckpointPhoto(current, pose, {
+          status: "missing",
+          image: null,
+          storagePath: null,
+          mimeType: null,
+          fileSizeBytes: null,
+          width: null,
+          height: null,
+          updatedAt: new Date().toISOString()
+        })
+      );
+    };
 
     const setSelectedPhotoCheckpoint: ProgressStoreValue["setSelectedPhotoCheckpoint"] = (checkpoint) => {
       setState((current) => ({
@@ -265,9 +457,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         ...current,
         phaseReview: {
           ...current.phaseReview,
-          athleteFeedback: current.phaseReview.athleteFeedback.map((feedback, index) =>
-            index === 0 ? { ...feedback, value } : feedback
-          )
+          athleteFeedback: current.phaseReview.athleteFeedback.map((feedback, index) => (index === 0 ? { ...feedback, value } : feedback))
         }
       }));
     };
@@ -311,7 +501,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     const resetProgressDemo: ProgressStoreValue["resetProgressDemo"] = () => {
       const demo = createProgressDemoState();
       setState(demo);
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(demo));
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(progressStorageKey(authRef.current.user?.id ?? null), JSON.stringify(demo));
+        window.dispatchEvent(new Event("coachx-progress-state-updated"));
+      }
     };
 
     return {
@@ -325,6 +518,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       capturePhoto,
       retakePhoto,
       markPhotoMissing,
+      savePhotoCapture,
       setSelectedPhotoCheckpoint,
       setGuidanceVisible,
       setAthleteFeedback,

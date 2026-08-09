@@ -220,8 +220,8 @@ export function ProgressMeasurementsScreen() {
 
   const errors = state.measurement.validationErrors;
 
-  const save = () => {
-    const result = saveMeasurements();
+  const save = async () => {
+    const result = await saveMeasurements();
     if (!result.ok) {
       return;
     }
@@ -298,7 +298,7 @@ export function ProgressMeasurementsScreen() {
             );
           })}
 
-          <button className="progress-add-button focus-ring" type="button" onClick={() => setHelpOpen(true)}>
+        <button className="progress-add-button focus-ring" type="button" onClick={() => setHelpOpen(true)}>
             <span className="icon" aria-hidden="true">
               add
             </span>

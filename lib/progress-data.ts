@@ -73,6 +73,11 @@ export interface ProgressPhoto {
   status: "captured" | "missing" | "retake";
   label: string;
   image: string | null;
+  storagePath: string | null;
+  mimeType: string | null;
+  fileSizeBytes: number | null;
+  width: number | null;
+  height: number | null;
   updatedAt: string | null;
   privateByDefault: true;
 }
@@ -215,6 +220,11 @@ function createPhoto(label: string, checkpoint: ProgressCheckpoint, pose: PhotoP
     status,
     label,
     image,
+    storagePath: null,
+    mimeType: null,
+    fileSizeBytes: null,
+    width: null,
+    height: null,
     updatedAt: status === "captured" || status === "retake" ? "2026-08-08T18:00:00.000Z" : null,
     privateByDefault: true
   };

@@ -36,8 +36,9 @@ import {
   mergeRemoteSnapshotIntoOnboardingState,
   saveAthleteSnapshot
 } from "@/lib/athlete-service";
-import { createProgressDemoState } from "@/lib/progress-data";
+import { createProgressDemoState, type ProgressState } from "@/lib/progress-data";
 import type { MeasurementType } from "@/lib/progress-data";
+import { seedProgressBaseline } from "@/lib/progress-service";
 
 interface OnboardingStoreValue {
   state: OnboardingState;
@@ -73,6 +74,12 @@ interface OnboardingStoreValue {
 
 const OnboardingStoreContext = createContext<OnboardingStoreValue | null>(null);
 const STORAGE_KEY = "coachx-demo-onboarding-state-v1";
+const PROGRESS_STORAGE_KEY_PREFIX = "coachx-progress-state-v1";
+const PROGRESS_BASELINE_DATE_KEY = "2026-08-08";
+
+function progressStorageKey(userId: string | null) {
+  return `${PROGRESS_STORAGE_KEY_PREFIX}:${userId ?? "demo"}`;
+}
 
 function reviveState(rawValue: string | null) {
   if (!rawValue) {
@@ -117,7 +124,7 @@ function updateProgramActivation() {
   };
 }
 
-function updateMeasurementBaseline(seed: typeof baselineSeed) {
+function updateMeasurementBaseline(seed: typeof baselineSeed): ProgressState {
   const progress = createProgressDemoState();
   return {
     ...progress,
@@ -154,9 +161,9 @@ function updateMeasurementBaseline(seed: typeof baselineSeed) {
               ...checkpoint,
               photos: {
                 ...checkpoint.photos,
-                front: { ...checkpoint.photos.front, status: "captured", image: "/progress-photo-front.svg" },
-                side: { ...checkpoint.photos.side, status: "captured", image: "/progress-photo-side.svg" },
-                back: { ...checkpoint.photos.back, status: "missing", image: null }
+                front: { ...checkpoint.photos.front, status: "captured" as const, image: "/progress-photo-front.svg" },
+                side: { ...checkpoint.photos.side, status: "captured" as const, image: "/progress-photo-side.svg" },
+                back: { ...checkpoint.photos.back, status: "missing" as const, image: null }
               }
             }
           : checkpoint
@@ -503,8 +510,13 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
     const activateProgramAction: OnboardingStoreValue["activateProgram"] = () => {
       const seed = updateMeasurementBaseline(baselineSeed);
-      window.localStorage.setItem("coachx-demo-progress-state-v2", JSON.stringify(seed));
+      const userId = authRef.current.user?.id ?? null;
+      window.localStorage.setItem(progressStorageKey(userId), JSON.stringify(seed));
       window.dispatchEvent(new Event("coachx-progress-state-updated"));
+      const client = getSupabaseBrowserClient();
+      if (client && authRef.current.isConfigured && authRef.current.user) {
+        void seedProgressBaseline(client, authRef.current.user.id, PROGRESS_BASELINE_DATE_KEY, seed).catch(() => undefined);
+      }
       setState((current) => ({
         ...current,
         program: activateProgram(createProgramProposal(current)),
@@ -520,10 +532,15 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
     const finalizeOnboardingAction: OnboardingStoreValue["finalizeOnboarding"] = () => {
       const seed = updateMeasurementBaseline(baselineSeed);
-      window.localStorage.setItem("coachx-demo-progress-state-v2", JSON.stringify(seed));
+      const userId = authRef.current.user?.id ?? null;
+      window.localStorage.setItem(progressStorageKey(userId), JSON.stringify(seed));
       window.dispatchEvent(new Event("coachx-progress-state-updated"));
       setState((current) => {
         const nextState = finalizeOnboardingState(current);
+        const client = getSupabaseBrowserClient();
+        if (client && authRef.current.isConfigured && authRef.current.user) {
+          void seedProgressBaseline(client, authRef.current.user.id, PROGRESS_BASELINE_DATE_KEY, seed).catch(() => undefined);
+        }
         void persistCurrentSnapshot(nextState);
         return nextState;
       });
@@ -533,7 +550,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       const demo = createOnboardingDemoState();
       setState(demo);
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(demo));
-      window.localStorage.setItem("coachx-demo-progress-state-v2", JSON.stringify(updateMeasurementBaseline(baselineSeed)));
+      window.localStorage.setItem(progressStorageKey(authRef.current.user?.id ?? null), JSON.stringify(updateMeasurementBaseline(baselineSeed)));
       window.dispatchEvent(new Event("coachx-progress-state-updated"));
       window.dispatchEvent(new Event("coachx-progress-state-updated"));
     };

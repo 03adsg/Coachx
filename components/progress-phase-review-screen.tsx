@@ -50,6 +50,8 @@ function PhotoCompareCard({ image, label, accent = false }: { image: string; lab
 export function ProgressPhaseReviewScreen() {
   const { state, setAthleteFeedback, setGoalDecision, setPriorityDecision } = useProgressStore();
   const review = state.phaseReview;
+  const baselineFront = state.photos.checkpoints[0]?.photos.front.image ?? "/progress-photo-front.svg";
+  const currentFront = state.photos.checkpoints[1]?.photos.front.image ?? "/progress-photo-front.svg";
 
   return (
     <Screen shellClassName="progress-flow-shell" topbar={<PhaseTopbar />}>
@@ -116,8 +118,8 @@ export function ProgressPhaseReviewScreen() {
             Visual Progress
           </h2>
           <div className="progress-review-photos">
-            <PhotoCompareCard accent image="/progress-photo-front.svg" label="WEEK 1" />
-            <PhotoCompareCard accent image="/progress-photo-front.svg" label="WEEK 8" />
+            <PhotoCompareCard accent image={baselineFront} label="WEEK 1" />
+            <PhotoCompareCard accent image={currentFront} label="WEEK 8" />
           </div>
           <Link className="progress-mini-action progress-mini-action--block focus-ring" href="/progress/photos/compare" style={{ marginTop: 12 }}>
             COMPARE PHOTOS
@@ -269,4 +271,3 @@ export function ProgressPhaseReviewScreen() {
     </Screen>
   );
 }
-

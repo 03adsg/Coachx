@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { useProgressStore } from "@/components/progress-provider";
-import { type ComparisonMode, type PhotoPose, type ProgressCheckpoint } from "@/lib/progress-data";
+import { type ComparisonMode, type PhotoPose } from "@/lib/progress-data";
 
 const poseOrder: PhotoPose[] = ["front", "side", "back"];
 const poseLabels: Record<PhotoPose, string> = {
@@ -228,13 +228,57 @@ function PoseStatusChip({ pose, status }: { pose: PhotoPose; status: string }) {
 
 export function ProgressPhotoCaptureScreen({ pose }: { pose: PhotoPose }) {
   const router = useRouter();
-  const { state, capturePhoto, retakePhoto, markPhotoMissing, setSelectedPhotoCheckpoint } = useProgressStore();
+  const { state, savePhotoCapture, retakePhoto, markPhotoMissing, setSelectedPhotoCheckpoint } = useProgressStore();
   const [helpOpen, setHelpOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const checkpoint = state.photos.checkpoints.find((item) => item.checkpoint === state.photos.selectedCheckpoint) ?? state.photos.checkpoints[1];
   const photo = checkpoint.photos[pose];
   const isCaptured = photo.status === "captured" || photo.status === "retake";
   const nextPose = pose === "front" ? "side" : pose === "side" ? "back" : "front";
-  const imageSrc = isCaptured ? photo.image ?? photoSrc(pose) : photoSrc(pose);
+  const imageSrc = previewUrl ?? photo.image ?? photoSrc(pose);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        window.URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  const openFilePicker = () => fileInputRef.current?.click();
+
+  const onFileSelected = (file: File | null) => {
+    if (previewUrl) {
+      window.URL.revokeObjectURL(previewUrl);
+    }
+
+    setSelectedFile(file);
+    setPreviewUrl(file ? window.URL.createObjectURL(file) : null);
+  };
+
+  const saveCapture = async () => {
+    if (!selectedFile) {
+      openFilePicker();
+      return;
+    }
+
+    setSaving(true);
+    const result = await savePhotoCapture(pose, selectedFile);
+    setSaving(false);
+
+    if (result.ok) {
+      setSelectedFile(null);
+      if (previewUrl) {
+        window.URL.revokeObjectURL(previewUrl);
+      }
+      setPreviewUrl(null);
+      setSelectedPhotoCheckpoint(state.photos.selectedCheckpoint);
+      router.push("/progress/photos/compare");
+    }
+  };
 
   return (
     <Screen shellClassName="progress-flow-shell" topbar={<ProgressTopbar closeHref="/progress/photos" onHelp={() => setHelpOpen(true)} />}>
@@ -291,7 +335,7 @@ export function ProgressPhotoCaptureScreen({ pose }: { pose: PhotoPose }) {
                 <div className="eyebrow" style={{ marginBottom: 4 }}>
                   {poseLabels[pose].toUpperCase()}
                 </div>
-                <div className="caption">Private by default · saved locally in the demo state</div>
+                <div className="caption">{selectedFile ? selectedFile.name : "Private by default · saved remotely in the private bucket"}</div>
               </div>
               <button className="tap-target focus-ring" type="button" aria-label="Open photo guidance" onClick={() => setHelpOpen(true)}>
                 <span className="icon" aria-hidden="true">
@@ -301,6 +345,15 @@ export function ProgressPhotoCaptureScreen({ pose }: { pose: PhotoPose }) {
             </div>
           </Card>
         </section>
+
+        <input
+          ref={fileInputRef}
+          accept="image/*"
+          aria-label={`${poseLabels[pose]} progress photo`}
+          style={{ position: "absolute", inset: 0, width: 1, height: 1, opacity: 0, pointerEvents: "none" }}
+          type="file"
+          onChange={(event) => onFileSelected(event.target.files?.[0] ?? null)}
+        />
 
         <section className="section">
           <div className="stack">
@@ -324,8 +377,8 @@ export function ProgressPhotoCaptureScreen({ pose }: { pose: PhotoPose }) {
       <div className="progress-fixed-actions">
         {isCaptured ? (
           <>
-            <PrimaryButton href="/progress/photos/compare" className="focus-ring">
-              SAVE CHECKPOINT
+            <PrimaryButton className="focus-ring" onClick={saveCapture} disabled={saving}>
+              {saving ? "SAVING..." : selectedFile ? "SAVE PHOTO" : "REPLACE PHOTO"}
             </PrimaryButton>
             <SecondaryButton className="focus-ring" onClick={() => retakePhoto(pose)}>
               RETAKE
@@ -333,16 +386,10 @@ export function ProgressPhotoCaptureScreen({ pose }: { pose: PhotoPose }) {
           </>
         ) : (
           <>
-            <PrimaryButton
-              className="focus-ring"
-              onClick={() => {
-                capturePhoto(pose);
-                setSelectedPhotoCheckpoint(state.photos.selectedCheckpoint);
-              }}
-            >
-              CAPTURE PHOTO
+            <PrimaryButton className="focus-ring" onClick={saveCapture} disabled={saving}>
+              {saving ? "SAVING..." : selectedFile ? "SAVE PHOTO" : "CAPTURE PHOTO"}
             </PrimaryButton>
-            <SecondaryButton className="focus-ring" onClick={() => markPhotoMissing(pose)}>
+            <SecondaryButton className="focus-ring" onClick={() => void markPhotoMissing(pose)}>
               MARK MISSING
             </SecondaryButton>
           </>
@@ -388,27 +435,31 @@ function SegmentButton({
 }
 
 function ComparisonPanel({
-  checkpoint,
   pose,
   mode,
+  baselineLabel,
+  currentLabel,
+  baselineSrc,
+  currentSrc,
   onModeChange
 }: {
-  checkpoint: ProgressCheckpoint;
   pose: PhotoPose;
   mode: ComparisonMode;
+  baselineLabel: string;
+  currentLabel: string;
+  baselineSrc: string;
+  currentSrc: string;
   onModeChange: (mode: ComparisonMode) => void;
 }) {
   const [sliderPosition, setSliderPosition] = useState(56);
-  const baselineSrc = photoSrc(pose);
-  const currentSrc = photoSrc(pose);
 
   if (mode === "slider") {
     return (
       <div className="progress-compare-panel">
         <div className="progress-compare-slider">
-          <img alt={`${checkpoint} baseline ${poseLabels[pose]} photo`} className="progress-compare-slider__image baseline" src={baselineSrc} />
+          <img alt={`${baselineLabel} baseline ${poseLabels[pose]} progress photo`} className="progress-compare-slider__image baseline" src={baselineSrc} />
           <div className="progress-compare-slider__current" style={{ width: `${sliderPosition}%` }}>
-            <img alt={`${checkpoint} current ${poseLabels[pose]} photo`} className="progress-compare-slider__image current" src={currentSrc} />
+            <img alt={`${currentLabel} current ${poseLabels[pose]} progress photo`} className="progress-compare-slider__image current" src={currentSrc} />
           </div>
           <div className="progress-compare-slider__labels">
             <span className="progress-label">BASELINE</span>
@@ -454,6 +505,10 @@ export function ProgressPhotoComparisonScreen() {
   const { state, setComparisonMode, setComparisonPose } = useProgressStore();
   const currentCheckpoint = state.photos.checkpoints.find((checkpoint) => checkpoint.checkpoint === "week-4") ?? state.photos.checkpoints[1];
   const baselineCheckpoint = state.photos.checkpoints[0];
+  const baselinePhoto = baselineCheckpoint.photos[state.photos.comparisonPose];
+  const currentPhoto = currentCheckpoint.photos[state.photos.comparisonPose];
+  const baselineSrc = baselinePhoto.image ?? photoSrc(state.photos.comparisonPose);
+  const currentSrc = currentPhoto.image ?? photoSrc(state.photos.comparisonPose);
 
   const netChange = [
     { label: "Weight", current: "62.8", previous: "63.0", unit: "kg", accent: false },
@@ -531,9 +586,12 @@ export function ProgressPhotoComparisonScreen() {
           </div>
 
           <ComparisonPanel
-            checkpoint={currentCheckpoint.checkpoint}
+            baselineLabel={baselineCheckpoint.dateLabel}
+            baselineSrc={baselineSrc}
+            currentLabel={currentCheckpoint.dateLabel}
             mode={state.photos.comparisonMode}
             onModeChange={setComparisonMode}
+            currentSrc={currentSrc}
             pose={state.photos.comparisonPose}
           />
         </section>

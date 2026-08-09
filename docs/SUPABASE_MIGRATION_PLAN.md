@@ -1,6 +1,6 @@
 # COACHX Supabase Migration Plan
 
-Date: 2026-08-08
+Date: 2026-08-09
 
 Branch: `codex/phase-1-foundation`
 
@@ -14,7 +14,7 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - Slice 2: complete + live verified
 - Slice 3: complete + live verified
 - Slice 4: complete + live verified
-- Slice 5: not started
+- Slice 5: local implementation complete, live migration pending
 
 ## Phase S0 - Supabase project + env + typed client
 
@@ -187,14 +187,14 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 
 - Persist measurements, progress checkpoints, photos, and review records
 - Move photo assets to private storage with signed URLs
+- Keep the public Vercel deployment continuous while the live migration is applied later
 
 ### Tables / entities
 
-- `measurements`
-- `progress_photo_checkpoints`
+- `progress_entries`
+- `progress_measurements`
 - `progress_photos`
-- `weekly_checkins`
-- `phase_reviews`
+- private `progress-photos` storage bucket
 
 ### Routes affected
 
@@ -215,6 +215,7 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - Raw measurements persist separately from derived charts
 - Photo checkpoints and assets are private by default
 - Trends are derived from stored facts, not manually maintained as primary truth
+- Local implementation is complete, but live migration and authenticated browser verification still need to be applied
 
 ## Phase S6 - Notifications preferences
 

@@ -1,9 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { Screen } from "@/components/screen";
 import { Card, IconButton } from "@/components/ui";
-import { coachxDemoState, coachxProgressMetrics } from "@/lib/coachx-data";
+import { useProgressStore } from "@/components/progress-provider";
 
 export default function ProgressPage() {
+  const { state } = useProgressStore();
+
   return (
     <Screen
       activeTab="progress"
@@ -11,7 +15,7 @@ export default function ProgressPage() {
       topbar={
         <header className="topbar center">
           <div className="eyebrow" style={{ margin: 0, color: "#c6c6c7" }}>
-            Progress · Provisional
+            Progress
           </div>
         </header>
       }
@@ -22,7 +26,7 @@ export default function ProgressPage() {
             <div>
               <h1 className="headline-lg">Your Training Trend</h1>
               <p className="caption" style={{ marginTop: 8 }}>
-                Weekly movement, bodyweight, and adherence tracked from {coachxDemoState.day.dateLabel}.
+                Weekly movement, bodyweight, and adherence tracked from {state.day.dateLabel}.
               </p>
             </div>
             <IconButton icon="calendar_month" label="Choose range" />
@@ -31,12 +35,12 @@ export default function ProgressPage() {
 
         <section className="section">
           <Card className="p-16 elevated" style={{ background: "var(--background-charcoal)" }}>
-            <div className="eyebrow">Current demo context</div>
+            <div className="eyebrow">Current progress context</div>
             <p className="body-md" style={{ marginTop: 6 }}>
-              {coachxDemoState.day.workoutTitle} · {coachxDemoState.day.phase}
+              {state.trends.currentTrendLabel} · {state.day.phaseLabel}
             </p>
             <p className="caption" style={{ marginTop: 6 }}>
-              {coachxDemoState.day.nutritionCalories} · {coachxDemoState.day.cardio}
+              {state.measurement.currentCheckpointLabel} · {state.photos.selectedCheckpoint.toUpperCase()} checkpoint
             </p>
           </Card>
         </section>
@@ -58,7 +62,7 @@ export default function ProgressPage() {
             </div>
 
             <div className="grid-3" style={{ marginTop: 16 }}>
-              {coachxProgressMetrics.map((metric) => (
+              {state.trends.keyMetrics.map((metric) => (
                 <div key={metric.label}>
                   <div className="headline-md">{metric.value}</div>
                   <div className="eyebrow" style={{ marginTop: 8 }}>

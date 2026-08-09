@@ -9,6 +9,7 @@
 - Added the Batch A workout foundation: workout overview, active log, alternatives, summary, adjust flows, exercise library/detail, and safety flows.
 - Centralized the demo day and workout session so the public screens and workout routes share one fixture state.
 - Added agent docs and routing guidance under `.agents/`, `AGENTS.md`, and `AGENT_ROUTING.md`.
+- Slice 5 is now locally implemented for progress persistence + private photos; live Supabase verification remains pending.
 
 ## Visual Fidelity Pass
 
@@ -689,3 +690,34 @@
 - Training-day versus rest-day nutrition now derives from the program/calendar boundary rather than an independent hardcoded day switch.
 - Meal selections, eaten/completed state, hydration, and supplements are modeled separately from the immutable daily nutrition snapshot.
 - Local nutrition state still persists through the client demo boundary until the Supabase migration is applied later.
+
+## Batch E — Progress Persistence + Private Photos
+
+### Local implementation
+
+- Added a progress persistence service boundary for:
+  - `progress_entries`
+  - `progress_measurements`
+  - `progress_photos`
+- Added private progress-photo storage support through the `progress-photos` bucket and signed URL hydration.
+- Kept the `ProgressProvider` thin by loading Supabase-backed progress state when available and falling back to the local demo cache only when remote data is unavailable.
+- Kept the existing Progress UI intact while wiring the underlying data flow to persisted measurements, photo metadata, and history snapshots.
+
+### Routes and flows
+
+- `/progress` now reads the shared progress store instead of the hardcoded demo singleton.
+- `/progress/measurements` persists weight plus centimeter measurements as remote progress entries.
+- `/progress/photos` and `/progress/photos/capture/[pose]` now support file input, private uploads, signed URLs, and replace/delete semantics.
+- `/progress/photos/compare` now compares the persisted baseline/current pose data rather than a demo-only placeholder.
+- `/progress/trends` and `/progress/phase-review` now derive their display state from persisted measurement history and photo checkpoints where available.
+
+### Baseline behavior
+
+- Onboarding completion seeds the baseline progress history idempotently.
+- The baseline seed uploads the demo placeholder images into the private `progress-photos` bucket so the public app can still render a private comparison set until real athlete photos replace it.
+- LocalStorage is now a user-scoped cache/fallback rather than the shared authority for authenticated progress data.
+
+### Remaining provisional states
+
+- Live Supabase migration and authenticated browser verification still need to be executed for the new progress tables and storage bucket.
+- The main `/progress` dashboard remains a provisional hub because the Stitch ZIP still does not contain a dedicated physical export for that screen.

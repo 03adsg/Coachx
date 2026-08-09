@@ -13,6 +13,10 @@ export type NutritionDayStatus = "planned" | "in_progress" | "completed";
 export type NutritionMealSelectionStatus = "selected" | "eaten" | "skipped";
 export type NutritionSupplementStatus = "pending" | "completed";
 export type NutritionMeasurementBasis = "raw" | "cooked" | "prepared" | "serving" | "unit";
+export type ProgressEntryType = "measurement" | "photo" | "combined" | "checkpoint";
+export type ProgressEntrySource = "manual" | "onboarding_baseline" | "phase_review" | "other";
+export type ProgressMeasurementKey = "waist" | "hips" | "thigh";
+export type ProgressPhotoPose = "front" | "side" | "back";
 
 export interface ProgramsRow {
   id: string;
@@ -729,6 +733,110 @@ export interface NutritionSupplementLogsUpdate {
   updated_at?: string;
 }
 
+export interface ProgressEntriesRow {
+  id: string;
+  user_id: string;
+  entry_date: string;
+  entry_type: ProgressEntryType;
+  weight_kg: number | null;
+  notes: string | null;
+  source: ProgressEntrySource;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProgressEntriesInsert {
+  id?: string;
+  user_id: string;
+  entry_date: string;
+  entry_type: ProgressEntryType;
+  weight_kg?: number | null;
+  notes?: string | null;
+  source: ProgressEntrySource;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ProgressEntriesUpdate {
+  entry_date?: string;
+  entry_type?: ProgressEntryType;
+  weight_kg?: number | null;
+  notes?: string | null;
+  source?: ProgressEntrySource;
+  updated_at?: string;
+}
+
+export interface ProgressMeasurementsRow {
+  id: string;
+  progress_entry_id: string;
+  measurement_key: ProgressMeasurementKey;
+  value_cm: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProgressMeasurementsInsert {
+  id?: string;
+  progress_entry_id: string;
+  measurement_key: ProgressMeasurementKey;
+  value_cm: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ProgressMeasurementsUpdate {
+  measurement_key?: ProgressMeasurementKey;
+  value_cm?: number;
+  updated_at?: string;
+}
+
+export interface ProgressPhotosRow {
+  id: string;
+  user_id: string;
+  progress_entry_id: string;
+  pose: ProgressPhotoPose;
+  storage_bucket: string;
+  storage_path: string;
+  captured_at: string | null;
+  uploaded_at: string;
+  width: number | null;
+  height: number | null;
+  mime_type: string | null;
+  file_size_bytes: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProgressPhotosInsert {
+  id?: string;
+  user_id: string;
+  progress_entry_id: string;
+  pose: ProgressPhotoPose;
+  storage_bucket: string;
+  storage_path: string;
+  captured_at?: string | null;
+  uploaded_at?: string;
+  width?: number | null;
+  height?: number | null;
+  mime_type?: string | null;
+  file_size_bytes?: number | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ProgressPhotosUpdate {
+  pose?: ProgressPhotoPose;
+  storage_bucket?: string;
+  storage_path?: string;
+  captured_at?: string | null;
+  uploaded_at?: string;
+  width?: number | null;
+  height?: number | null;
+  mime_type?: string | null;
+  file_size_bytes?: number | null;
+  updated_at?: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -784,6 +892,24 @@ export interface Database {
         Row: NutritionSupplementLogsRow;
         Insert: NutritionSupplementLogsInsert;
         Update: NutritionSupplementLogsUpdate;
+        Relationships: [];
+      };
+      progress_entries: {
+        Row: ProgressEntriesRow;
+        Insert: ProgressEntriesInsert;
+        Update: ProgressEntriesUpdate;
+        Relationships: [];
+      };
+      progress_measurements: {
+        Row: ProgressMeasurementsRow;
+        Insert: ProgressMeasurementsInsert;
+        Update: ProgressMeasurementsUpdate;
+        Relationships: [];
+      };
+      progress_photos: {
+        Row: ProgressPhotosRow;
+        Insert: ProgressPhotosInsert;
+        Update: ProgressPhotosUpdate;
         Relationships: [];
       };
       programs: {
