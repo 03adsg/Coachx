@@ -13,6 +13,7 @@ import {
 
 interface WorkoutStoreValue {
   session: WorkoutSessionState;
+  hydrateSession: (nextSession: WorkoutSessionState) => void;
   updateSetDraft: (exerciseId: string, setNumber: number, patch: Partial<SessionExercise["sets"][number]>) => void;
   completeSet: (exerciseId: string, setNumber: number, payload: { kilograms: string; reps: string; rir?: string }) => void;
   swapExercise: (exerciseId: string, alternativeId: string) => void;
@@ -204,6 +205,11 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       }));
     };
 
+    const hydrateSession: WorkoutStoreValue["hydrateSession"] = (nextSession) => {
+      setSession(nextSession);
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextSession));
+    };
+
     const applyAdjustment: WorkoutStoreValue["applyAdjustment"] = () => {
       setSession((current) => ({
         ...current,
@@ -239,6 +245,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
 
     return {
       session,
+      hydrateSession,
       updateSetDraft,
       completeSet,
       swapExercise,

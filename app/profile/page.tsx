@@ -6,13 +6,13 @@ import { Screen } from "@/components/screen";
 import { Card } from "@/components/ui";
 import { useAuthStore } from "@/components/auth-provider";
 import { useProfileSettingsStore } from "@/components/profile-settings-provider";
-import { useOnboardingStore } from "@/components/onboarding-provider";
+import { useProgramStore } from "@/components/program-provider";
 
 export default function ProfilePage() {
   const router = useRouter();
   const auth = useAuthStore();
   const { saved, pendingReview } = useProfileSettingsStore();
-  const { program } = useOnboardingStore();
+  const { program } = useProgramStore();
 
   return (
     <Screen
@@ -53,7 +53,7 @@ export default function ProfilePage() {
                   {saved.goals.mainGoal}
                 </h2>
               </div>
-              <span className="pill">{program.status === "active" ? "Active" : "Proposed"}</span>
+              <span className="pill">{program?.status === "active" ? "Active" : "Proposed"}</span>
             </div>
             <div className="grid-3" style={{ marginTop: 16 }}>
               <div>

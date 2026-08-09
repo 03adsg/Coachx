@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { useOnboardingStore } from "@/components/onboarding-provider";
-import { coachxDemoState, coachxToday } from "@/lib/coachx-data";
+import { AnatomyPreview } from "@/components/anatomy-preview";
+import { useProfileSettingsStore } from "@/components/profile-settings-provider";
+import { useProgramStore } from "@/components/program-provider";
 import { Screen } from "@/components/screen";
 import { Card, IconButton, PrimaryButton, Section, StatTile } from "@/components/ui";
-import { AnatomyPreview } from "@/components/anatomy-preview";
+import type { ProgramDaySummary } from "@/lib/program-service";
 
-function RestDayHero({ athleteName }: { athleteName: string }) {
+function RestDayHero({ athleteName, day }: { athleteName: string; day: ProgramDaySummary }) {
   return (
     <>
       <section className="section">
@@ -18,20 +19,20 @@ function RestDayHero({ athleteName }: { athleteName: string }) {
         </div>
         <h1 className="headline-xl">Recovery Day</h1>
         <p className="body-lg muted" style={{ marginTop: 12 }}>
-          {athleteName} · {coachxToday.dateLabel}
+          {athleteName} · {day.dateLabel}
         </p>
       </section>
 
-      <Section title="Next Workout" meta={coachxToday.phase}>
+      <Section title="Next Workout" meta={day.phase}>
         <Card className="p-16 elevated" style={{ background: "var(--background-charcoal)" }}>
           <div className="row start" style={{ marginBottom: 16 }}>
             <div>
               <span className="pill">Ready tomorrow</span>
               <h2 className="headline-md" style={{ marginTop: 14 }}>
-                {coachxToday.workoutTitle}
+                {day.workoutTitle}
               </h2>
               <p className="caption" style={{ marginTop: 6 }}>
-                {coachxToday.workoutType}
+                {day.workoutType}
               </p>
             </div>
             <button aria-label="Open workout" className="tap-target focus-ring" type="button" style={{ background: "var(--accent-primary)", borderRadius: 9999 }}>
@@ -41,9 +42,9 @@ function RestDayHero({ athleteName }: { athleteName: string }) {
             </button>
           </div>
           <div className="grid-3">
-            <StatTile label="Duration" value={coachxToday.duration} />
-            <StatTile label="Calories" value={coachxToday.nutritionCalories} />
-            <StatTile label="Cardio" value={coachxToday.cardio} />
+            <StatTile label="Duration" value={day.duration} />
+            <StatTile label="Calories" value={day.nutritionCalories} />
+            <StatTile label="Cardio" value={day.cardio} />
           </div>
         </Card>
       </Section>
@@ -53,9 +54,16 @@ function RestDayHero({ athleteName }: { athleteName: string }) {
 
 function TodayContent() {
   const searchParams = useSearchParams();
-  const { state } = useOnboardingStore();
+  const { saved } = useProfileSettingsStore();
+  const { getDaySummary, selectedDateKey } = useProgramStore();
   const isRestDay = searchParams.get("state") === "rest-day";
-  const athleteName = state.profile.name || coachxDemoState.athlete.name;
+  const athleteName = saved.profile.name;
+  const activeDateKey = selectedDateKey ?? "2026-08-08";
+  const day = getDaySummary(activeDateKey) ?? getDaySummary("2026-08-08");
+
+  if (!day) {
+    return null;
+  }
 
   return (
     <Screen
@@ -72,13 +80,13 @@ function TodayContent() {
     >
       <main className="content">
         {isRestDay ? (
-          <RestDayHero athleteName={athleteName} />
+          <RestDayHero athleteName={athleteName} day={day} />
         ) : (
           <>
             <section className="section">
-              <h1 className="headline-xl">{coachxToday.workoutTitle}</h1>
+              <h1 className="headline-xl">{day.workoutTitle}</h1>
               <p className="body-lg muted" style={{ marginTop: 12 }}>
-                {athleteName} · {coachxToday.dateLabel}
+                {athleteName} · {day.dateLabel}
               </p>
             </section>
 
@@ -86,12 +94,12 @@ function TodayContent() {
               <Card className="p-16">
                 <div className="row start" style={{ marginBottom: 16 }}>
                   <div>
-                    <span className="pill">{coachxToday.phase}</span>
+                    <span className="pill">{day.phase}</span>
                     <h2 className="headline-md" style={{ marginTop: 14 }}>
-                      {coachxToday.workoutTitle}
+                      {day.workoutTitle}
                     </h2>
                     <p className="caption" style={{ marginTop: 6 }}>
-                      {coachxToday.workoutType}
+                      {day.workoutType}
                     </p>
                   </div>
                   <button aria-label="Start workout" className="tap-target focus-ring" type="button" style={{ background: "var(--accent-primary)", borderRadius: 9999 }}>
@@ -102,37 +110,37 @@ function TodayContent() {
                 </div>
 
                 <div className="grid-3">
-                  <StatTile label="Duration" value={coachxToday.duration} />
-                  <StatTile label="Volume" value={coachxToday.volume} />
-                  <StatTile label="Sets" value={coachxToday.sets} />
+                  <StatTile label="Duration" value={day.duration} />
+                  <StatTile label="Volume" value={day.volume} />
+                  <StatTile label="Sets" value={day.sets} />
                 </div>
               </Card>
             </Section>
 
             <Section title="Target Zones">
               <Card className="p-16 elevated" style={{ background: "var(--background-charcoal)" }}>
-                <AnatomyPreview focus={coachxToday.muscleFocus} />
+                <AnatomyPreview focus={day.muscleFocus} />
                 <div className="grid-2" style={{ marginTop: 16 }}>
                   <div>
                     <div className="eyebrow">Primary</div>
                     <div className="body-lg" style={{ marginTop: 4 }}>
-                      {coachxToday.primaryTarget}
+                      {day.primaryTarget}
                     </div>
                   </div>
                   <div>
                     <div className="eyebrow">Secondary</div>
                     <div className="body-lg" style={{ marginTop: 4 }}>
-                      {coachxToday.secondaryTarget}
+                      {day.secondaryTarget}
                     </div>
                   </div>
                 </div>
               </Card>
             </Section>
 
-            <Section title="Movements" meta="6 exercises">
+            <Section title="Movements" meta={day.workoutCount}>
               <div className="stack">
-                {coachxToday.movements.map((movement) => (
-                  <Link key={movement.name} href="/day/2026-08-08" className="list-card focus-ring">
+                {day.movements.map((movement) => (
+                  <Link key={movement.name} href={`/day/${day.dateKey}`} className="list-card focus-ring">
                     {movement.thumbnail ? (
                       <img className="exercise-thumb" src={movement.thumbnail} alt={movement.name} width={48} height={48} />
                     ) : (
@@ -159,7 +167,7 @@ function TodayContent() {
         )}
 
         <div className="page-cta">
-          <PrimaryButton href={isRestDay ? "/day/2026-08-08" : `/workout/${coachxDemoState.workoutSession.id}`} className="focus-ring">
+          <PrimaryButton href={`/workout/${day.scheduledWorkoutId}`} className="focus-ring">
             {isRestDay ? "View Workout" : "Start Workout"}
           </PrimaryButton>
         </div>

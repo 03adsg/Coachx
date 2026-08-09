@@ -1,20 +1,50 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
+import { useParams } from "next/navigation";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton } from "@/components/ui";
 import { useWorkoutStore } from "@/components/workout-provider";
+import { useProgramStore } from "@/components/program-provider";
 import { countCompletedExercises, getExerciseDefinition } from "@/lib/workout-data";
 
+function resolveSessionId(param: string | string[] | undefined) {
+  if (Array.isArray(param)) {
+    return param[0] ?? "";
+  }
+
+  return param ?? "";
+}
+
 export default function WorkoutOverviewPage() {
-  const { session } = useWorkoutStore();
+  const params = useParams<{ sessionId?: string | string[] }>();
+  const workoutId = resolveSessionId(params.sessionId);
+  const { session, hydrateSession } = useWorkoutStore();
+  const { scheduledWorkouts, getDaySummary, buildWorkoutSessionForScheduledWorkout } = useProgramStore();
+
+  const scheduledWorkout = scheduledWorkouts.find((workout) => workout.id === workoutId);
+  const day = scheduledWorkout ? getDaySummary(scheduledWorkout.scheduled_date) : null;
+
+  useEffect(() => {
+    if (!workoutId) {
+      return;
+    }
+
+    const nextSession = buildWorkoutSessionForScheduledWorkout(workoutId);
+    if (nextSession && nextSession.id !== session.id) {
+      hydrateSession(nextSession);
+    }
+  }, [buildWorkoutSessionForScheduledWorkout, hydrateSession, session.id, workoutId]);
+
+  const backHref = day ? `/day/${day.dateKey}` : "/calendar";
 
   return (
     <Screen
       shellClassName="screen-shell workout-shell"
       topbar={
         <header className="topbar workout-overview-topbar">
-          <Link aria-label="Go back" className="tap-target focus-ring" href="/day/2026-08-08">
+          <Link aria-label="Go back" className="tap-target focus-ring" href={backHref}>
             <span className="icon" aria-hidden="true">
               arrow_back
             </span>
@@ -88,7 +118,10 @@ export default function WorkoutOverviewPage() {
                   <div className="row">
                     <span className="caption">Prescription:</span>
                     <span className="body-md" style={{ fontWeight: 700 }}>
-                      {definition.programSets} x {definition.programReps} <span className="caption" style={{ marginLeft: 8 }}>{definition.programRir === "1-2" ? "RIR: 1-2" : `RIR: ${definition.programRir}`}</span>
+                      {definition.programSets} x {definition.programReps}{" "}
+                      <span className="caption" style={{ marginLeft: 8 }}>
+                        {definition.programRir === "1-2" ? "RIR: 1-2" : `RIR: ${definition.programRir}`}
+                      </span>
                     </span>
                   </div>
                   <div className="workout-mini-panel">

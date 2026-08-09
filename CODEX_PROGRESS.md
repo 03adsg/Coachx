@@ -555,3 +555,44 @@
 - `/profile` stays provisional as the hub for the editing flows.
 - `Notifications & Reminders` is fixture-backed until production permission and push delivery exist.
 - Active program changes still require explicit confirmation; no automatic program rewrite was added.
+
+
+## Batch F ??? Supabase Migration Slice 2 ??? Program + Calendar Persistence
+
+### Persistence scope
+
+- Added Supabase persistence for the active program graph:
+  - `programs`
+  - `program_phases`
+  - `workout_templates`
+  - `workout_template_exercises`
+  - `scheduled_workouts`
+- Introduced a dedicated `ProgramProvider` so Today, Calendar, Day Detail, Profile, Program, and Workout hydrate from the same bundle.
+- Added a single service boundary in `lib/program-service.ts` for loading, saving, activating, and rescheduling program data.
+- Added migration SQL for the five program/calendar tables with ownership policies and active-program constraints.
+
+### Routes and flows
+
+- `Today`, `Calendar`, `Day Detail`, `Program`, and the workout session route now derive from the same program bundle.
+- Workout sessions hydrate from the scheduled workout record instead of a hardcoded day/session fixture.
+- The onboarding completion path seeds the active program bundle through the shared service boundary.
+
+### Validation
+
+- `pnpm typecheck`: passed.
+- `pnpm lint`: passed.
+- `pnpm build`: passed.
+- `pnpm test`: passed.
+
+### Environment
+
+- Local Supabase environment variables are present in `.env.local` for:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Live authenticated Supabase verification was not exercised in this run.
+
+### Remaining provisional / temporary states
+
+- Remote authenticated verification still needs a real signed-in session to confirm row-level behavior end to end.
+- `Profile` remains a provisional hub from the prior batch where the main Stitch export was not available.
+- The existing fixture/demo fallback still exists for unauthenticated or unconfigured states.

@@ -8,6 +8,7 @@ import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { ChoiceButton, PillToggle } from "@/components/onboarding-ui";
 import { useOnboardingStore } from "@/components/onboarding-provider";
 import { useProfileSettingsStore } from "@/components/profile-settings-provider";
+import { useProgramStore } from "@/components/program-provider";
 import { type GoalPriority } from "@/lib/onboarding-data";
 import { type NotificationCategory, type NotificationSettings, type ProfileSnapshot } from "@/lib/profile-settings-data";
 
@@ -1165,7 +1166,7 @@ export function ProfileNotificationsScreen() {
 export function ProfileImpactReviewScreen() {
   const router = useRouter();
   const { pendingReview, saved, applyPendingReview, clearPendingReview } = useProfileSettingsStore();
-  const program = useOnboardingStore().program;
+  const program = useProgramStore().program ?? useOnboardingStore().program;
   const review = pendingReview ?? {
     classification: "NO_IMPACT" as const,
     title: "No program change required.",

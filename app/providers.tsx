@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { AuthProvider } from "@/components/auth-provider";
 import { OnboardingProvider } from "@/components/onboarding-provider";
+import { ProgramProvider } from "@/components/program-provider";
 import { ProfileSettingsProvider } from "@/components/profile-settings-provider";
 import { ProgressProvider } from "@/components/progress-provider";
 import { WorkoutProvider } from "@/components/workout-provider";
@@ -12,9 +13,11 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <AuthProvider>
       <WorkoutProvider>
         <ProgressProvider>
-          <OnboardingProvider>
-            <ProfileSettingsProvider>{children}</ProfileSettingsProvider>
-          </OnboardingProvider>
+          <ProgramProvider>
+            <OnboardingProvider>
+              <ProfileSettingsProvider>{children}</ProfileSettingsProvider>
+            </OnboardingProvider>
+          </ProgramProvider>
         </ProgressProvider>
       </WorkoutProvider>
     </AuthProvider>

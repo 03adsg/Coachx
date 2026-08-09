@@ -27,6 +27,7 @@ import {
   type TrainingPreferences
 } from "@/lib/onboarding-data";
 import { useAuthStore } from "@/components/auth-provider";
+import { useProgramStore } from "@/components/program-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   buildProfileSnapshotFromOnboarding,
@@ -167,11 +168,17 @@ function updateMeasurementBaseline(seed: typeof baselineSeed) {
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const auth = useAuthStore();
   const authRef = useRef(auth);
+  const programStore = useProgramStore();
+  const programStoreRef = useRef(programStore);
   const [state, setState] = useState<OnboardingState>(() => createOnboardingDemoState());
 
   useEffect(() => {
     authRef.current = auth;
   }, [auth]);
+
+  useEffect(() => {
+    programStoreRef.current = programStore;
+  }, [programStore]);
 
   useEffect(() => {
     setState(reviveState(window.localStorage.getItem(STORAGE_KEY)));
@@ -240,6 +247,18 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       active = false;
     };
   }, [auth.isConfigured, auth.ready, auth.user?.id]);
+
+  useEffect(() => {
+    if (!auth.ready || !auth.isConfigured || !auth.user || state.progress.status !== "complete") {
+      return;
+    }
+
+    if (programStoreRef.current.source === "remote") {
+      return;
+    }
+
+    void programStoreRef.current.activateProgram(state.program);
+  }, [auth.isConfigured, auth.ready, auth.user?.id, state.progress.status, state.program]);
 
   async function persistCurrentSnapshot(nextState: OnboardingState) {
     const client = getSupabaseBrowserClient();

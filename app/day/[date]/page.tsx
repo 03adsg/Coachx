@@ -1,15 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { useOnboardingStore } from "@/components/onboarding-provider";
-import { Screen } from "@/components/screen";
+import { useParams } from "next/navigation";
 import { AnatomyPreview } from "@/components/anatomy-preview";
+import { useProfileSettingsStore } from "@/components/profile-settings-provider";
+import { useProgramStore } from "@/components/program-provider";
+import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, Section } from "@/components/ui";
-import { coachxDemoState, coachxToday } from "@/lib/coachx-data";
+
+function resolveDateKey(param: string | string[] | undefined, fallback: string) {
+  if (Array.isArray(param)) {
+    return param[0] ?? fallback;
+  }
+
+  return param ?? fallback;
+}
 
 export default function DayDetailPage() {
-  const { state } = useOnboardingStore();
-  const athleteName = state.profile.name || coachxDemoState.athlete.name;
+  const params = useParams<{ date?: string | string[] }>();
+  const { saved } = useProfileSettingsStore();
+  const { getDaySummary, selectedDateKey } = useProgramStore();
+  const dateKey = resolveDateKey(params.date, selectedDateKey ?? "2026-08-08");
+  const day = getDaySummary(dateKey);
+
+  if (!day) {
+    return null;
+  }
 
   return (
     <Screen
@@ -28,14 +44,14 @@ export default function DayDetailPage() {
           <div className="row start">
             <div>
               <div className="eyebrow" style={{ marginBottom: 6 }}>
-                {athleteName}
+                {saved.profile.name}
               </div>
-              <h1 className="headline-lg">{coachxToday.dateLabel}</h1>
+              <h1 className="headline-lg">{day.dateLabel}</h1>
               <p className="caption" style={{ marginTop: 8 }}>
-                {coachxToday.phase} · {coachxToday.workoutTitle}
+                {day.phase} · {day.workoutTitle}
               </p>
             </div>
-            <span className="pill">{coachxToday.duration}</span>
+            <span className="pill">{day.duration}</span>
           </div>
         </section>
 
@@ -45,31 +61,31 @@ export default function DayDetailPage() {
               <div>
                 <div className="eyebrow">Workout focus</div>
                 <div className="headline-md" style={{ marginTop: 6 }}>
-                  {coachxToday.workoutTitle}
+                  {day.workoutTitle}
                 </div>
               </div>
               <span className="accent" style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-                {coachxToday.workoutType}
+                {day.workoutType}
               </span>
             </div>
 
-            <AnatomyPreview focus={coachxToday.muscleFocus} />
+            <AnatomyPreview focus={day.muscleFocus} />
 
             <div className="grid-3" style={{ marginTop: 16 }}>
               <div>
-                <div className="headline-md">{coachxToday.workoutCount}</div>
+                <div className="headline-md">{day.workoutCount}</div>
                 <div className="caption" style={{ marginTop: 4 }}>
                   Session volume
                 </div>
               </div>
               <div>
-                <div className="headline-md">{coachxToday.duration}</div>
+                <div className="headline-md">{day.duration}</div>
                 <div className="caption" style={{ marginTop: 4 }}>
                   Total time
                 </div>
               </div>
               <div>
-                <div className="headline-md">{coachxToday.cardio}</div>
+                <div className="headline-md">{day.cardio}</div>
                 <div className="caption" style={{ marginTop: 4 }}>
                   Cardio block
                 </div>
@@ -78,9 +94,9 @@ export default function DayDetailPage() {
           </Card>
         </section>
 
-        <Section title="Workout" meta={coachxToday.primaryTarget}>
+        <Section title="Workout" meta={day.primaryTarget}>
           <div className="stack">
-            {coachxToday.movements.map((movement) => (
+            {day.movements.map((movement) => (
               <Card key={movement.name} className="list-card">
                 <span className="icon accent filled" aria-hidden="true">
                   {movement.icon}
@@ -98,27 +114,27 @@ export default function DayDetailPage() {
           </div>
         </Section>
 
-        <Section title="Nutrition" meta={coachxToday.calendarLabel}>
+        <Section title="Nutrition" meta={day.calendarLabel}>
           <Card className="p-16">
             <div className="row start">
               <div>
                 <div className="eyebrow">Calories</div>
                 <div className="headline-md" style={{ marginTop: 6 }}>
-                  {coachxToday.nutritionCalories}
+                  {day.nutritionCalories}
                 </div>
                 <div className="caption" style={{ marginTop: 4 }}>
-                  {coachxToday.macros}
+                  {day.macros}
                 </div>
               </div>
               <div style={{ textAlign: "right" }}>
                 <div className="eyebrow">Habits</div>
                 <div className="headline-md" style={{ marginTop: 6 }}>
-                  {coachxToday.habits}
+                  {day.habits}
                 </div>
               </div>
             </div>
             <div style={{ marginTop: 16 }}>
-              <Link href={`/day/${coachxToday.dateKey}/nutrition`} className="workout-secondary-button focus-ring">
+              <Link href={`/day/${day.dateKey}/nutrition`} className="workout-secondary-button focus-ring">
                 Open Nutrition
               </Link>
             </div>
@@ -128,15 +144,21 @@ export default function DayDetailPage() {
         <Section title="Coach insight" meta="Session cues">
           <Card className="p-16">
             <p className="body-md" style={{ color: "var(--text-secondary)" }}>
-              {coachxToday.coachInsight}
+              {day.coachInsight}
             </p>
           </Card>
         </Section>
 
         <div className="stack">
-          <PrimaryButton href={`/workout/${coachxDemoState.workoutSession.id}`} className="focus-ring">
-            Start Workout
-          </PrimaryButton>
+          {day.isRestDay ? (
+            <PrimaryButton href="/calendar" className="focus-ring">
+              Back to Calendar
+            </PrimaryButton>
+          ) : (
+            <PrimaryButton href={`/workout/${day.scheduledWorkoutId}`} className="focus-ring">
+              Start Workout
+            </PrimaryButton>
+          )}
           <Link href="/calendar" className="workout-secondary-button focus-ring">
             Back to Calendar
           </Link>

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAuthStore } from "@/components/auth-provider";
+import { useProgramStore } from "@/components/program-provider";
 import { useOnboardingStore } from "@/components/onboarding-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
@@ -42,6 +43,8 @@ const ProfileSettingsContext = createContext<ProfileSettingsStoreValue | null>(n
 export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
   const auth = useAuthStore();
   const authRef = useRef(auth);
+  const programStore = useProgramStore();
+  const programStoreRef = useRef(programStore);
   const onboarding = useOnboardingStore();
   const onboardingRef = useRef(onboarding);
   const [state, setState] = useState<ProfileSettingsState>(() =>
@@ -55,6 +58,10 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     authRef.current = auth;
   }, [auth]);
+
+  useEffect(() => {
+    programStoreRef.current = programStore;
+  }, [programStore]);
 
   useEffect(() => {
     window.localStorage.setItem(profileStorageKey, serializeProfileSettingsState(state));
@@ -154,7 +161,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
   const value = useMemo<ProfileSettingsStoreValue>(() => {
     const commitProfileSnapshot: ProfileSettingsStoreValue["commitProfileSnapshot"] = (nextSnapshot) => {
       const currentOnboarding = onboardingRef.current;
-      const review = buildProfileReview(state.saved, nextSnapshot, currentOnboarding.program);
+      const review = buildProfileReview(state.saved, nextSnapshot, programStoreRef.current.program ?? currentOnboarding.program);
       setState((current) => ({
         ...current,
         saved: nextSnapshot,
@@ -250,7 +257,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
       currentOnboarding.setScheduleLifestyle(state.saved.scheduleLifestyle);
       currentOnboarding.setHealthLimitations(state.saved.healthLimitations);
       currentOnboarding.setNutritionPreferences(state.saved.nutritionPreferences);
-      currentOnboarding.setProgram(applySnapshotToProgram(currentOnboarding.program, state.saved));
+      currentOnboarding.setProgram(applySnapshotToProgram(programStoreRef.current.program ?? currentOnboarding.program, state.saved));
 
       setState((current) => ({
         ...current,
