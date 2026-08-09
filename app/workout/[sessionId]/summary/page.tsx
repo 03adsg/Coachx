@@ -18,7 +18,7 @@ export default function WorkoutSummaryPage() {
       topbar={
         <header className="workout-summary-topbar">
           <span className="eyebrow" style={{ margin: 0 }}>
-            COACHX
+            AthlexForce
           </span>
         </header>
       }
@@ -67,7 +67,7 @@ export default function WorkoutSummaryPage() {
               </span>
               <div>
                 <div className="eyebrow" style={{ color: "#b6ff00" }}>
-                  CoachX Insight
+                  AthlexForce Insight
                 </div>
                 <p className="body-md" style={{ color: "var(--text-primary)", marginTop: 6 }}>
                   {session.summary.insight}

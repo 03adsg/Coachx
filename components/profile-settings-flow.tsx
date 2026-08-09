@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { BrandLogo } from "@/components/brand-logo";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { ChoiceButton, PillToggle } from "@/components/onboarding-ui";
@@ -34,9 +35,7 @@ function ProfileHeader({
       </Link>
       <div style={{ flex: 1, textAlign: "center", minWidth: 0 }}>
         {brand ? (
-          <div className="brand" style={{ fontSize: 32, lineHeight: 1, marginTop: 2 }}>
-            COACHX
-          </div>
+          <BrandLogo variant="horizontal" width={154} alt="AthlexForce" style={{ margin: "2px auto 0" }} />
         ) : null}
         <h1
           className="headline-md"
@@ -799,7 +798,7 @@ export function ProfileScheduleLifestyleScreen() {
             selected={draft.scheduleLifestyle.reminderPreference}
             onSelect={(value) => setDraft((current) => ({ ...current, scheduleLifestyle: { ...current.scheduleLifestyle, reminderPreference: value as "push" | "email" | "both" | "none" } }))}
             items={[
-              { id: "push", label: "Push", description: "CoachX mobile reminders" },
+              { id: "push", label: "Push", description: "AthlexForce mobile reminders" },
               { id: "email", label: "Email", description: "Simple inbox reminders" },
               { id: "both", label: "Both", description: "Push and email" },
               { id: "none", label: "None", description: "Pause reminders" }
@@ -1036,12 +1035,12 @@ export function ProfileNotificationsScreen() {
   };
 
   return (
-    <EditorShell backHref="/profile" title="NOTIFICATIONS" subtitle="Choose what CoachX should remind you about." brand={false}>
+            <EditorShell backHref="/profile" title="NOTIFICATIONS" subtitle="Choose what AthlexForce should remind you about." brand={false}>
       <section className="section stack">
         <Card className="p-16" style={{ background: "var(--surface-elevated)" }}>
           <div className="row" style={{ alignItems: "center", gap: 16 }}>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div className="headline-md" style={{ fontSize: 28 }}>COACHX NOTIFICATIONS</div>
+              <div className="headline-md" style={{ fontSize: 28 }}>ATHLEXFORCE NOTIFICATIONS</div>
               <p className="caption" style={{ marginTop: 10 }}>
                 Training, progress and coaching reminders.
               </p>
@@ -1184,7 +1183,7 @@ export function ProfileImpactReviewScreen() {
       shellClassName="screen-shell"
       topbar={
         <header className="topbar" style={{ justifyContent: "space-between" }}>
-          <div className="brand">COACHX</div>
+          <BrandLogo variant="horizontal" width={132} alt="AthlexForce" />
           <button aria-label="Close" className="tap-target focus-ring" type="button" onClick={() => router.push("/profile/preferences")}>
             <span className="icon" aria-hidden="true">
               close

@@ -1,5 +1,7 @@
 # COACHX Supabase Migration Plan
 
+Public product identity: AthlexForce. Internal repo and technical names remain CoachX where they are already established.
+
 Date: 2026-08-09
 
 Branch: `codex/phase-1-foundation`
@@ -14,7 +16,7 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - Slice 2: complete + live verified
 - Slice 3: complete + live verified
 - Slice 4: complete + live verified
-- Slice 5: local implementation complete, live migration pending
+- Slice 5: local implementation complete; live verification is partial because the `progress-photos` Storage bucket is still missing from the live Storage API
 
 ## Phase S0 - Supabase project + env + typed client
 

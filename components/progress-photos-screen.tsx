@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { BrandLogo } from "@/components/brand-logo";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { useProgressStore } from "@/components/progress-provider";
@@ -31,7 +32,7 @@ function ProgressTopbar({ closeHref, onHelp }: { closeHref: string; onHelp?: () 
           close
         </span>
       </Link>
-      <div className="progress-topbar__brand">COACHX</div>
+      <BrandLogo variant="mark" width={34} alt="AthlexForce" />
       <button className="progress-topbar__button focus-ring" type="button" aria-label="Help" onClick={onHelp}>
         <span className="icon" aria-hidden="true">
           help

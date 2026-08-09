@@ -12,7 +12,7 @@ const choices = [
   "Try a different range",
   "Use an alternative exercise",
   "Stop this exercise",
-  "Ask CoachX"
+  "Ask AthlexForce"
 ];
 
 export default function SafetyResolutionPage() {

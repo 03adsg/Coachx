@@ -188,7 +188,7 @@ export function ProgressTrendsScreen() {
                 psychology
               </span>
               <h3 className="eyebrow" style={{ margin: 0, color: "var(--accent-primary)" }}>
-                COACHX INSIGHT
+                ATHLEXFORCE INSIGHT
               </h3>
             </div>
             <p className="body-md" style={{ lineHeight: 1.6 }}>
@@ -280,4 +280,3 @@ export function ProgressTrendsScreen() {
     </Screen>
   );
 }
-

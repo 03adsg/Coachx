@@ -16,17 +16,26 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "COACHX",
-  description: "COACHX athlete app",
+  title: {
+    default: "AthlexForce",
+    template: "%s | AthlexForce"
+  },
+  applicationName: "AthlexForce",
+  description: "AthlexForce athlete app",
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icon.png",
     apple: "/apple-touch-icon.png"
+  },
+  openGraph: {
+    title: "AthlexForce",
+    description: "AthlexForce athlete app",
+    siteName: "AthlexForce"
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "COACHX"
+    title: "AthlexForce"
   }
 };
 

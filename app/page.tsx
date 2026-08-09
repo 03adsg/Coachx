@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnatomyPreview } from "@/components/anatomy-preview";
+import { BrandLogo } from "@/components/brand-logo";
 import { useProfileSettingsStore } from "@/components/profile-settings-provider";
 import { useProgramStore } from "@/components/program-provider";
 import { Screen } from "@/components/screen";
@@ -71,7 +72,7 @@ function TodayContent() {
       topbar={
         <header className="topbar">
           <IconButton icon="menu" label="Open menu" />
-          <div className="brand">COACHX</div>
+          <BrandLogo variant="horizontal" width={128} alt="AthlexForce" />
           <Link href="/profile" aria-label="Open profile" className="profile-avatar focus-ring">
             <img src="/coachx-avatar.svg" alt="Athlete profile" width={52} height={52} />
           </Link>

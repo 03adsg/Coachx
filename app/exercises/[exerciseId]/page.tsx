@@ -64,7 +64,7 @@ export default function ExerciseDetailPage() {
           </div>
           <Card className="workout-library-subcard">
             <div className="caption" style={{ marginBottom: 12 }}>
-              CoachX keeps the muscle map semantic. This exercise targets glute extension with hamstring support.
+              AthlexForce keeps the muscle map semantic. This exercise targets glute extension with hamstring support.
             </div>
             <div className="stack">
               {[

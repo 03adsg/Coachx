@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { BrandLogo } from "@/components/brand-logo";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { useProgressStore } from "@/components/progress-provider";
@@ -25,7 +26,7 @@ function ProgressTopbar({ closeHref }: { closeHref: string }) {
           arrow_back
         </span>
       </Link>
-      <div className="progress-topbar__brand">COACHX</div>
+      <BrandLogo variant="mark" width={34} alt="AthlexForce" />
       <span className="progress-topbar__spacer" aria-hidden="true" />
     </header>
   );
@@ -393,7 +394,7 @@ export function ProgressMeasurementSuccessScreen() {
               close
             </span>
           </button>
-          <div className="progress-topbar__brand">COACHX</div>
+          <BrandLogo variant="mark" width={34} alt="AthlexForce" />
           <span className="progress-topbar__spacer" aria-hidden="true" />
         </header>
       }
@@ -433,7 +434,7 @@ export function ProgressMeasurementSuccessScreen() {
                 auto_awesome
               </span>
               <div className="eyebrow" style={{ margin: 0, color: "var(--accent-primary)" }}>
-                COACHX INSIGHT
+                ATHLEXFORCE INSIGHT
               </div>
             </div>
             <p className="body-md" style={{ lineHeight: 1.6 }}>

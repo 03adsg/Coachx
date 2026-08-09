@@ -328,7 +328,7 @@ function impactSummary(classification: ImpactClassification) {
     case "NO_IMPACT":
       return "This edit updates the profile without changing the active plan.";
     case "MINOR_REVIEW":
-      return "The saved preferences can stay with the current program, but CoachX flagged a gentle review.";
+      return "The saved preferences can stay with the current program, but AthlexForce flagged a gentle review.";
     case "PROGRAM_ADJUSTMENT_RECOMMENDED":
       return "The program may need adjustment after these changes are confirmed.";
     case "COACH_REVIEW_REQUIRED":
@@ -415,7 +415,7 @@ export function createNotificationSettings(): NotificationSettings {
       { id: "hydration", label: "Hydration", description: "Light hydration reminders during the day.", enabled: true },
       { id: "supplements", label: "Supplements", description: "Creatine or protein timing reminders.", enabled: false },
       { id: "sleep-routine", label: "Sleep Routine", description: "Wind-down reminders before bedtime.", enabled: false },
-      { id: "adaptive-alerts", label: "Adaptive CoachX Alerts", description: "A concise heads-up when the plan needs attention.", enabled: true }
+      { id: "adaptive-alerts", label: "Adaptive AthlexForce Alerts", description: "A concise heads-up when the plan needs attention.", enabled: true }
     ]
   };
 }

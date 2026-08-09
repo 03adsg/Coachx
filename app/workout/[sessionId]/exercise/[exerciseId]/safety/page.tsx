@@ -27,7 +27,7 @@ export default function SafetyAssessmentPage() {
             </span>
           </button>
           <div className="headline-md" style={{ fontSize: 20, textTransform: "uppercase" }}>
-            CoachX
+            AthlexForce
           </div>
           <span className="tap-target" />
         </header>

@@ -52,7 +52,7 @@ export default function ReorganizeWeekPage() {
             Reorganize My Week
           </h1>
           <p className="body-lg" style={{ marginTop: 10, color: "var(--text-secondary)" }}>
-            CoachX will find the best way to preserve your training priorities and recovery.
+            AthlexForce will find the best way to preserve your training priorities and recovery.
           </p>
         </section>
 
@@ -87,7 +87,7 @@ export default function ReorganizeWeekPage() {
         <section className="section">
           <Card className="workout-reorg-logic">
             <div className="eyebrow" style={{ color: "#b6ff00" }}>
-              CoachX Logic
+              AthlexForce Logic
             </div>
             <p className="body-md" style={{ marginTop: 10, color: "var(--text-secondary)" }}>
               Move this session to Tuesday to preserve 48+ hours between lower-body workouts.

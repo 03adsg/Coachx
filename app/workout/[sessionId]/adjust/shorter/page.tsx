@@ -51,7 +51,7 @@ export default function ShorterSessionPage() {
         <section className="section">
           <Card className="workout-adjust-recommendation">
             <div className="eyebrow" style={{ color: "#b6ff00" }}>
-              CoachX 30 Min Version
+              AthlexForce 30 Min Version
             </div>
             <p className="body-lg" style={{ marginTop: 12, color: "var(--text-secondary)" }}>
               Lower-priority work is removed while the main training objective stays intact.

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type FormEvent, type HTMLAttributes, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { BrandLogo } from "@/components/brand-logo";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { OnboardingStickyActions, OnboardingStepHeader, ChoiceButton, PillToggle } from "@/components/onboarding-ui";
@@ -213,7 +214,7 @@ export function EntryScreen() {
   }
 
   return (
-    <Screen shellClassName="onboarding-shell" topbar={<header className="topbar center"><div className="brand">COACHX</div></header>}>
+    <Screen shellClassName="onboarding-shell" topbar={<header className="topbar center"><BrandLogo variant="full" width={156} alt="AthlexForce" /></header>}>
       <main className="content">
         <section className="section">
           <div className="eyebrow" style={{ color: "#b6ff00" }}>PROVISIONAL ENTRY</div>
@@ -333,7 +334,7 @@ export function OnboardingIntroScreen() {
   return (
     <FlowShell step="intro" title="Onboarding" subtitle="Build the athlete setup before the plan is revealed." backHref="/entry" rightLabel="Skip" rightHref="/entry">
       <section className="section">
-        <SectionTitle title="Start with the basics" caption="COACHX uses one consistent athlete context across profile, goals, training, nutrition, baseline, and the program reveal." />
+        <SectionTitle title="Start with the basics" caption="AthlexForce uses one consistent athlete context across profile, goals, training, nutrition, baseline, and the program reveal." />
       </section>
 
       <section className="section stack">

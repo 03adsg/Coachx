@@ -2,8 +2,9 @@
 
 ## Completed
 
+- Public product identity is now AthlexForce; internal repo and technical names remain CoachX where changing them adds no value.
 - Bootstrapped a Next.js App Router + TypeScript foundation.
-- Implemented the COACHX shell with mobile-first styling, safe-area handling, bottom navigation, and centralized design tokens.
+- Implemented the AthlexForce shell with mobile-first styling, safe-area handling, bottom navigation, and centralized design tokens.
 - Added a GSAP motion layer with reduced-motion support.
 - Implemented the core routes: `/`, `/calendar`, `/day/[date]`, `/progress`, and `/profile`.
 - Added the Batch A workout foundation: workout overview, active log, alternatives, summary, adjust flows, exercise library/detail, and safety flows.
@@ -31,7 +32,7 @@
 - Replaced the remote profile portrait with a local placeholder avatar asset so the UI renders reliably offline.
 - Tightened mobile spacing and button widths to avoid overlap in the 390px viewport.
 - Kept the black/charcoal section rhythm inside the Stitch layout instead of changing page composition.
-- Added local favicon and Apple touch icon assets to remove the remaining COACHX 404 for standalone and browser installs.
+- Added local favicon and Apple touch icon assets to remove the remaining public-brand 404 for standalone and browser installs.
 - Added a semantic workout anatomy path so posterior lower-body work no longer resolves to an anterior torso visual.
 - Removed duplicated fixture values by deriving all workout screens from one shared demo session.
 - Added a temporary exercise placeholder asset for missing approved imagery.
@@ -719,6 +720,7 @@
 
 ### Remaining provisional states
 
-- Live Supabase migration and authenticated browser verification still need to be executed for the new progress tables and storage bucket.
-- Live REST checks on the deployed Supabase project still return 404 for `progress_entries`, `progress_measurements`, and `progress_photos`, so the SQL migration has not been applied in the live database yet.
+- Live Supabase verification now reaches the progress tables, and authenticated measurement inserts and updates succeed.
+- The live `progress-photos` Storage bucket is still missing from the Storage API, so private photo upload/replace verification remains blocked on the storage portion of the migration.
+- Anonymous reads against the progress tables return empty arrays, which is consistent with RLS.
 - The main `/progress` dashboard remains a provisional hub because the Stitch ZIP still does not contain a dedicated physical export for that screen.

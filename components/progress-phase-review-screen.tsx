@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { useProgressStore } from "@/components/progress-provider";
@@ -16,7 +17,7 @@ function PhaseTopbar() {
           close
         </span>
       </Link>
-      <div className="progress-review-topbar__brand">COACHX</div>
+      <BrandLogo variant="mark" width={34} alt="AthlexForce" />
       <span className="progress-review-topbar__label">PHASE REVIEW</span>
     </header>
   );
@@ -166,7 +167,7 @@ export function ProgressPhaseReviewScreen() {
                 smart_toy
               </span>
               <h3 className="eyebrow" style={{ margin: 0, color: "var(--accent-primary)" }}>
-                COACHX INSIGHTS
+                ATHLEXFORCE INSIGHTS
               </h3>
             </div>
             <p className="body-md" style={{ fontStyle: "italic", lineHeight: 1.6 }}>
