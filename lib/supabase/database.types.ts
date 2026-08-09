@@ -7,6 +7,12 @@ export type ScheduledWorkoutStatus = "scheduled" | "completed" | "skipped" | "re
 export type WorkoutSessionStatus = "in_progress" | "completed" | "abandoned";
 export type WorkoutSessionExerciseStatus = "planned" | "completed" | "skipped";
 export type WorkoutSetStatus = "planned" | "completed" | "skipped";
+export type NutritionPlanStatus = "proposed" | "active" | "completed" | "archived";
+export type NutritionDayType = "training" | "rest" | "custom";
+export type NutritionDayStatus = "planned" | "in_progress" | "completed";
+export type NutritionMealSelectionStatus = "selected" | "eaten" | "skipped";
+export type NutritionSupplementStatus = "pending" | "completed";
+export type NutritionMeasurementBasis = "raw" | "cooked" | "prepared" | "serving" | "unit";
 
 export interface ProgramsRow {
   id: string;
@@ -416,6 +422,313 @@ export interface AthletePreferencesUpdate {
   updated_at?: string;
 }
 
+export interface NutritionPlansRow {
+  id: string;
+  user_id: string;
+  program_id: string | null;
+  status: NutritionPlanStatus;
+  name: string;
+  daily_calorie_target: number;
+  protein_target_g: number;
+  carb_target_g: number;
+  fat_target_g: number;
+  fiber_target_g: number | null;
+  water_target_ml: number | null;
+  started_at: string;
+  ended_at: string | null;
+  plan_metadata: Json | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NutritionPlansInsert {
+  id?: string;
+  user_id: string;
+  program_id?: string | null;
+  status?: NutritionPlanStatus;
+  name: string;
+  daily_calorie_target: number;
+  protein_target_g: number;
+  carb_target_g: number;
+  fat_target_g: number;
+  fiber_target_g?: number | null;
+  water_target_ml?: number | null;
+  started_at?: string;
+  ended_at?: string | null;
+  plan_metadata?: Json | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface NutritionPlansUpdate {
+  program_id?: string | null;
+  status?: NutritionPlanStatus;
+  name?: string;
+  daily_calorie_target?: number;
+  protein_target_g?: number;
+  carb_target_g?: number;
+  fat_target_g?: number;
+  fiber_target_g?: number | null;
+  water_target_ml?: number | null;
+  started_at?: string;
+  ended_at?: string | null;
+  plan_metadata?: Json | null;
+  updated_at?: string;
+}
+
+export interface NutritionDaysRow {
+  id: string;
+  user_id: string;
+  nutrition_plan_id: string;
+  program_phase_id: string | null;
+  scheduled_workout_id: string | null;
+  calendar_date: string;
+  day_type: NutritionDayType;
+  status: NutritionDayStatus;
+  calorie_target: number;
+  protein_target_g: number;
+  carb_target_g: number;
+  fat_target_g: number;
+  water_target_ml: number | null;
+  day_metadata: Json | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NutritionDaysInsert {
+  id?: string;
+  user_id: string;
+  nutrition_plan_id: string;
+  program_phase_id?: string | null;
+  scheduled_workout_id?: string | null;
+  calendar_date: string;
+  day_type?: NutritionDayType;
+  status?: NutritionDayStatus;
+  calorie_target: number;
+  protein_target_g: number;
+  carb_target_g: number;
+  fat_target_g: number;
+  water_target_ml?: number | null;
+  day_metadata?: Json | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface NutritionDaysUpdate {
+  nutrition_plan_id?: string;
+  program_phase_id?: string | null;
+  scheduled_workout_id?: string | null;
+  calendar_date?: string;
+  day_type?: NutritionDayType;
+  status?: NutritionDayStatus;
+  calorie_target?: number;
+  protein_target_g?: number;
+  carb_target_g?: number;
+  fat_target_g?: number;
+  water_target_ml?: number | null;
+  day_metadata?: Json | null;
+  updated_at?: string;
+}
+
+export interface NutritionMealSlotsRow {
+  id: string;
+  nutrition_day_id: string;
+  slot_key: string;
+  name: string;
+  sort_order: number;
+  target_calories: number;
+  target_protein_g: number;
+  target_carb_g: number;
+  target_fat_g: number;
+  notes: string | null;
+  slot_metadata: Json | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NutritionMealSlotsInsert {
+  id?: string;
+  nutrition_day_id: string;
+  slot_key: string;
+  name: string;
+  sort_order: number;
+  target_calories: number;
+  target_protein_g: number;
+  target_carb_g: number;
+  target_fat_g: number;
+  notes?: string | null;
+  slot_metadata?: Json | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface NutritionMealSlotsUpdate {
+  slot_key?: string;
+  name?: string;
+  sort_order?: number;
+  target_calories?: number;
+  target_protein_g?: number;
+  target_carb_g?: number;
+  target_fat_g?: number;
+  notes?: string | null;
+  slot_metadata?: Json | null;
+  updated_at?: string;
+}
+
+export interface NutritionMealOptionsRow {
+  id: string;
+  meal_slot_id: string;
+  option_key: string;
+  name: string;
+  description: string;
+  ingredients: Json;
+  calories: number;
+  protein_g: number;
+  carb_g: number;
+  fat_g: number;
+  portion_notes: string | null;
+  measurement_basis: NutritionMeasurementBasis;
+  allergen_metadata: Json | null;
+  restriction_metadata: Json | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NutritionMealOptionsInsert {
+  id?: string;
+  meal_slot_id: string;
+  option_key: string;
+  name: string;
+  description: string;
+  ingredients?: Json;
+  calories: number;
+  protein_g: number;
+  carb_g: number;
+  fat_g: number;
+  portion_notes?: string | null;
+  measurement_basis?: NutritionMeasurementBasis;
+  allergen_metadata?: Json | null;
+  restriction_metadata?: Json | null;
+  sort_order: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface NutritionMealOptionsUpdate {
+  option_key?: string;
+  name?: string;
+  description?: string;
+  ingredients?: Json;
+  calories?: number;
+  protein_g?: number;
+  carb_g?: number;
+  fat_g?: number;
+  portion_notes?: string | null;
+  measurement_basis?: NutritionMeasurementBasis;
+  allergen_metadata?: Json | null;
+  restriction_metadata?: Json | null;
+  sort_order?: number;
+  updated_at?: string;
+}
+
+export interface NutritionDaySelectionsRow {
+  id: string;
+  user_id: string;
+  nutrition_day_id: string;
+  meal_slot_id: string;
+  meal_option_id: string;
+  status: NutritionMealSelectionStatus;
+  selected_at: string;
+  eaten_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NutritionDaySelectionsInsert {
+  id?: string;
+  user_id: string;
+  nutrition_day_id: string;
+  meal_slot_id: string;
+  meal_option_id: string;
+  status?: NutritionMealSelectionStatus;
+  selected_at?: string;
+  eaten_at?: string | null;
+  completed_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface NutritionDaySelectionsUpdate {
+  meal_option_id?: string;
+  status?: NutritionMealSelectionStatus;
+  selected_at?: string;
+  eaten_at?: string | null;
+  completed_at?: string | null;
+  updated_at?: string;
+}
+
+export interface NutritionHydrationLogsRow {
+  id: string;
+  user_id: string;
+  nutrition_day_id: string;
+  amount_ml: number;
+  logged_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NutritionHydrationLogsInsert {
+  id?: string;
+  user_id: string;
+  nutrition_day_id: string;
+  amount_ml: number;
+  logged_at?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface NutritionHydrationLogsUpdate {
+  amount_ml?: number;
+  logged_at?: string;
+  updated_at?: string;
+}
+
+export interface NutritionSupplementLogsRow {
+  id: string;
+  user_id: string;
+  nutrition_day_id: string;
+  supplement_key: string;
+  label: string;
+  dosage: string;
+  status: NutritionSupplementStatus;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NutritionSupplementLogsInsert {
+  id?: string;
+  user_id: string;
+  nutrition_day_id: string;
+  supplement_key: string;
+  label: string;
+  dosage: string;
+  status?: NutritionSupplementStatus;
+  completed_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface NutritionSupplementLogsUpdate {
+  label?: string;
+  dosage?: string;
+  status?: NutritionSupplementStatus;
+  completed_at?: string | null;
+  updated_at?: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -429,6 +742,48 @@ export interface Database {
         Row: AthletePreferencesRow;
         Insert: AthletePreferencesInsert;
         Update: AthletePreferencesUpdate;
+        Relationships: [];
+      };
+      nutrition_plans: {
+        Row: NutritionPlansRow;
+        Insert: NutritionPlansInsert;
+        Update: NutritionPlansUpdate;
+        Relationships: [];
+      };
+      nutrition_days: {
+        Row: NutritionDaysRow;
+        Insert: NutritionDaysInsert;
+        Update: NutritionDaysUpdate;
+        Relationships: [];
+      };
+      nutrition_meal_slots: {
+        Row: NutritionMealSlotsRow;
+        Insert: NutritionMealSlotsInsert;
+        Update: NutritionMealSlotsUpdate;
+        Relationships: [];
+      };
+      nutrition_meal_options: {
+        Row: NutritionMealOptionsRow;
+        Insert: NutritionMealOptionsInsert;
+        Update: NutritionMealOptionsUpdate;
+        Relationships: [];
+      };
+      nutrition_day_selections: {
+        Row: NutritionDaySelectionsRow;
+        Insert: NutritionDaySelectionsInsert;
+        Update: NutritionDaySelectionsUpdate;
+        Relationships: [];
+      };
+      nutrition_hydration_logs: {
+        Row: NutritionHydrationLogsRow;
+        Insert: NutritionHydrationLogsInsert;
+        Update: NutritionHydrationLogsUpdate;
+        Relationships: [];
+      };
+      nutrition_supplement_logs: {
+        Row: NutritionSupplementLogsRow;
+        Insert: NutritionSupplementLogsInsert;
+        Update: NutritionSupplementLogsUpdate;
         Relationships: [];
       };
       programs: {

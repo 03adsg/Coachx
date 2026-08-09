@@ -2,6 +2,7 @@ export type NutritionDayType = "training" | "rest";
 
 export type MealSlotState = "planned" | "selected" | "eaten" | "completed";
 export type MealPreparationState = "raw" | "cooked" | "prepared";
+export type MealMeasurementBasis = "raw" | "cooked" | "prepared" | "serving" | "unit";
 export type MealDifficulty = "easy" | "moderate" | "advanced";
 
 export interface MacroSummary {
@@ -19,6 +20,7 @@ export interface FoodItem {
   name: string;
   amount: string;
   preparation: MealPreparationState;
+  measurementBasis?: MealMeasurementBasis;
   note?: string;
 }
 
@@ -39,6 +41,10 @@ export interface MealOption {
   prepTime: string;
   difficulty: MealDifficulty;
   tags: string[];
+  allergenTags?: string[];
+  restrictionTags?: string[];
+  intoleranceTags?: string[];
+  measurementBasis?: MealMeasurementBasis;
   portions: FoodItem[];
   image?: string;
 }
@@ -96,6 +102,40 @@ function createMealOption(option: MealOption): MealOption {
 
 function createNutritionDay(day: NutritionDay): NutritionDay {
   return day;
+}
+
+function cloneNutritionDay(day: NutritionDay): NutritionDay {
+  return JSON.parse(JSON.stringify(day)) as NutritionDay;
+}
+
+function formatNutritionDateLabel(dateKey: string) {
+  const date = new Date(`${dateKey}T00:00:00Z`);
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC"
+  }).format(date);
+}
+
+function formatNutritionCalendarLabel(dateKey: string) {
+  const date = new Date(`${dateKey}T00:00:00Z`);
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC"
+  }).format(date);
+}
+
+function rebaseNutritionDay(day: NutritionDay, dateKey: string) {
+  return {
+    ...cloneNutritionDay(day),
+    dateKey,
+    dateLabel: formatNutritionDateLabel(dateKey),
+    calendarLabel: formatNutritionCalendarLabel(dateKey)
+  };
 }
 
 const trainingDay = createNutritionDay({
@@ -619,7 +659,15 @@ const nutritionDaySeeds: Record<string, NutritionDay> = {
 export function getNutritionDay(dateKey: string): NutritionDay {
   const fallback = nutritionDaySeeds["2026-08-08"];
   const seed = nutritionDaySeeds[dateKey] ?? fallback;
-  return JSON.parse(JSON.stringify(seed)) as NutritionDay;
+  return rebaseNutritionDay(seed, dateKey);
+}
+
+export function getNutritionDayTemplate(dayType: NutritionDayType): NutritionDay {
+  return cloneNutritionDay(dayType === "rest" ? restDay : trainingDay);
+}
+
+export function createNutritionDayForDate(dateKey: string, dayType: NutritionDayType = "training"): NutritionDay {
+  return rebaseNutritionDay(getNutritionDayTemplate(dayType), dateKey);
 }
 
 export function createNutritionSession(dateKey: string): NutritionDay {
@@ -631,13 +679,24 @@ export function getSafeMealOptions(slot: MealSlot, profile: NutritionSafetyProfi
 }
 
 export function isMealOptionSafe(option: MealOption, profile: NutritionSafetyProfile): boolean {
-  const normalizedTags = option.tags.map((tag) => tag.toLowerCase());
+  const normalize = (value: string) => value.trim().toLowerCase();
+  const optionTokens = new Set(
+    [
+      ...option.tags,
+      ...(option.allergenTags ?? []),
+      ...(option.restrictionTags ?? []),
+      ...(option.intoleranceTags ?? [])
+    ]
+      .flatMap((value) => normalize(value).split(/[\s,+/_-]+/g))
+      .filter(Boolean)
+  );
 
-  return ![
-    profile.allergies,
-    profile.restrictions,
-    profile.intolerances
-  ].some((blockedGroup) => blockedGroup.some((blockedValue) => normalizedTags.includes(blockedValue.toLowerCase())));
+  return ![profile.allergies, profile.restrictions, profile.intolerances].some((blockedGroup) =>
+    blockedGroup.some((blockedValue) => {
+      const blockedTokens = normalize(blockedValue).split(/[\s,+/_-]+/g).filter(Boolean);
+      return blockedTokens.some((token) => optionTokens.has(token));
+    })
+  );
 }
 
 export function getMealSlotStatusLabel(slot: MealSlot): string {

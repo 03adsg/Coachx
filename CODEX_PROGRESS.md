@@ -642,3 +642,25 @@
 - Live authenticated Supabase verification still depends on the remote preview/session state.
 - Rest timer behavior remains client-side only by design.
 - The fixture/demo fallback still exists for unauthenticated or unconfigured states.
+
+## Slice 3 Status
+
+- IMPLEMENTED
+- LIVE VERIFICATION PENDING
+
+## Slice 4 — Nutrition Persistence
+
+- LOCAL IMPLEMENTATION COMPLETE
+- LIVE MIGRATION PENDING
+- LIVE VERIFICATION PENDING
+- Added a normalized nutrition snapshot boundary for:
+  - `nutrition_plans`
+  - `nutrition_days`
+  - `nutrition_meal_slots`
+  - `nutrition_meal_options`
+  - `nutrition_day_selections`
+  - `nutrition_hydration_logs`
+  - `nutrition_supplement_logs`
+- Training-day versus rest-day nutrition now derives from the program/calendar boundary rather than an independent hardcoded day switch.
+- Meal selections, eaten/completed state, hydration, and supplements are modeled separately from the immutable daily nutrition snapshot.
+- Local nutrition state still persists through the client demo boundary until the Supabase migration is applied later.

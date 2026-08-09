@@ -1,7 +1,10 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { createNutritionSession, type MealSlot, type NutritionDay } from "@/lib/nutrition-data";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useAuthStore } from "@/components/auth-provider";
+import { useProgramStore } from "@/components/program-provider";
+import { applyMealSelection, addHydration, buildNutritionDayView, createNutritionStoreSnapshot, markMealCompleted, markMealEaten, nutritionStorageKey, reviveNutritionStoreSnapshot, serializeNutritionStoreSnapshot, toggleSupplement, type NutritionStoreSnapshot } from "@/lib/nutrition-service";
+import type { NutritionDay } from "@/lib/nutrition-data";
 
 interface NutritionStoreValue {
   day: NutritionDay;
@@ -15,106 +18,125 @@ interface NutritionStoreValue {
 
 const NutritionStoreContext = createContext<NutritionStoreValue | null>(null);
 
-function storageKey(dateKey: string) {
-  return `coachx-demo-nutrition-session:${dateKey}`;
-}
+export function NutritionProvider({ children, dateKey }: { children: ReactNode; dateKey: string }) {
+  const auth = useAuthStore();
+  const programStore = useProgramStore();
+  const authRef = useRef(auth);
+  const programStoreRef = useRef(programStore);
+  const hydratedRef = useRef(false);
+  const [snapshot, setSnapshot] = useState<NutritionStoreSnapshot>(() =>
+    createNutritionStoreSnapshot(dateKey, programStore.getDaySummary(dateKey), auth.user?.id ?? "demo-user", programStore.activeProgram?.id ?? null)
+  );
 
-function reviveDay(dateKey: string, rawValue: string | null) {
-  if (!rawValue) {
-    return createNutritionSession(dateKey);
-  }
+  const programDaySummary = programStore.getDaySummary(dateKey);
+  const programSignature = [
+    programDaySummary?.scheduledWorkoutId ?? "rest",
+    programDaySummary?.templateCode ?? "none",
+    programDaySummary?.isRestDay ? "rest" : "training",
+    programStore.activeProgram?.id ?? "program-none"
+  ].join("|");
 
-  try {
-    const parsed = JSON.parse(rawValue) as NutritionDay;
-    if (parsed.dateKey !== dateKey) {
-      return createNutritionSession(dateKey);
+  useEffect(() => {
+    authRef.current = auth;
+  }, [auth]);
+
+  useEffect(() => {
+    programStoreRef.current = programStore;
+  }, [programStore]);
+
+  useEffect(() => {
+    if (!auth.ready || !programStore.ready) {
+      return;
     }
 
-    return parsed;
-  } catch {
-    return createNutritionSession(dateKey);
-  }
-}
+    hydratedRef.current = false;
 
-function updateMealSlot(day: NutritionDay, slotId: string, updater: (slot: MealSlot) => MealSlot) {
-  return {
-    ...day,
-    mealSlots: day.mealSlots.map((slot) => (slot.id === slotId ? updater(slot) : slot))
-  };
-}
+    const currentAuth = authRef.current;
+    const currentProgram = programStoreRef.current;
+    const storageKey = nutritionStorageKey(currentAuth.user?.id ?? null, dateKey);
+    const rawSnapshot = typeof window === "undefined" ? null : window.localStorage.getItem(storageKey);
+    const revived = reviveNutritionStoreSnapshot(rawSnapshot, dateKey, currentProgram.getDaySummary(dateKey));
+    const shouldRefresh =
+      !rawSnapshot ||
+      revived.day.calendarDate !== dateKey ||
+      revived.plan.userId !== (currentAuth.user?.id ?? "demo-user") ||
+      revived.day.dayType !== (currentProgram.getDaySummary(dateKey)?.isRestDay ? "rest" : "training");
 
-export function NutritionProvider({ children, dateKey }: { children: ReactNode; dateKey: string }) {
-  const [day, setDay] = useState<NutritionDay>(() => createNutritionSession(dateKey));
+    const nextSnapshot = shouldRefresh
+      ? createNutritionStoreSnapshot(
+          dateKey,
+          currentProgram.getDaySummary(dateKey),
+          currentAuth.user?.id ?? "demo-user",
+          currentProgram.activeProgram?.id ?? null
+        )
+      : {
+          ...revived,
+          plan: {
+            ...revived.plan,
+            userId: currentAuth.user?.id ?? revived.plan.userId
+          },
+          day: {
+            ...revived.day,
+            userId: currentAuth.user?.id ?? revived.day.userId
+          }
+        };
+
+    setSnapshot(nextSnapshot);
+    hydratedRef.current = true;
+  }, [dateKey, auth.ready, auth.user?.id, programStore.ready, programSignature]);
 
   useEffect(() => {
-    setDay(reviveDay(dateKey, window.localStorage.getItem(storageKey(dateKey))));
-  }, [dateKey]);
+    if (!hydratedRef.current || typeof window === "undefined") {
+      return;
+    }
 
-  useEffect(() => {
-    window.localStorage.setItem(storageKey(dateKey), JSON.stringify(day));
-  }, [day, dateKey]);
+    const storageKey = nutritionStorageKey(authRef.current.user?.id ?? null, dateKey);
+    window.localStorage.setItem(storageKey, serializeNutritionStoreSnapshot(snapshot));
+  }, [snapshot, dateKey]);
+
+  const day = useMemo(() => buildNutritionDayView(snapshot), [snapshot]);
 
   const value = useMemo<NutritionStoreValue>(() => {
     const selectMealOption: NutritionStoreValue["selectMealOption"] = (slotId, optionId) => {
-      setDay((current) =>
-        updateMealSlot(current, slotId, (slot) => ({
-          ...slot,
-          state: "selected",
-          selectedOptionId: optionId
-        }))
-      );
+      setSnapshot((current) => applyMealSelection(current, slotId, optionId));
     };
 
-    const markMealEaten: NutritionStoreValue["markMealEaten"] = (slotId) => {
-      setDay((current) =>
-        updateMealSlot(current, slotId, (slot) => ({
-          ...slot,
-          state: slot.selectedOptionId ? "eaten" : slot.state
-        }))
-      );
+    const markMealEatenAction: NutritionStoreValue["markMealEaten"] = (slotId) => {
+      setSnapshot((current) => markMealEaten(current, slotId));
     };
 
-    const markMealCompleted: NutritionStoreValue["markMealCompleted"] = (slotId) => {
-      setDay((current) =>
-        updateMealSlot(current, slotId, (slot) => ({
-          ...slot,
-          state: slot.selectedOptionId ? "completed" : slot.state
-        }))
-      );
+    const markMealCompletedAction: NutritionStoreValue["markMealCompleted"] = (slotId) => {
+      setSnapshot((current) => markMealCompleted(current, slotId));
     };
 
-    const addHydration: NutritionStoreValue["addHydration"] = (amountMl) => {
-      setDay((current) => ({
-        ...current,
-        hydration: {
-          ...current.hydration,
-          currentMl: Math.min(current.hydration.targetMl, current.hydration.currentMl + amountMl)
-        }
-      }));
+    const addHydrationAction: NutritionStoreValue["addHydration"] = (amountMl) => {
+      setSnapshot((current) => addHydration(current, amountMl));
     };
 
-    const toggleSupplement: NutritionStoreValue["toggleSupplement"] = (reminderId) => {
-      setDay((current) => ({
-        ...current,
-        supplements: current.supplements.map((reminder) =>
-          reminder.id === reminderId ? { ...reminder, checked: !reminder.checked } : reminder
-        )
-      }));
+    const toggleSupplementAction: NutritionStoreValue["toggleSupplement"] = (reminderId) => {
+      setSnapshot((current) => toggleSupplement(current, reminderId));
     };
 
     const resetNutritionDemo: NutritionStoreValue["resetNutritionDemo"] = () => {
-      const demo = createNutritionSession(dateKey);
-      setDay(demo);
-      window.localStorage.setItem(storageKey(dateKey), JSON.stringify(demo));
+      const currentAuth = authRef.current;
+      const currentProgram = programStoreRef.current;
+      setSnapshot(
+        createNutritionStoreSnapshot(
+          dateKey,
+          currentProgram.getDaySummary(dateKey),
+          currentAuth.user?.id ?? "demo-user",
+          currentProgram.activeProgram?.id ?? null
+        )
+      );
     };
 
     return {
       day,
       selectMealOption,
-      markMealEaten,
-      markMealCompleted,
-      addHydration,
-      toggleSupplement,
+      markMealEaten: markMealEatenAction,
+      markMealCompleted: markMealCompletedAction,
+      addHydration: addHydrationAction,
+      toggleSupplement: toggleSupplementAction,
       resetNutritionDemo
     };
   }, [day, dateKey]);

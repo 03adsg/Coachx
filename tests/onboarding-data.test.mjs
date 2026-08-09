@@ -20,6 +20,7 @@ async function transpileLibraryChain() {
     "program-service.ts",
     "onboarding-data.ts",
     "profile-settings-data.ts",
+    "nutrition-service.ts",
     "auth/navigation.ts",
     "athlete-service.ts",
     "workout-session-service.ts"
@@ -58,9 +59,11 @@ async function transpileLibraryChain() {
 
 const onboarding = await transpileLibraryChain();
 const profileSettings = await import(pathToFileURL(path.join(tempDir, "profile-settings-data.mjs")).href);
+const nutritionService = await import(pathToFileURL(path.join(tempDir, "nutrition-service.mjs")).href);
 const authNavigation = await import(pathToFileURL(path.join(tempDir, "auth/navigation.mjs")).href);
 const athleteService = await import(pathToFileURL(path.join(tempDir, "athlete-service.mjs")).href);
 const workoutSessionService = await import(pathToFileURL(path.join(tempDir, "workout-session-service.mjs")).href);
+const programService = await import(pathToFileURL(path.join(tempDir, "program-service.mjs")).href);
 
 test("onboarding step ordering works", () => {
   assert.equal(onboarding.getNextOnboardingStep("goals"), "training-experience");
@@ -192,6 +195,116 @@ test("remote snapshots hydrate onboarding state without changing the active prog
   assert.equal(hydrated.profile.name, snapshot.profile.name);
   assert.equal(hydrated.progress.status, "in-progress");
   assert.equal(hydrated.program.status, onboarding.onboardingDemoState.program.status);
+});
+
+test("nutrition snapshots derive training and rest contexts from the program calendar", () => {
+  const demoBundle = programService.createDemoProgramBundle("00000000-0000-4000-8000-000000000010");
+  const bundleView = programService.createProgramBundleFromRows(
+    demoBundle.program,
+    demoBundle.phase,
+    demoBundle.templates,
+    demoBundle.templateExercises,
+    demoBundle.scheduledWorkouts
+  );
+  const trainingSummary = programService.getProgramDaySummary(bundleView, "2026-08-08");
+  const restSummary = programService.getProgramDaySummary(bundleView, "2026-08-09");
+  const trainingSnapshot = nutritionService.createNutritionStoreSnapshot(
+    "2026-08-08",
+    trainingSummary,
+    "00000000-0000-4000-8000-000000000011",
+    bundleView.activeProgram?.id ?? null
+  );
+  const restSnapshot = nutritionService.createNutritionStoreSnapshot(
+    "2026-08-09",
+    restSummary,
+    "00000000-0000-4000-8000-000000000011",
+    bundleView.activeProgram?.id ?? null
+  );
+
+  assert.equal(trainingSnapshot.day.dayType, "training");
+  assert.equal(restSnapshot.day.dayType, "rest");
+  assert.equal(nutritionService.buildNutritionDayView(trainingSnapshot).title, "Glutes + Hamstrings");
+  assert.equal(nutritionService.buildNutritionDayView(restSnapshot).title, "Recovery Day");
+});
+
+test("nutrition selections update in place and do not duplicate slot records", () => {
+  const demoBundle = programService.createDemoProgramBundle("00000000-0000-4000-8000-000000000012");
+  const bundleView = programService.createProgramBundleFromRows(
+    demoBundle.program,
+    demoBundle.phase,
+    demoBundle.templates,
+    demoBundle.templateExercises,
+    demoBundle.scheduledWorkouts
+  );
+  const summary = programService.getProgramDaySummary(bundleView, "2026-08-08");
+  const initial = nutritionService.createNutritionStoreSnapshot(
+    "2026-08-08",
+    summary,
+    "00000000-0000-4000-8000-000000000013",
+    bundleView.activeProgram?.id ?? null
+  );
+  const selected = nutritionService.applyMealSelection(initial, "lunch", "chicken-rice-bowl");
+  const changed = nutritionService.applyMealSelection(selected, "lunch", "turkey-wrap");
+  const updatedSlot = changed.selections.find((selection) => selection.mealSlotId === "lunch");
+
+  assert.equal(changed.selections.filter((selection) => selection.mealSlotId === "lunch").length, 1);
+  assert.equal(updatedSlot?.mealOptionId, "turkey-wrap");
+});
+
+test("nutrition hydration, supplement, and meal completion restore through the snapshot boundary", () => {
+  const demoBundle = programService.createDemoProgramBundle("00000000-0000-4000-8000-000000000014");
+  const bundleView = programService.createProgramBundleFromRows(
+    demoBundle.program,
+    demoBundle.phase,
+    demoBundle.templates,
+    demoBundle.templateExercises,
+    demoBundle.scheduledWorkouts
+  );
+  const summary = programService.getProgramDaySummary(bundleView, "2026-08-08");
+  const initial = nutritionService.createNutritionStoreSnapshot(
+    "2026-08-08",
+    summary,
+    "00000000-0000-4000-8000-000000000015",
+    bundleView.activeProgram?.id ?? null
+  );
+  const selected = nutritionService.applyMealSelection(initial, "lunch", "chicken-rice-bowl");
+  const eaten = nutritionService.markMealEaten(selected, "lunch");
+  const completed = nutritionService.markMealCompleted(eaten, "lunch");
+  const hydrated = nutritionService.addHydration(completed, 250);
+  const supplemented = nutritionService.toggleSupplement(hydrated, "protein-isolate");
+  const summaryView = nutritionService.summarizeNutritionDay(supplemented);
+
+  assert.equal(nutritionService.buildNutritionDayView(supplemented).mealSlots.find((slot) => slot.id === "lunch")?.state, "completed");
+  assert.equal(summaryView.hydrationMl, hydrated.hydrationLogs.reduce((total, entry) => total + entry.amountMl, 0));
+  assert.equal(summaryView.supplementsCompleted, 2);
+  assert.equal(summaryView.completedMeals >= 2, true);
+});
+
+test("nutrition snapshots survive serialize and revive without changing the source context", () => {
+  const demoBundle = programService.createDemoProgramBundle("00000000-0000-4000-8000-000000000016");
+  const bundleView = programService.createProgramBundleFromRows(
+    demoBundle.program,
+    demoBundle.phase,
+    demoBundle.templates,
+    demoBundle.templateExercises,
+    demoBundle.scheduledWorkouts
+  );
+  const summary = programService.getProgramDaySummary(bundleView, "2026-08-09");
+  const initial = nutritionService.createNutritionStoreSnapshot(
+    "2026-08-09",
+    summary,
+    "00000000-0000-4000-8000-000000000017",
+    bundleView.activeProgram?.id ?? null
+  );
+  const roundTrip = nutritionService.reviveNutritionStoreSnapshot(
+    nutritionService.serializeNutritionStoreSnapshot(initial),
+    "2026-08-09",
+    summary
+  );
+
+  assert.equal(roundTrip.day.dayType, "rest");
+  assert.equal(roundTrip.plan.userId, "00000000-0000-4000-8000-000000000017");
+  assert.equal(nutritionService.buildNutritionDayView(roundTrip).dateKey, "2026-08-09");
 });
 
 function createFakeWorkoutClient(seedState) {

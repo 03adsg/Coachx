@@ -140,17 +140,19 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 
 ### Scope
 
-- Persist nutrition plans, meal slots, selections, hydration, and supplement reminders
-- Preserve allergy and restriction safety
+- Persist nutrition plans, daily nutrition snapshots, meal slots, equivalent meal options, athlete selections, hydration logs, and supplement completion state
+- Preserve allergy and restriction safety as a server-validated boundary
+- Keep historical day snapshots stable even if the active plan changes later
 
 ### Tables / entities
 
 - `nutrition_plans`
 - `nutrition_days`
-- `meal_slots`
-- `meal_options`
-- `meal_selections`
-- `hydration_logs`
+- `nutrition_meal_slots`
+- `nutrition_meal_options`
+- `nutrition_day_selections`
+- `nutrition_hydration_logs`
+- `nutrition_supplement_logs`
 
 ### Routes affected
 
@@ -165,6 +167,8 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - Meal selection and eaten/completed states persist
 - Hydration logs persist
 - Safety filters remain server-validated
+- Training-day versus rest-day nutrition snapshots restore from the persisted program/calendar boundary
+- Local nutrition fixture fallback remains explicit until the live migration is applied and verified
 
 ## Phase S5 - Progress + private photos
 
