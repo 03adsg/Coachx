@@ -589,10 +589,16 @@
 - Local Supabase environment variables are present in `.env.local` for:
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- Live authenticated Supabase verification was not exercised in this run.
+
+### Live verification
+
+- The authenticated browser session now hydrates from the live Supabase-backed program bundle.
+- `Today`, `Calendar`, `Day Detail`, and `Program` all read from the remote program graph instead of the old hardcoded day/session fixture.
+- The current authenticated user is restored as `mywebproyectnow+coachx-1786268784498@gmail.com`.
+- A real workout session route hydrates from the scheduled workout id, and the session links no longer point at the demo session after the client finishes loading.
+- Rescheduling the workout to Tuesday persisted remotely; after refresh, `/day/2026-08-11` reflects the moved workout while `/day/2026-08-09` remains a rest day.
 
 ### Remaining provisional / temporary states
 
-- Remote authenticated verification still needs a real signed-in session to confirm row-level behavior end to end.
 - `Profile` remains a provisional hub from the prior batch where the main Stitch export was not available.
 - The existing fixture/demo fallback still exists for unauthenticated or unconfigured states.

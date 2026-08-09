@@ -1,14 +1,33 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Screen } from "@/components/screen";
 import { Card } from "@/components/ui";
+import { useProgramStore } from "@/components/program-provider";
 import { useWorkoutStore } from "@/components/workout-provider";
+
+function getNextTuesday(dateKey: string) {
+  const date = new Date(`${dateKey}T00:00:00Z`);
+  const targetDay = 2;
+  const currentDay = date.getUTCDay();
+  let daysUntilTuesday = (targetDay - currentDay + 7) % 7;
+
+  if (daysUntilTuesday === 0) {
+    daysUntilTuesday = 7;
+  }
+
+  date.setUTCDate(date.getUTCDate() + daysUntilTuesday);
+  return date.toISOString().slice(0, 10);
+}
 
 export default function ReorganizeWeekPage() {
   const router = useRouter();
   const { session } = useWorkoutStore();
+  const { rescheduleWorkoutDay } = useProgramStore();
+  const [saving, setSaving] = useState(false);
+  const nextDate = getNextTuesday("2026-08-08");
 
   return (
     <Screen
@@ -104,9 +123,22 @@ export default function ReorganizeWeekPage() {
         </section>
 
         <div className="sticky-action stack">
-          <Link className="button-primary focus-ring" href={`/workout/${session.id}/adjust/updated`}>
-            Use This Schedule ✓
-          </Link>
+          <button
+            className="button-primary focus-ring"
+            disabled={saving}
+            type="button"
+            onClick={async () => {
+              setSaving(true);
+              try {
+                await rescheduleWorkoutDay(session.id, nextDate);
+                router.push(`/workout/${session.id}/adjust/updated`);
+              } finally {
+                setSaving(false);
+              }
+            }}
+          >
+            {saving ? "Saving..." : "Use This Schedule ✓"}
+          </button>
           <Link className="workout-secondary-button focus-ring" href={`/workout/${session.id}/adjust`}>
             Choose Another Day
           </Link>

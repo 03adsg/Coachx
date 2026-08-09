@@ -33,7 +33,10 @@ export default function WorkoutOverviewPage() {
 
     const nextSession = buildWorkoutSessionForScheduledWorkout(workoutId);
     if (nextSession && nextSession.id !== session.id) {
-      hydrateSession(nextSession);
+      hydrateSession({
+        ...nextSession,
+        id: workoutId
+      });
     }
   }, [buildWorkoutSessionForScheduledWorkout, hydrateSession, session.id, workoutId]);
 
