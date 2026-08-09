@@ -720,4 +720,5 @@
 ### Remaining provisional states
 
 - Live Supabase migration and authenticated browser verification still need to be executed for the new progress tables and storage bucket.
+- Live REST checks on the deployed Supabase project still return 404 for `progress_entries`, `progress_measurements`, and `progress_photos`, so the SQL migration has not been applied in the live database yet.
 - The main `/progress` dashboard remains a provisional hub because the Stitch ZIP still does not contain a dedicated physical export for that screen.
