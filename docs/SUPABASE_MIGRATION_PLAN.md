@@ -8,6 +8,14 @@ Commit: `2081197`
 
 This plan assumes the current athlete-side UI remains intact while persistence is introduced behind typed service boundaries.
 
+## Current Verification
+
+- Slice 1: complete + live verified
+- Slice 2: complete + live verified
+- Slice 3: complete + live verified
+- Slice 4: complete + live verified
+- Slice 5: not started
+
 ## Phase S0 - Supabase project + env + typed client
 
 ### Scope
@@ -127,7 +135,7 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 ### Migration risk
 
 - High
-- Live verification still depends on the `workout_sessions` slice being present in the remote Supabase schema cache; if the dashboard migration has not been applied or has not refreshed, the app will remain fixture-driven for workout persistence.
+- Live verification is complete; the remaining risk is future schema drift, not a missing live slice.
 
 ### Definition of done
 
@@ -136,6 +144,7 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - Session start/resume is idempotent for the same scheduled workout
 - Prescribed vs performed exercise identity stays separate across swaps
 - Rest timer remains client-side only while the durable set/session state lives in Supabase
+- Slice 3 is live verified and complete
 
 ## Phase S4 - Nutrition persistence
 
@@ -170,6 +179,7 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - Safety filters remain server-validated
 - Training-day versus rest-day nutrition snapshots restore from the persisted program/calendar boundary
 - Local nutrition fixture fallback remains explicit until the live migration is applied and verified
+- Slice 4 is live verified and complete
 
 ## Phase S5 - Progress + private photos
 

@@ -17,9 +17,9 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
 }
 
 export default function ProgramPage() {
-  const { program } = useProgramStore();
+  const { program, loading, ready } = useProgramStore();
 
-  if (!program) {
+  if (loading || !ready || !program) {
     return null;
   }
 

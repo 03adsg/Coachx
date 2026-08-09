@@ -1,11 +1,58 @@
-import { createNutritionDayForDate, type MacroSummary, type NutritionDay, type NutritionDayType, type NutritionSafetyProfile, type NutritionTarget } from "@/lib/nutrition-data";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createNutritionDayForDate, type FoodItem, type MacroSummary, type MealDifficulty, type MealOption, type NutritionDay, type NutritionDayType, type NutritionSafetyProfile, type NutritionTarget } from "@/lib/nutrition-data";
 import type { ProgramDaySummary } from "@/lib/program-service";
+import type {
+  Database,
+  Json,
+  NutritionDaySelectionsInsert,
+  NutritionDaySelectionsRow,
+  NutritionDaysInsert,
+  NutritionDaysRow,
+  NutritionHydrationLogsInsert,
+  NutritionHydrationLogsRow,
+  NutritionMealOptionsInsert,
+  NutritionMealOptionsRow,
+  NutritionMealSlotsInsert,
+  NutritionMealSlotsRow,
+  NutritionPlansInsert,
+  NutritionPlansRow,
+  NutritionSupplementLogsInsert,
+  NutritionSupplementLogsRow
+} from "@/lib/supabase/database.types";
 
 export type NutritionPlanStatus = "proposed" | "active" | "completed" | "archived";
 export type NutritionDayStatus = "planned" | "in_progress" | "completed";
 export type NutritionSelectionStatus = "selected" | "eaten" | "skipped";
 export type NutritionMeasurementBasis = "raw" | "cooked" | "prepared" | "serving" | "unit";
 export type NutritionSupplementStatus = "pending" | "completed";
+
+type NutritionMealOptionPresentation = {
+  summary?: string;
+  prepTime?: string;
+  difficulty?: MealDifficulty;
+  tags?: string[];
+  image?: string;
+  portions?: FoodItem[];
+  allergenTags?: string[];
+  restrictionTags?: string[];
+  intoleranceTags?: string[];
+};
+
+type NutritionMealSlotMetadata = {
+  description?: string;
+  timeLabel?: string;
+  isNext?: boolean;
+};
+
+type NutritionDayMetadata = {
+  title?: string;
+  subtitle?: string;
+  coachNote?: string;
+  nutritionPrescription?: string;
+  nutritionPreferences?: string[];
+  safetyProfile?: NutritionSafetyProfile;
+  hydrationQuickAddMl?: number[];
+};
 
 export interface NutritionPlanSnapshot {
   id: string;
@@ -75,6 +122,11 @@ export interface NutritionStoreSnapshot {
   hydrationLogs: NutritionHydrationLog[];
   supplementLogs: NutritionSupplementLog[];
   updatedAt: string;
+}
+
+export interface NutritionStoreLoadResult {
+  snapshot: NutritionStoreSnapshot;
+  source: "remote" | "seeded";
 }
 
 export interface NutritionAdherenceSummary {
@@ -473,4 +525,646 @@ export function reviveNutritionStoreSnapshot(raw: string | null, fallbackDateKey
 
 export function serializeNutritionStoreSnapshot(snapshot: NutritionStoreSnapshot) {
   return JSON.stringify(snapshot);
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function readNutritionDayMetadata(value: Json | null): NutritionDayMetadata | null {
+  if (!isPlainObject(value)) {
+    return null;
+  }
+
+  const safetyProfile = isPlainObject(value.safetyProfile) ? value.safetyProfile : null;
+
+  return {
+    title: typeof value.title === "string" ? value.title : undefined,
+    subtitle: typeof value.subtitle === "string" ? value.subtitle : undefined,
+    coachNote: typeof value.coachNote === "string" ? value.coachNote : undefined,
+    nutritionPrescription: typeof value.nutritionPrescription === "string" ? value.nutritionPrescription : undefined,
+    nutritionPreferences: Array.isArray(value.nutritionPreferences)
+      ? value.nutritionPreferences.filter((item): item is string => typeof item === "string")
+      : undefined,
+    safetyProfile: safetyProfile
+      ? {
+          allergies: Array.isArray(safetyProfile.allergies)
+            ? safetyProfile.allergies.filter((item): item is string => typeof item === "string")
+            : [],
+          restrictions: Array.isArray(safetyProfile.restrictions)
+            ? safetyProfile.restrictions.filter((item): item is string => typeof item === "string")
+            : [],
+          intolerances: Array.isArray(safetyProfile.intolerances)
+            ? safetyProfile.intolerances.filter((item): item is string => typeof item === "string")
+            : [],
+          preferences: Array.isArray(safetyProfile.preferences)
+            ? safetyProfile.preferences.filter((item): item is string => typeof item === "string")
+            : [],
+          budget: Array.isArray(safetyProfile.budget)
+            ? safetyProfile.budget.filter((item): item is string => typeof item === "string")
+            : [],
+          variety: Array.isArray(safetyProfile.variety)
+            ? safetyProfile.variety.filter((item): item is string => typeof item === "string")
+            : []
+        }
+      : undefined,
+    hydrationQuickAddMl: Array.isArray(value.hydrationQuickAddMl)
+      ? value.hydrationQuickAddMl.filter((item): item is number => typeof item === "number")
+      : undefined
+  };
+}
+
+function readMealSlotMetadata(value: Json | null): NutritionMealSlotMetadata | null {
+  if (!isPlainObject(value)) {
+    return null;
+  }
+
+  return {
+    description: typeof value.description === "string" ? value.description : undefined,
+    timeLabel: typeof value.timeLabel === "string" ? value.timeLabel : undefined,
+    isNext: typeof value.isNext === "boolean" ? value.isNext : undefined
+  };
+}
+
+function readFoodItem(value: unknown): FoodItem | null {
+  if (!isPlainObject(value) || typeof value.name !== "string" || typeof value.amount !== "string") {
+    return null;
+  }
+
+  return {
+    name: value.name,
+    amount: value.amount,
+    preparation:
+      value.preparation === "raw" || value.preparation === "cooked" || value.preparation === "prepared"
+        ? value.preparation
+        : "prepared",
+    measurementBasis:
+      value.measurementBasis === "raw" ||
+      value.measurementBasis === "cooked" ||
+      value.measurementBasis === "prepared" ||
+      value.measurementBasis === "serving" ||
+      value.measurementBasis === "unit"
+        ? value.measurementBasis
+        : undefined,
+    note: typeof value.note === "string" ? value.note : undefined
+  };
+}
+
+function readMealOptionPresentation(value: Json | null): NutritionMealOptionPresentation | null {
+  if (!isPlainObject(value)) {
+    return null;
+  }
+
+  const portions = Array.isArray(value.portions)
+    ? value.portions.map((item) => readFoodItem(item)).filter((item): item is FoodItem => item !== null)
+    : undefined;
+
+  return {
+    summary: typeof value.summary === "string" ? value.summary : undefined,
+    prepTime: typeof value.prepTime === "string" ? value.prepTime : undefined,
+    difficulty:
+      value.difficulty === "easy" || value.difficulty === "moderate" || value.difficulty === "advanced"
+        ? value.difficulty
+        : undefined,
+    tags: Array.isArray(value.tags) ? value.tags.filter((item): item is string => typeof item === "string") : undefined,
+    image: typeof value.image === "string" ? value.image : undefined,
+    portions,
+    allergenTags: Array.isArray(value.allergenTags)
+      ? value.allergenTags.filter((item): item is string => typeof item === "string")
+      : undefined,
+    restrictionTags: Array.isArray(value.restrictionTags)
+      ? value.restrictionTags.filter((item): item is string => typeof item === "string")
+      : undefined,
+    intoleranceTags: Array.isArray(value.intoleranceTags)
+      ? value.intoleranceTags.filter((item): item is string => typeof item === "string")
+      : undefined
+  };
+}
+
+function buildPlanInsert(snapshot: NutritionStoreSnapshot): NutritionPlansInsert {
+  return {
+    id: snapshot.plan.id,
+    user_id: snapshot.plan.userId,
+    program_id: snapshot.plan.programId,
+    status: snapshot.plan.status,
+    name: snapshot.plan.name,
+    daily_calorie_target: snapshot.plan.dailyTargets.calories,
+    protein_target_g: snapshot.plan.dailyTargets.protein,
+    carb_target_g: snapshot.plan.dailyTargets.carbs,
+    fat_target_g: snapshot.plan.dailyTargets.fat,
+    fiber_target_g: snapshot.plan.fiberTargetG,
+    water_target_ml: snapshot.plan.waterTargetMl,
+    started_at: snapshot.plan.startedAt,
+    ended_at: snapshot.plan.endedAt,
+    plan_metadata: snapshot.plan.metadata as unknown as Json
+  };
+}
+
+function buildDayInsert(snapshot: NutritionStoreSnapshot): NutritionDaysInsert {
+  return {
+    id: snapshot.day.id,
+    user_id: snapshot.day.userId,
+    nutrition_plan_id: snapshot.day.nutritionPlanId,
+    program_phase_id: snapshot.day.programPhaseId,
+    scheduled_workout_id: snapshot.day.scheduledWorkoutId,
+    calendar_date: snapshot.day.calendarDate,
+    day_type: snapshot.day.dayType,
+    status: snapshot.day.status,
+    calorie_target: snapshot.day.target.calories,
+    protein_target_g: snapshot.day.target.protein,
+    carb_target_g: snapshot.day.target.carbs,
+    fat_target_g: snapshot.day.target.fat,
+    water_target_ml: snapshot.day.waterTargetMl,
+    day_metadata: {
+      title: snapshot.day.title,
+      subtitle: snapshot.day.subtitle,
+      coachNote: snapshot.day.coachNote,
+      nutritionPrescription: snapshot.day.nutritionPrescription,
+      nutritionPreferences: snapshot.day.nutritionPreferences,
+      safetyProfile: snapshot.day.safetyProfile,
+      hydrationQuickAddMl: snapshot.day.hydrationQuickAddMl
+    } as unknown as Json
+  };
+}
+
+function buildMealSlotInsert(snapshot: NutritionStoreSnapshot, slot: NutritionDay["mealSlots"][number], sortOrder: number): NutritionMealSlotsInsert {
+  return {
+    nutrition_day_id: snapshot.day.id,
+    slot_key: slot.id,
+    name: slot.label,
+    sort_order: sortOrder,
+    target_calories: slot.target.calories,
+    target_protein_g: slot.target.protein,
+    target_carb_g: slot.target.carbs,
+    target_fat_g: slot.target.fat,
+    notes: slot.description,
+    slot_metadata: {
+      description: slot.description,
+      timeLabel: slot.timeLabel,
+      isNext: slot.isNext ?? false
+    } as unknown as Json
+  };
+}
+
+function buildMealOptionInsert(slotId: string, option: MealOption, sortOrder: number): NutritionMealOptionsInsert {
+  return {
+    meal_slot_id: slotId,
+    option_key: option.id,
+    name: option.name,
+    description: option.summary,
+    ingredients: option.portions as unknown as Json,
+    calories: option.macro.calories,
+    protein_g: option.macro.protein,
+    carb_g: option.macro.carbs,
+    fat_g: option.macro.fat,
+    portion_notes: option.prepTime,
+    measurement_basis: option.measurementBasis ?? "serving",
+    allergen_metadata: {
+      tags: option.allergenTags ?? []
+    } as unknown as Json,
+    restriction_metadata: {
+      tags: option.restrictionTags ?? [],
+      intoleranceTags: option.intoleranceTags ?? [],
+      summary: option.summary,
+      prepTime: option.prepTime,
+      difficulty: option.difficulty,
+      image: option.image ?? null
+    } as unknown as Json,
+    sort_order: sortOrder
+  };
+}
+
+function buildSelectionInsert(snapshot: NutritionStoreSnapshot, mealSlotId: string, mealOptionId: string, selection: NutritionSelectionRecord): NutritionDaySelectionsInsert {
+  return {
+    user_id: snapshot.day.userId,
+    nutrition_day_id: snapshot.day.id,
+    meal_slot_id: mealSlotId,
+    meal_option_id: mealOptionId,
+    status: selection.status,
+    selected_at: selection.selectedAt,
+    eaten_at: selection.eatenAt,
+    completed_at: selection.completedAt
+  };
+}
+
+function buildHydrationInsert(snapshot: NutritionStoreSnapshot, log: NutritionHydrationLog): NutritionHydrationLogsInsert {
+  return {
+    id: log.id,
+    user_id: snapshot.day.userId,
+    nutrition_day_id: snapshot.day.id,
+    amount_ml: log.amountMl,
+    logged_at: log.loggedAt
+  };
+}
+
+function buildSupplementInsert(snapshot: NutritionStoreSnapshot, log: NutritionSupplementLog): NutritionSupplementLogsInsert {
+  return {
+    user_id: snapshot.day.userId,
+    nutrition_day_id: snapshot.day.id,
+    supplement_key: log.supplementId,
+    label: log.label,
+    dosage: log.dosage,
+    status: log.status,
+    completed_at: log.completedAt
+  };
+}
+
+function applyRemoteSelections(
+  snapshot: NutritionStoreSnapshot,
+  selectionRows: NutritionDaySelectionsRow[],
+  slotKeyById: Map<string, string>,
+  optionKeyById: Map<string, string>
+) {
+  const selectionBySlot = new Map<string, NutritionDaySelectionsRow>();
+  const selectedRecords: NutritionSelectionRecord[] = [];
+
+  for (const row of selectionRows) {
+    const slotKey = slotKeyById.get(row.meal_slot_id);
+    if (!slotKey) {
+      continue;
+    }
+
+    selectionBySlot.set(slotKey, row);
+  }
+
+  for (const slot of snapshot.day.mealSlots) {
+    const selection = selectionBySlot.get(slot.id);
+    if (!selection) {
+      continue;
+    }
+
+    const resolvedOptionId = optionKeyById.get(selection.meal_option_id) ?? slot.selectedOptionId ?? null;
+    if (!resolvedOptionId) {
+      continue;
+    }
+
+    selectedRecords.push({
+      mealSlotId: slot.id,
+      mealOptionId: resolvedOptionId,
+      status: selection.status,
+      selectedAt: selection.selected_at,
+      eatenAt: selection.eaten_at,
+      completedAt: selection.completed_at
+    });
+  }
+
+  snapshot.selections = selectedRecords;
+
+  snapshot.day.mealSlots = snapshot.day.mealSlots.map((slot) => {
+    const selection = selectionBySlot.get(slot.id);
+    if (!selection) {
+      return slot;
+    }
+
+    const resolvedOptionId = optionKeyById.get(selection.meal_option_id) ?? slot.selectedOptionId;
+    return {
+      ...slot,
+      selectedOptionId: resolvedOptionId,
+      state:
+        selection.completed_at != null
+          ? "completed"
+          : selection.eaten_at != null
+            ? "eaten"
+            : "selected"
+    };
+  });
+}
+
+function applyRemoteProgressLogs(snapshot: NutritionStoreSnapshot, hydrationRows: NutritionHydrationLogsRow[], supplementRows: NutritionSupplementLogsRow[]) {
+  snapshot.hydrationLogs = hydrationRows
+    .slice()
+    .sort((left, right) => left.logged_at.localeCompare(right.logged_at))
+    .map((row) => ({
+      id: row.id,
+      amountMl: row.amount_ml,
+      loggedAt: row.logged_at
+    }));
+
+  snapshot.supplementLogs = supplementRows.map((row) => ({
+    supplementId: row.supplement_key,
+    label: row.label,
+    dosage: row.dosage,
+    status: row.status,
+    completedAt: row.completed_at
+  }));
+}
+
+function mergeRemoteNutritionData(
+  fallback: NutritionStoreSnapshot,
+  planRow: NutritionPlansRow,
+  dayRow: NutritionDaysRow,
+  slotRows: NutritionMealSlotsRow[],
+  optionRows: NutritionMealOptionsRow[],
+  selectionRows: NutritionDaySelectionsRow[],
+  hydrationRows: NutritionHydrationLogsRow[],
+  supplementRows: NutritionSupplementLogsRow[]
+) {
+  const snapshot = structuredClone(fallback) as NutritionStoreSnapshot;
+  const dayMetadata = readNutritionDayMetadata(dayRow.day_metadata);
+  const slotByKey = new Map(slotRows.map((row) => [row.slot_key, row]));
+  const slotKeyById = new Map(slotRows.map((row) => [row.id, row.slot_key]));
+  const optionsBySlotId = new Map<string, NutritionMealOptionsRow[]>();
+  const optionKeyById = new Map<string, string>();
+
+  for (const optionRow of optionRows) {
+    optionKeyById.set(optionRow.id, optionRow.option_key);
+    const existing = optionsBySlotId.get(optionRow.meal_slot_id) ?? [];
+    existing.push(optionRow);
+    optionsBySlotId.set(optionRow.meal_slot_id, existing);
+  }
+
+  snapshot.plan = {
+    ...snapshot.plan,
+    id: planRow.id,
+    userId: planRow.user_id,
+    programId: planRow.program_id,
+    status: planRow.status,
+    name: planRow.name,
+    dailyTargets: {
+      calories: planRow.daily_calorie_target,
+      protein: planRow.protein_target_g,
+      carbs: planRow.carb_target_g,
+      fat: planRow.fat_target_g
+    },
+    fiberTargetG: planRow.fiber_target_g ?? null,
+    waterTargetMl: planRow.water_target_ml,
+    startedAt: planRow.started_at,
+    endedAt: planRow.ended_at,
+    metadata: isPlainObject(planRow.plan_metadata) ? planRow.plan_metadata : null
+  };
+
+  snapshot.day = {
+    ...snapshot.day,
+    id: dayRow.id,
+    userId: dayRow.user_id,
+    nutritionPlanId: dayRow.nutrition_plan_id,
+    programPhaseId: dayRow.program_phase_id,
+    scheduledWorkoutId: dayRow.scheduled_workout_id,
+    calendarDate: dayRow.calendar_date,
+    dayType: dayRow.day_type === "custom" ? fallback.day.dayType : dayRow.day_type,
+    status: dayRow.status,
+    target: {
+      label: fallback.day.target.label,
+      calories: dayRow.calorie_target,
+      protein: dayRow.protein_target_g,
+      carbs: dayRow.carb_target_g,
+      fat: dayRow.fat_target_g
+    },
+    waterTargetMl: dayRow.water_target_ml,
+    title: dayMetadata?.title ?? snapshot.day.title,
+    subtitle: dayMetadata?.subtitle ?? snapshot.day.subtitle,
+    coachNote: dayMetadata?.coachNote ?? snapshot.day.coachNote,
+    nutritionPrescription: dayMetadata?.nutritionPrescription ?? snapshot.day.nutritionPrescription,
+    nutritionPreferences: dayMetadata?.nutritionPreferences ?? snapshot.day.nutritionPreferences,
+    safetyProfile: dayMetadata?.safetyProfile ?? snapshot.day.safetyProfile,
+    hydrationQuickAddMl: dayMetadata?.hydrationQuickAddMl ?? snapshot.day.hydrationQuickAddMl,
+    mealSlots: snapshot.day.mealSlots.map((slot) => {
+      const remoteSlot = slotByKey.get(slot.id);
+      const remoteOptions = remoteSlot ? optionsBySlotId.get(remoteSlot.id) ?? [] : [];
+      const remoteSlotMetadata = remoteSlot ? readMealSlotMetadata(remoteSlot.slot_metadata) : null;
+
+      return {
+        ...slot,
+        label: remoteSlot?.name ?? slot.label,
+        description: remoteSlotMetadata?.description ?? remoteSlot?.notes ?? slot.description,
+        timeLabel: remoteSlotMetadata?.timeLabel ?? slot.timeLabel,
+        isNext: remoteSlotMetadata?.isNext ?? slot.isNext,
+        target: {
+          calories: remoteSlot?.target_calories ?? slot.target.calories,
+          protein: remoteSlot?.target_protein_g ?? slot.target.protein,
+          carbs: remoteSlot?.target_carb_g ?? slot.target.carbs,
+          fat: remoteSlot?.target_fat_g ?? slot.target.fat
+        },
+        options: slot.options.map((option) => {
+          const remoteOption = remoteOptions.find((candidate) => candidate.option_key === option.id);
+          const presentation = readMealOptionPresentation(remoteOption?.restriction_metadata ?? null);
+          const ingredients = Array.isArray(remoteOption?.ingredients) ? (remoteOption.ingredients as unknown as FoodItem[]) : option.portions;
+          return {
+            ...option,
+            name: remoteOption?.name ?? option.name,
+            summary: presentation?.summary ?? remoteOption?.description ?? option.summary,
+            macro: {
+              calories: remoteOption?.calories ?? option.macro.calories,
+              protein: remoteOption?.protein_g ?? option.macro.protein,
+              carbs: remoteOption?.carb_g ?? option.macro.carbs,
+              fat: remoteOption?.fat_g ?? option.macro.fat
+            },
+            prepTime: presentation?.prepTime ?? remoteOption?.portion_notes ?? option.prepTime,
+            difficulty: presentation?.difficulty ?? option.difficulty,
+            tags: presentation?.tags ?? option.tags,
+            allergenTags: presentation?.allergenTags ?? option.allergenTags,
+            restrictionTags: presentation?.restrictionTags ?? option.restrictionTags,
+            intoleranceTags: presentation?.intoleranceTags ?? option.intoleranceTags,
+            measurementBasis: remoteOption?.measurement_basis ?? option.measurementBasis,
+            portions: presentation?.portions ?? ingredients,
+            image: presentation?.image ?? option.image
+          };
+        })
+      };
+    })
+  };
+
+  applyRemoteSelections(snapshot, selectionRows, slotKeyById, optionKeyById);
+  applyRemoteProgressLogs(snapshot, hydrationRows, supplementRows);
+  snapshot.updatedAt = dayRow.updated_at;
+
+  return snapshot;
+}
+
+export async function persistNutritionStoreSnapshot(client: SupabaseClient<Database>, snapshot: NutritionStoreSnapshot) {
+  const planResult = await client.from("nutrition_plans").upsert([buildPlanInsert(snapshot)] as never[], { onConflict: "id" }).select("*").single();
+  if (planResult.error) {
+    throw planResult.error;
+  }
+  const planRow = planResult.data as NutritionPlansRow;
+
+  const dayResult = await client
+    .from("nutrition_days")
+    .upsert([buildDayInsert({ ...snapshot, plan: { ...snapshot.plan, id: planRow.id } })] as never[], { onConflict: "user_id,calendar_date" })
+    .select("*")
+    .single();
+  if (dayResult.error) {
+    throw dayResult.error;
+  }
+  const dayRow = dayResult.data as NutritionDaysRow;
+
+  const slotInsertRows = snapshot.day.mealSlots.map((slot, index) => buildMealSlotInsert({ ...snapshot, day: { ...snapshot.day, id: dayRow.id } }, slot, index + 1));
+  const slotResult = await client
+    .from("nutrition_meal_slots")
+    .upsert(slotInsertRows as never[], { onConflict: "nutrition_day_id,slot_key" })
+    .select("*");
+  if (slotResult.error) {
+    throw slotResult.error;
+  }
+  const savedSlotRows = (slotResult.data ?? []) as NutritionMealSlotsRow[];
+
+  const slotIdByKey = new Map<string, string>();
+  for (const row of savedSlotRows) {
+    slotIdByKey.set(row.slot_key, row.id);
+  }
+
+  const optionInsertRows: NutritionMealOptionsInsert[] = [];
+  for (const slot of snapshot.day.mealSlots) {
+    const slotId = slotIdByKey.get(slot.id);
+    if (!slotId) {
+      continue;
+    }
+
+    slot.options.forEach((option, index) => {
+      optionInsertRows.push(buildMealOptionInsert(slotId, option, index + 1));
+    });
+  }
+
+  const optionResult = optionInsertRows.length
+    ? await client.from("nutrition_meal_options").upsert(optionInsertRows as never[], { onConflict: "meal_slot_id,option_key" }).select("*")
+    : { data: [], error: null };
+  if (optionResult.error) {
+    throw optionResult.error;
+  }
+  const savedOptionRows = (optionResult.data ?? []) as NutritionMealOptionsRow[];
+
+  const slotIdByOptionId = new Map<string, string>();
+  for (const row of savedOptionRows) {
+    slotIdByOptionId.set(`${row.meal_slot_id}:${row.option_key}`, row.id);
+  }
+
+  const selectionInsertRows: NutritionDaySelectionsInsert[] = [];
+  for (const selection of snapshot.selections) {
+    const slotId = slotIdByKey.get(selection.mealSlotId);
+    const optionId = slotId ? slotIdByOptionId.get(`${slotId}:${selection.mealOptionId}`) : null;
+    if (!slotId || !optionId) {
+      continue;
+    }
+
+    selectionInsertRows.push(buildSelectionInsert(snapshot, slotId, optionId, selection));
+  }
+
+  if (selectionInsertRows.length > 0) {
+    const selectionResult = await client
+      .from("nutrition_day_selections")
+      .upsert(selectionInsertRows as never[], { onConflict: "nutrition_day_id,meal_slot_id" })
+      .select("*");
+    if (selectionResult.error) {
+      throw selectionResult.error;
+    }
+  }
+
+  const hydrationInsertRows = snapshot.hydrationLogs.map((log) => buildHydrationInsert(snapshot, log));
+  if (hydrationInsertRows.length > 0) {
+    const hydrationResult = await client.from("nutrition_hydration_logs").upsert(hydrationInsertRows as never[], { onConflict: "id" }).select("*");
+    if (hydrationResult.error) {
+      throw hydrationResult.error;
+    }
+  }
+
+  const supplementInsertRows = snapshot.supplementLogs.map((log) => buildSupplementInsert(snapshot, log));
+  if (supplementInsertRows.length > 0) {
+    const supplementResult = await client
+      .from("nutrition_supplement_logs")
+      .upsert(supplementInsertRows as never[], { onConflict: "nutrition_day_id,supplement_key" })
+      .select("*");
+    if (supplementResult.error) {
+      throw supplementResult.error;
+    }
+  }
+
+  return {
+    plan: planResult.data,
+    day: dayResult.data
+  };
+}
+
+export async function loadOrCreateNutritionStoreSnapshot(
+  client: SupabaseClient<Database>,
+  userId: string,
+  dateKey: string,
+  daySummary?: ProgramDaySummary | null,
+  programId: string | null = null
+): Promise<NutritionStoreLoadResult> {
+  const fallback = createNutritionStoreSnapshot(dateKey, daySummary, userId, programId);
+  const normalizedDate = normalizeNutritionDateKey(dateKey);
+
+  const dayResult = await client.from("nutrition_days").select("*").eq("user_id", userId).eq("calendar_date", normalizedDate).maybeSingle();
+  if (dayResult.error) {
+    throw dayResult.error;
+  }
+
+  if (!dayResult.data) {
+    await persistNutritionStoreSnapshot(client, fallback);
+    return {
+      snapshot: fallback,
+      source: "seeded"
+    };
+  }
+  const dayRow = dayResult.data as NutritionDaysRow;
+
+  const planResult = await client.from("nutrition_plans").select("*").eq("id", dayRow.nutrition_plan_id).maybeSingle();
+  if (planResult.error) {
+    throw planResult.error;
+  }
+
+  if (!planResult.data) {
+    await persistNutritionStoreSnapshot(client, fallback);
+    return {
+      snapshot: fallback,
+      source: "seeded"
+    };
+  }
+  const planRow = planResult.data as NutritionPlansRow;
+
+  const slotResult = await client.from("nutrition_meal_slots").select("*").eq("nutrition_day_id", dayRow.id).order("sort_order", { ascending: true });
+
+  if (slotResult.error) {
+    throw slotResult.error;
+  }
+
+  if (!slotResult.data || slotResult.data.length === 0) {
+    await persistNutritionStoreSnapshot(client, fallback);
+    return {
+      snapshot: fallback,
+      source: "seeded"
+    };
+  }
+
+  const slotRows = (slotResult.data ?? []) as NutritionMealSlotsRow[];
+  const slotIds = slotRows.map((row) => row.id);
+
+  const [optionResult, selectionResult, hydrationResult, supplementResult] = await Promise.all([
+    client.from("nutrition_meal_options").select("*").in("meal_slot_id", slotIds).order("sort_order", { ascending: true }),
+    client.from("nutrition_day_selections").select("*").eq("nutrition_day_id", dayRow.id),
+    client.from("nutrition_hydration_logs").select("*").eq("nutrition_day_id", dayRow.id).order("logged_at", { ascending: true }),
+    client.from("nutrition_supplement_logs").select("*").eq("nutrition_day_id", dayRow.id)
+  ]);
+
+  if (optionResult.error) {
+    throw optionResult.error;
+  }
+
+  if (selectionResult.error) {
+    throw selectionResult.error;
+  }
+
+  if (hydrationResult.error) {
+    throw hydrationResult.error;
+  }
+
+  if (supplementResult.error) {
+    throw supplementResult.error;
+  }
+
+  const snapshot = mergeRemoteNutritionData(
+    fallback,
+    planRow,
+    dayRow,
+    slotRows,
+    (optionResult.data ?? []) as NutritionMealOptionsRow[],
+    (selectionResult.data ?? []) as NutritionDaySelectionsRow[],
+    (hydrationResult.data ?? []) as NutritionHydrationLogsRow[],
+    (supplementResult.data ?? []) as NutritionSupplementLogsRow[]
+  );
+
+  return {
+    snapshot,
+    source: "remote"
+  };
 }

@@ -171,6 +171,29 @@
 - Harmless profile edits persist to the same remote row without mutating the active program automatically.
 - The authenticated owner can sign out and return to protected route redirects, then sign in again and restore the remote state.
 
+## Slice 3 Live Supabase Verification
+
+- Workout persistence is live against Supabase for the authenticated test user in project `zlblnezbbiimapruazvc`.
+- `workout_sessions`, `workout_session_exercises`, `workout_sets`, and `complete_workout_session(...)` exist live.
+- Starting a scheduled workout creates exactly one `in_progress` session and does not duplicate on refresh or repeat entry.
+- Incremental set saves persist remote rows immediately and restore after refresh.
+- Exercise swaps preserve prescribed identity while updating performed identity and retaining completed sets.
+- Workout completion persists `workout_sessions.status = completed`, `completed_at`, and the linked `scheduled_workouts.status = completed`.
+- Logout/login restore still retrieves the completed session history and previous-performance data from the persisted workout rows.
+- Anonymous RLS blocks workout data writes, and the verified flow does not rely on any service-role bypass.
+- Slice 3 is `COMPLETE + LIVE VERIFIED`.
+
+## Slice 4 Live Supabase Verification
+
+- Nutrition persistence is live against Supabase for the same authenticated test user in project `zlblnezbbiimapruazvc`.
+- `nutrition_plans`, `nutrition_days`, `nutrition_meal_slots`, `nutrition_meal_options`, `nutrition_day_selections`, `nutrition_hydration_logs`, and `nutrition_supplement_logs` exist live.
+- Training-day and rest-day nutrition contexts derive from the persisted program/calendar boundary.
+- Nutrition plan targets, day snapshot targets, meal-slot options, meal selections, hydration logs, and supplement completion state persist remotely and restore after refresh.
+- Historical day snapshots remain stable and are not rewritten by later plan changes.
+- Anonymous RLS blocks private nutrition data writes, and the live browser flow restores from Supabase rather than treating localStorage as authoritative.
+- localStorage remains a cache/fallback only for unauthenticated/demo scenarios.
+- Slice 4 is `COMPLETE + LIVE VERIFIED`.
+
 ## Batch A Live QA
 
 - Preview URL: `https://coachx-33007opj6-projectmanagmentnotion-costacleans-projects.vercel.app`

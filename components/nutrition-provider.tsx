@@ -3,7 +3,22 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAuthStore } from "@/components/auth-provider";
 import { useProgramStore } from "@/components/program-provider";
-import { applyMealSelection, addHydration, buildNutritionDayView, createNutritionStoreSnapshot, markMealCompleted, markMealEaten, nutritionStorageKey, reviveNutritionStoreSnapshot, serializeNutritionStoreSnapshot, toggleSupplement, type NutritionStoreSnapshot } from "@/lib/nutrition-service";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  applyMealSelection,
+  addHydration,
+  buildNutritionDayView,
+  createNutritionStoreSnapshot,
+  loadOrCreateNutritionStoreSnapshot,
+  markMealCompleted,
+  markMealEaten,
+  nutritionStorageKey,
+  persistNutritionStoreSnapshot,
+  reviveNutritionStoreSnapshot,
+  serializeNutritionStoreSnapshot,
+  toggleSupplement,
+  type NutritionStoreSnapshot
+} from "@/lib/nutrition-service";
 import type { NutritionDay } from "@/lib/nutrition-data";
 
 interface NutritionStoreValue {
@@ -24,6 +39,7 @@ export function NutritionProvider({ children, dateKey }: { children: ReactNode; 
   const authRef = useRef(auth);
   const programStoreRef = useRef(programStore);
   const hydratedRef = useRef(false);
+  const remoteReadyRef = useRef(false);
   const [snapshot, setSnapshot] = useState<NutritionStoreSnapshot>(() =>
     createNutritionStoreSnapshot(dateKey, programStore.getDaySummary(dateKey), auth.user?.id ?? "demo-user", programStore.activeProgram?.id ?? null)
   );
@@ -50,39 +66,77 @@ export function NutritionProvider({ children, dateKey }: { children: ReactNode; 
     }
 
     hydratedRef.current = false;
+    remoteReadyRef.current = false;
 
     const currentAuth = authRef.current;
     const currentProgram = programStoreRef.current;
+    const currentUser = currentAuth.user;
+    const userId = currentUser?.id ?? "demo-user";
     const storageKey = nutritionStorageKey(currentAuth.user?.id ?? null, dateKey);
     const rawSnapshot = typeof window === "undefined" ? null : window.localStorage.getItem(storageKey);
     const revived = reviveNutritionStoreSnapshot(rawSnapshot, dateKey, currentProgram.getDaySummary(dateKey));
-    const shouldRefresh =
-      !rawSnapshot ||
-      revived.day.calendarDate !== dateKey ||
-      revived.plan.userId !== (currentAuth.user?.id ?? "demo-user") ||
-      revived.day.dayType !== (currentProgram.getDaySummary(dateKey)?.isRestDay ? "rest" : "training");
+    const client = getSupabaseBrowserClient();
 
-    const nextSnapshot = shouldRefresh
-      ? createNutritionStoreSnapshot(
+    if (!currentAuth.isConfigured || !currentUser || !client) {
+      setSnapshot(
+        createNutritionStoreSnapshot(
           dateKey,
           currentProgram.getDaySummary(dateKey),
-          currentAuth.user?.id ?? "demo-user",
+          userId,
           currentProgram.activeProgram?.id ?? null
         )
-      : {
+      );
+      hydratedRef.current = true;
+      return;
+    }
+
+    let active = true;
+
+    async function hydrateRemote() {
+      try {
+        const result = await loadOrCreateNutritionStoreSnapshot(
+          client!,
+          userId,
+          dateKey,
+          currentProgram.getDaySummary(dateKey),
+          currentProgram.activeProgram?.id ?? null
+        );
+
+        if (!active) {
+          return;
+        }
+
+        remoteReadyRef.current = true;
+        setSnapshot(result.snapshot);
+      } catch {
+        if (!active) {
+          return;
+        }
+
+        remoteReadyRef.current = false;
+        setSnapshot({
           ...revived,
           plan: {
             ...revived.plan,
-            userId: currentAuth.user?.id ?? revived.plan.userId
+            userId
           },
           day: {
             ...revived.day,
-            userId: currentAuth.user?.id ?? revived.day.userId
+            userId
           }
-        };
+        });
+      } finally {
+        if (active) {
+          hydratedRef.current = true;
+        }
+      }
+    }
 
-    setSnapshot(nextSnapshot);
-    hydratedRef.current = true;
+    void hydrateRemote();
+
+    return () => {
+      active = false;
+    };
   }, [dateKey, auth.ready, auth.user?.id, programStore.ready, programSignature]);
 
   useEffect(() => {
@@ -92,6 +146,20 @@ export function NutritionProvider({ children, dateKey }: { children: ReactNode; 
 
     const storageKey = nutritionStorageKey(authRef.current.user?.id ?? null, dateKey);
     window.localStorage.setItem(storageKey, serializeNutritionStoreSnapshot(snapshot));
+
+    if (!remoteReadyRef.current) {
+      return;
+    }
+
+    const client = getSupabaseBrowserClient();
+    const currentAuth = authRef.current;
+    if (!currentAuth.isConfigured || !currentAuth.user || !client) {
+      return;
+    }
+
+    void persistNutritionStoreSnapshot(client, snapshot).catch(() => {
+      remoteReadyRef.current = false;
+    });
   }, [snapshot, dateKey]);
 
   const day = useMemo(() => buildNutritionDayView(snapshot), [snapshot]);
@@ -120,14 +188,19 @@ export function NutritionProvider({ children, dateKey }: { children: ReactNode; 
     const resetNutritionDemo: NutritionStoreValue["resetNutritionDemo"] = () => {
       const currentAuth = authRef.current;
       const currentProgram = programStoreRef.current;
-      setSnapshot(
-        createNutritionStoreSnapshot(
-          dateKey,
-          currentProgram.getDaySummary(dateKey),
-          currentAuth.user?.id ?? "demo-user",
-          currentProgram.activeProgram?.id ?? null
-        )
+      const nextSnapshot = createNutritionStoreSnapshot(
+        dateKey,
+        currentProgram.getDaySummary(dateKey),
+        currentAuth.user?.id ?? "demo-user",
+        currentProgram.activeProgram?.id ?? null
       );
+      setSnapshot(nextSnapshot);
+      if (remoteReadyRef.current) {
+        const client = getSupabaseBrowserClient();
+        if (currentAuth.isConfigured && currentAuth.user && client) {
+          void persistNutritionStoreSnapshot(client, nextSnapshot);
+        }
+      }
     };
 
     return {
