@@ -789,7 +789,7 @@ export function BuildingPlanScreen() {
             </div>
           </div>
         </Card>
-        <SectionCard title="Deterministic output">
+        <SectionCard title="Plan details">
           <div className="stack" style={{ gap: 10 }}>
             {state.program.weeklyStructure.map((item) => (
               <div key={item} className="row">
