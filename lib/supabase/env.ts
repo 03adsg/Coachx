@@ -34,8 +34,8 @@ export function getSupabaseConfigSummary() {
   const config = getSupabaseConfig();
 
   if (!config) {
-    return "Supabase credentials are not configured.";
+    return "Athlete sign-in is unavailable.";
   }
 
-  return `Supabase is configured for ${config.url}.`;
+  return "Athlete sign-in is ready.";
 }

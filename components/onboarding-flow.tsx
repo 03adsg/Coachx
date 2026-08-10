@@ -217,10 +217,12 @@ export function EntryScreen() {
     <Screen shellClassName="onboarding-shell" topbar={<header className="topbar center"><BrandLogo variant="full" width={156} alt="AthlexForce" /></header>}>
       <main className="content">
         <section className="section">
-          <div className="eyebrow" style={{ color: "#b6ff00" }}>PROVISIONAL ENTRY</div>
+          <div className="eyebrow" style={{ color: "#b6ff00" }}>{auth.isDemoMode ? "PROVISIONAL ENTRY" : "ATHLETE ENTRY"}</div>
           <h1 className="headline-xl" style={{ marginTop: 12 }}>Welcome back</h1>
           <p className="body-lg muted" style={{ marginTop: 12 }}>
-            {auth.isConfigured ? "Sign in to restore your athlete profile and resume the correct route." : "Continue with the demo athlete flow or resume your saved onboarding state."}
+            {auth.isConfigured
+              ? "Sign in to restore your athlete profile and resume the correct route."
+              : "Continue with the demo athlete flow or resume your saved onboarding state."}
           </p>
         </section>
 
@@ -230,7 +232,7 @@ export function EntryScreen() {
               <Card className="p-16 onboarding-callout">
                 <div className="stack" style={{ gap: 12 }}>
                   <div>
-                    <div className="eyebrow">Supabase auth</div>
+                    <div className="eyebrow">Athlete sign-in</div>
                     <p className="caption" style={{ marginTop: 6 }}>
                       {auth.statusLabel}
                     </p>
@@ -245,7 +247,7 @@ export function EntryScreen() {
                         <span className="program-template-chip">Session restored</span>
                         <span className="program-template-chip">Auth ready</span>
                       </div>
-                      <PrimaryButton className="focus-ring" onClick={() => router.push("/")}>Continue</PrimaryButton>
+                      <PrimaryButton className="focus-ring" onClick={() => router.push("/")}>Open app</PrimaryButton>
                       <SecondaryButton
                         className="focus-ring"
                         onClick={async () => {
@@ -275,7 +277,7 @@ export function EntryScreen() {
                         <input className="input-field focus-ring" type="password" autoComplete={mode === "sign-in" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} />
                       </label>
                       <PrimaryButton className="focus-ring" type="submit" disabled={submitting}>
-                        {submitting ? "Working..." : mode === "sign-in" ? "Continue" : "Create account"}
+                        {submitting ? "Working..." : mode === "sign-in" ? "Sign in" : "Create account"}
                       </PrimaryButton>
                       <p className="caption" style={{ marginTop: 4 }}>
                         {mode === "sign-in" ? "Use an existing Supabase athlete account." : "Create a new athlete account with email confirmation if enabled."}
@@ -291,10 +293,12 @@ export function EntryScreen() {
               </Card>
             </section>
 
-            <OnboardingStickyActions
-              secondary={<SecondaryButton className="focus-ring" onClick={() => router.push(entryDestination === "/" ? "/" : entryDestination)}>Resume saved flow</SecondaryButton>}
-              primary={<PrimaryButton className="focus-ring" onClick={() => router.push(entryDestination)}>Open demo flow</PrimaryButton>}
-            />
+            {auth.isDemoMode ? (
+              <OnboardingStickyActions
+                secondary={<SecondaryButton className="focus-ring" onClick={() => router.push(entryDestination === "/" ? "/" : entryDestination)}>Resume saved flow</SecondaryButton>}
+                primary={<PrimaryButton className="focus-ring" onClick={() => router.push(entryDestination)}>Open demo flow</PrimaryButton>}
+              />
+            ) : null}
           </>
         ) : (
           <>
@@ -316,10 +320,12 @@ export function EntryScreen() {
               </Card>
             </section>
 
-            <OnboardingStickyActions
-              secondary={<SecondaryButton className="focus-ring" onClick={() => router.push(entryDestination === "/" ? "/" : entryDestination)}>Resume saved flow</SecondaryButton>}
-              primary={<PrimaryButton className="focus-ring" onClick={() => router.push(entryDestination)}>Continue</PrimaryButton>}
-            />
+            {auth.isDemoMode ? (
+              <OnboardingStickyActions
+                secondary={<SecondaryButton className="focus-ring" onClick={() => router.push(entryDestination === "/" ? "/" : entryDestination)}>Resume saved flow</SecondaryButton>}
+                primary={<PrimaryButton className="focus-ring" onClick={() => router.push(entryDestination)}>Continue</PrimaryButton>}
+              />
+            ) : null}
           </>
         )}
       </main>
@@ -925,4 +931,3 @@ export function ProgramOverviewScreen() {
     </Screen>
   );
 }
-
