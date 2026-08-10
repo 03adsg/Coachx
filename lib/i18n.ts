@@ -826,7 +826,11 @@ export function readPersistedLocale() {
 }
 
 export function getInitialLocale(preferredLocale?: string | null) {
-  return normalizeLocale(preferredLocale) ?? readPersistedLocale() ?? detectBrowserLocale() ?? "es";
+  if (preferredLocale != null) {
+    return normalizeLocale(preferredLocale);
+  }
+
+  return readPersistedLocale() ?? detectBrowserLocale() ?? "es";
 }
 
 export function setLocaleCookie(locale: Locale) {

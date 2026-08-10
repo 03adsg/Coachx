@@ -382,13 +382,8 @@ export async function saveAthleteSnapshot(
   const preferencesRow = buildAthletePreferencesRow(userId, snapshot, version);
   const databaseClient = client as SupabaseClient<any>;
 
-  const profileRow = buildAthleteProfileRow(userId, snapshot, onboardingStatus, onboardingCompletedAt);
-  let profileResult = await databaseClient.from("athlete_profiles").upsert(profileRow, { onConflict: "id" }).select("*").single();
-
-  if (profileResult.error && (profileResult.error.code === "PGRST204" || /locale/i.test(profileResult.error.message))) {
-    const profileFallbackRow = buildAthleteProfileRow(userId, snapshot, onboardingStatus, onboardingCompletedAt, { includeLocale: false });
-    profileResult = await databaseClient.from("athlete_profiles").upsert(profileFallbackRow, { onConflict: "id" }).select("*").single();
-  }
+  const profileRow = buildAthleteProfileRow(userId, snapshot, onboardingStatus, onboardingCompletedAt, { includeLocale: false });
+  const profileResult = await databaseClient.from("athlete_profiles").upsert(profileRow, { onConflict: "id" }).select("*").single();
 
   if (profileResult.error) {
     throw profileResult.error;

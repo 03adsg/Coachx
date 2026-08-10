@@ -115,9 +115,18 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
         }
 
         const nextNotifications = notificationResult.settings;
+        const nextSaved = remote.localePresent
+          ? remote.snapshot
+          : {
+              ...remote.snapshot,
+              profile: {
+                ...remote.snapshot.profile,
+                locale: state.saved.profile.locale
+              }
+            };
         setState((current) => ({
           ...current,
-          saved: remote.snapshot,
+          saved: nextSaved,
           notifications: nextNotifications,
           pendingReview: null,
           saveState: "saved",

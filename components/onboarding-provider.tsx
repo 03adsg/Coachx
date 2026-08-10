@@ -178,6 +178,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const authRef = useRef(auth);
   const programStore = useProgramStore();
   const programStoreRef = useRef(programStore);
+  const programActivationRequestedRef = useRef(false);
   const [state, setState] = useState<OnboardingState>(() => createOnboardingDemoState(getInitialLocale()));
 
   useEffect(() => {
@@ -262,6 +263,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!auth.ready || !auth.isConfigured || !auth.user || state.progress.status !== "complete") {
+      programActivationRequestedRef.current = false;
       return;
     }
 
@@ -269,6 +271,11 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    if (programActivationRequestedRef.current) {
+      return;
+    }
+
+    programActivationRequestedRef.current = true;
     void programStoreRef.current.activateProgram(state.program);
   }, [auth.isConfigured, auth.ready, auth.user?.id, state.progress.status, state.program]);
 
