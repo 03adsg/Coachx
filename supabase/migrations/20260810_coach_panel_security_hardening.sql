@@ -22,6 +22,70 @@ $$;
 revoke all on function public.coach_can_access_athlete(uuid) from public;
 grant execute on function public.coach_can_access_athlete(uuid) to authenticated;
 
+create or replace function public.coach_update_own_profile(
+  p_display_name text default null,
+  p_business_name text default null,
+  p_clear_business_name boolean default false,
+  p_avatar_path text default null,
+  p_clear_avatar_path boolean default false
+)
+returns public.coach_profiles
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  coach_row public.coach_profiles%rowtype;
+  clean_display_name text := nullif(btrim(coalesce(p_display_name, '')), '');
+  clean_business_name text := nullif(btrim(coalesce(p_business_name, '')), '');
+  clean_avatar_path text := nullif(btrim(coalesce(p_avatar_path, '')), '');
+  current_now timestamptz := timezone('utc', now());
+begin
+  if auth.uid() is null then
+    raise exception 'Authentication required.';
+  end if;
+
+  select *
+  into coach_row
+  from public.coach_profiles
+  where user_id = auth.uid()
+  for update;
+
+  if not found then
+    raise exception 'Coach profile not found.';
+  end if;
+
+  if coach_row.status <> 'active' then
+    raise exception 'This coach profile is not active.';
+  end if;
+
+  update public.coach_profiles
+  set display_name = coalesce(clean_display_name, coach_row.display_name),
+      business_name = case
+        when p_clear_business_name then null
+        when p_business_name is null then coach_row.business_name
+        else clean_business_name
+      end,
+      avatar_path = case
+        when p_clear_avatar_path then null
+        when p_avatar_path is null then coach_row.avatar_path
+        else clean_avatar_path
+      end,
+      updated_at = current_now
+  where id = coach_row.id
+  returning * into coach_row;
+
+  return coach_row;
+end;
+$$;
+
+revoke all on function public.coach_update_own_profile(text, text, boolean, text, boolean) from public;
+grant execute on function public.coach_update_own_profile(text, text, boolean, text, boolean) to authenticated;
+
+revoke insert, update on public.coach_profiles from anon, authenticated;
+
+drop policy if exists coach_profiles_update_own on public.coach_profiles;
+
 create or replace function public.coach_mark_checkin_reviewed(
   p_weekly_checkin_id uuid,
   p_action text,
@@ -146,6 +210,7 @@ declare
   normalized_decision text := lower(coalesce(p_decision, ''));
   current_now timestamptz := timezone('utc', now());
   event_action text;
+  next_status text;
 begin
   if auth.uid() is null then
     raise exception 'Authentication required.';
@@ -169,11 +234,32 @@ begin
     raise exception 'Not authorized to decide this recommendation.';
   end if;
 
+  if recommendation_row.application_status = 'applied' then
+    raise exception 'This recommendation can no longer be changed.';
+  end if;
+
+  if recommendation_row.application_status = 'recommended' then
+    next_status := case
+      when normalized_decision = 'reject' then 'rejected'
+      else 'reviewing'
+    end;
+  elsif recommendation_row.application_status = 'reviewing' then
+    next_status := case
+      when normalized_decision = 'reject' then 'rejected'
+      else 'reviewing'
+    end;
+  elsif recommendation_row.application_status = 'rejected' then
+    if normalized_decision = 'approve' then
+      raise exception 'Rejected recommendations cannot be approved.';
+    end if;
+
+    next_status := 'rejected';
+  else
+    raise exception 'This recommendation can no longer be changed.';
+  end if;
+
   update public.ai_recommendations
-  set application_status = case
-        when normalized_decision = 'reject' then 'rejected'
-        else 'reviewing'
-      end,
+  set application_status = next_status,
       updated_at = current_now
   where id = recommendation_row.id
   returning * into recommendation_row;
@@ -198,7 +284,8 @@ begin
     'recommendation',
     p_recommendation_id,
     jsonb_build_object(
-      'decision', normalized_decision
+      'decision', normalized_decision,
+      'applicationStatus', recommendation_row.application_status
     ),
     current_now
   );
@@ -221,6 +308,7 @@ declare
   normalized_decision text := lower(coalesce(p_decision, ''));
   current_now timestamptz := timezone('utc', now());
   event_action text;
+  next_status text;
 begin
   if auth.uid() is null then
     raise exception 'Authentication required.';
@@ -244,17 +332,36 @@ begin
     raise exception 'Not authorized to decide this proposal.';
   end if;
 
+  if proposal_row.status in ('applied', 'failed', 'superseded', 'expired') then
+    raise exception 'This proposal can no longer be changed.';
+  end if;
+
+  if normalized_decision = 'approve' then
+    if proposal_row.status in ('proposed', 'needs_review') then
+      next_status := 'approved';
+    elsif proposal_row.status = 'approved' then
+      next_status := 'approved';
+    else
+      raise exception 'This proposal cannot be approved in its current state.';
+    end if;
+  else
+    if proposal_row.status in ('proposed', 'needs_review', 'approved') then
+      next_status := 'rejected';
+    elsif proposal_row.status = 'rejected' then
+      next_status := 'rejected';
+    else
+      raise exception 'This proposal cannot be rejected in its current state.';
+    end if;
+  end if;
+
   update public.program_change_proposals
-  set status = case
-        when normalized_decision = 'reject' then 'rejected'
-        else 'approved'
-      end,
+  set status = next_status,
       approved_at = case
-        when normalized_decision = 'approve' then coalesce(approved_at, current_now)
+        when next_status = 'approved' then coalesce(approved_at, current_now)
         else approved_at
       end,
       rejected_at = case
-        when normalized_decision = 'reject' then coalesce(rejected_at, current_now)
+        when next_status = 'rejected' then coalesce(rejected_at, current_now)
         else rejected_at
       end,
       updated_at = current_now
@@ -281,7 +388,8 @@ begin
     'proposal',
     p_proposal_id,
     jsonb_build_object(
-      'decision', normalized_decision
+      'decision', normalized_decision,
+      'proposalStatus', proposal_row.status
     ),
     current_now
   );
@@ -344,12 +452,8 @@ begin
     raise exception 'Not authorized to apply this program change proposal.';
   end if;
 
-  if proposal.status = 'applied' then
-    return proposal;
-  end if;
-
-  if proposal.status in ('rejected', 'failed', 'expired') then
-    raise exception 'This proposal can no longer be applied.';
+  if proposal.status not in ('proposed', 'approved') then
+    raise exception 'Only proposed or approved changes can be applied.';
   end if;
 
   if coalesce((proposal.validation_result ->> 'status'), 'approved') <> 'approved' then
@@ -705,6 +809,16 @@ begin
         event_source,
         current_now
       );
+
+    else
+      update public.program_change_proposals
+      set status = 'failed',
+          validation_result = jsonb_build_object('status', 'needs_review', 'messages', jsonb_build_array('Unsupported change type.')),
+          updated_at = current_now
+      where id = proposal.id
+      returning * into updated_proposal;
+
+      return updated_proposal;
   end case;
 
   update public.program_change_proposals
