@@ -18,6 +18,7 @@
 - Locale persistence remains stable after refresh.
 - Measurement and photo screens render without horizontal overflow at the current desktop viewport.
 - The photo review sheet and measurement sheet remain readable after the viewport hardening changes.
+- Production deployment was promoted from the current HEAD and now serves `https://coachxsync1.vercel.app`.
 
 ## Scope Guardrails
 

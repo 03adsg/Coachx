@@ -893,8 +893,10 @@
 - Tightened modal and sheet sizing so progress and nutrition overlays remain usable when mobile browser chrome changes height.
 - Added overflow containment to the primary overlay sheets.
 - Local Chrome QA confirmed the live app shell, progress measurements, progress photos, and locale persistence remain stable after the hardening changes.
-- Remaining work:
-  - run full repo validation after the latest frontend changes
-  - deploy the current HEAD to the existing Vercel project
-  - verify the production deployment reflects the current commit
+- Validation passes after the frontend changes:
+  - `pnpm typecheck`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Production deployment was promoted to `https://coachxsync1.vercel.app` from the current HEAD.
 
