@@ -74,3 +74,6 @@ This gives the app an auditable record of what the model returned and which cont
 
 If OpenAI is unavailable or returns invalid structured data, the route falls back to a deterministic review-only recommendation. The app should still render a usable result and should clearly label it as fallback-generated.
 
+Live production verification confirmed the Responses API path, structured output validation, and persistence against a bounded athlete context.
+
+

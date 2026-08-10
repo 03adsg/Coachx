@@ -265,7 +265,7 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 
 - Deploy the current AthlexForce head to Vercel
 - Verify the live athlete entry flow and coach panel are usable on the deployed preview
-- Close Slice 7 only if a real OpenAI Responses API request is possible in the configured environment
+- Slice 7 is complete and live verified; beta readiness now depends on rollout policy and operational approval rather than OpenAI availability
 - Verify the beta path for a fresh athlete account from sign-up through onboarding and the Today surface
 
 ### Tables / entities
@@ -291,7 +291,7 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - AthlexForce branding and metadata are live on the deployed preview
 - Fresh athlete sign-up reaches onboarding and program start
 - Coach and athlete route boundaries still hold
-- OpenAI live verification remains explicitly gated on `OPENAI_API_KEY`
+- OpenAI live verification is complete in the configured environment
 - Private beta is ready only after the live OpenAI requirement is satisfied or the beta policy explicitly allows fallback-only operation
 
 ## Phase S6 - Notifications preferences
@@ -535,3 +535,4 @@ If a slightly larger but still safe slice is acceptable, expand it to:
 - It removes the most important duplicate source-of-truth problem early.
 - It gives the app a real user/profile record before workout, nutrition, and progress history are migrated.
 - It keeps the highest-risk persistence domains out of the first backend pass.
+

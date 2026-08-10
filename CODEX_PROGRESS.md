@@ -814,6 +814,8 @@
 - Added `docs/AI_COACH_ENGINE.md` to document the server flow, structured output contract, and safety rules.
 - Updated the Supabase migration plan and backend readiness audit to include the new `ai_recommendations` entity.
 - Remaining scope is still limited to structured recommendations only; no automated program mutation was added.
+- Live production verification confirmed a real OpenAI Responses API generation on Vercel, with persisted and retrievable recommendation rows sourced from `openai`.
+- Slice 7 is `COMPLETE + LIVE VERIFIED`.
 
 ## Slice 9 â€” Coach Panel Foundation
 
@@ -861,5 +863,6 @@
 - The onboarding flow advances through profile, goals, training, schedule, health, nutrition, baseline, review, build, and plan reveal.
 - The saved athlete state routes to the Today screen after program start.
 - Vercel has the Supabase preview and production public environment variables configured.
-- `OPENAI_API_KEY` is not configured locally or in Vercel, so the real Slice 7 OpenAI live close remains blocked pending manual environment provisioning.
-- Slice 10 private-beta readiness is therefore partial: the athlete and coach flows are functional, but the live OpenAI verification requirement is still pending.
+- `OPENAI_API_KEY` is configured in Vercel production and preview, and a real OpenAI Responses API request now succeeds in production.
+- Slice 10 private-beta readiness is now unblocked on the OpenAI requirement; remaining readiness depends on rollout policy rather than missing infrastructure.
+

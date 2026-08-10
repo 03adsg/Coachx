@@ -28,9 +28,9 @@ Date: 2026-08-10
 
 ## Known limitations
 
-- `OPENAI_API_KEY` is not configured locally or in Vercel, so live OpenAI verification remains blocked.
-- The beta therefore depends on deterministic/fallback recommendation behavior until OpenAI is provisioned.
-- This document does not claim Slice 7 live OpenAI completion.
+- `OPENAI_API_KEY` is configured in Vercel production and preview, and live OpenAI verification now succeeds.
+- The beta now supports live OpenAI recommendations while retaining deterministic fallback behavior if the provider is unavailable.
+- Slice 7 live OpenAI completion is verified.
 
 ## Account provisioning
 
@@ -45,6 +45,7 @@ Date: 2026-08-10
 
 ## Production risks remaining
 
-- OpenAI live environment provisioning
 - Any future Vercel deployment protection or auth mismatch
 - Future migration drift if new schema changes are applied without live verification
+
+
