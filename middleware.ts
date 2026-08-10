@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseRouteClient } from "@/lib/supabase/server";
 import { isCoachxDemoMode, isSupabaseConfigured } from "@/lib/supabase/env";
-import { isProtectedAthleteRoute } from "@/lib/auth/navigation";
+import { isProtectedAthleteRoute, isProtectedCoachRoute } from "@/lib/auth/navigation";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
   } = await athleteClient.auth.getUser();
 
   if (!user) {
-    if (isProtectedAthleteRoute(pathname)) {
+    if (isProtectedCoachRoute(pathname) || isProtectedAthleteRoute(pathname)) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/entry";
       redirectUrl.search = "";
@@ -34,18 +34,51 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const { data: profile, error } = await athleteClient
-    .from("athlete_profiles")
-    .select("onboarding_status")
-    .eq("id", user.id)
-    .maybeSingle();
+  const [athleteResult, coachResult] = await Promise.all([
+    athleteClient.from("athlete_profiles").select("onboarding_status").eq("id", user.id).maybeSingle(),
+    athleteClient.from("coach_profiles").select("id").eq("user_id", user.id).maybeSingle()
+  ]);
 
-  if (error) {
+  if (athleteResult.error || coachResult.error) {
     return response;
   }
 
-  const onboardingStatus = profile?.onboarding_status ?? "not_started";
-  const routeForStatus = onboardingStatus === "completed" ? "/" : "/onboarding";
+  const isCoach = Boolean(coachResult.data);
+  const onboardingStatus = athleteResult.data?.onboarding_status ?? "not_started";
+  const routeForStatus = isCoach && !athleteResult.data ? "/coach" : onboardingStatus === "completed" ? "/" : "/onboarding";
+
+  if (isProtectedCoachRoute(pathname)) {
+    if (!isCoach) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/entry";
+      redirectUrl.search = "";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (pathname === "/coach" || pathname === "/coach/") {
+      return response;
+    }
+
+    return response;
+  }
+
+  if (isCoach && !athleteResult.data && (pathname === "/" || pathname === "/entry" || pathname === "/login")) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/coach";
+    redirectUrl.search = "";
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (!athleteResult.data) {
+    if (isProtectedAthleteRoute(pathname)) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/entry";
+      redirectUrl.search = "";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    return response;
+  }
 
   if (pathname === "/entry" || pathname === "/login") {
     const redirectUrl = request.nextUrl.clone();

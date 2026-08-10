@@ -11,6 +11,8 @@ export const protectedAthleteRoutePrefixes = [
   "/exercises"
 ];
 
+export const protectedCoachRoutePrefixes = ["/coach"];
+
 export const publicRoutePrefixes = ["/entry", "/login", "/auth/callback", "/manifest.json", "/favicon.ico", "/apple-touch-icon.png"];
 
 export function isPublicRoute(pathname: string) {
@@ -23,6 +25,10 @@ export function isProtectedAthleteRoute(pathname: string) {
   }
 
   return protectedAthleteRoutePrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
+
+export function isProtectedCoachRoute(pathname: string) {
+  return protectedCoachRoutePrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
 export function resolveAthleteRouteForStatus(status: AthleteOnboardingStatus | null | undefined) {

@@ -803,3 +803,34 @@
 - Added `docs/AI_COACH_ENGINE.md` to document the server flow, structured output contract, and safety rules.
 - Updated the Supabase migration plan and backend readiness audit to include the new `ai_recommendations` entity.
 - Remaining scope is still limited to structured recommendations only; no automated program mutation was added.
+
+## Slice 9 â€” Coach Panel Foundation
+
+- Added the first coach-facing route tree:
+  - `/coach`
+  - `/coach/athletes`
+  - `/coach/athletes/[athleteId]`
+  - `/coach/athletes/[athleteId]/check-ins`
+  - `/coach/athletes/[athleteId]/recommendations`
+  - `/coach/reviews`
+  - `/coach/profile`
+- Added coach-specific services for:
+  - coach session loading
+  - assignment authorization
+  - bounded athlete summaries
+  - review/recommendation/proposal action handling
+- Added the coach data model and RLS migration file at `supabase/migrations/20260810_coach_panel_foundation.sql`.
+- Added deterministic coach policy helpers for:
+  - access checks
+  - attention queue derivation
+  - review/recommendation/proposal action mapping
+  - audit metadata
+- Validation status:
+  - `pnpm typecheck`: passed
+  - `pnpm lint`: passed
+  - `pnpm test`: passed
+  - `pnpm build`: passed
+- Remaining provisional / temporary states:
+  - Coach Panel foundation is local-only until the migration is executed in live Supabase.
+  - Assigned coach data will remain empty until coach profiles and assignments are created in Supabase.
+  - Progress photos remain excluded from Coach Panel v1 by design.

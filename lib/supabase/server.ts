@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import type { CookieOptions } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import type { NextRequest, NextResponse } from "next/server";
 import type { Database } from "@/lib/supabase/database.types";
 import { getSupabaseConfig } from "@/lib/supabase/env";
@@ -35,6 +36,24 @@ export function createSupabaseRouteClient(request: NextRequest, response: NextRe
       cookies.forEach(({ name, value, options }) => {
         response.cookies.set(name, value, options);
       });
+    }
+  });
+}
+
+export async function createSupabaseServerComponentClient() {
+  const config = getSupabaseConfig();
+  if (!config) {
+    return null;
+  }
+
+  const cookieStore = await cookies();
+
+  return createServerClient<Database>(config.url, config.anonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll() {}
     }
   });
 }

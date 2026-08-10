@@ -26,6 +26,18 @@ export type CoachRecommendationContextType = "weekly_checkin" | "phase_review" |
 export type CoachRecommendationSource = "openai" | "fallback";
 export type CoachRecommendationGenerationStatus = "generated" | "fallback" | "failed";
 export type CoachRecommendationApplicationStatus = "recommended" | "reviewing" | "applied" | "rejected";
+export type CoachProfileStatus = "active" | "paused" | "archived";
+export type CoachAssignmentStatus = "active" | "paused" | "ended";
+export type CoachActionType =
+  | "checkin_reviewed"
+  | "checkin_acknowledged"
+  | "followup_requested"
+  | "recommendation_approved"
+  | "recommendation_rejected"
+  | "proposal_approved"
+  | "proposal_rejected"
+  | "note_added";
+export type CoachActionTargetType = "weekly_checkin" | "recommendation" | "proposal" | "athlete";
 export type ProgramChangeType =
   | "exercise_swap"
   | "set_adjustment"
@@ -1058,6 +1070,117 @@ export interface NotificationPreferencesUpdate {
   updated_at?: string;
 }
 
+export interface CoachProfilesRow {
+  id: string;
+  user_id: string;
+  display_name: string;
+  status: CoachProfileStatus;
+  business_name: string | null;
+  avatar_path: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CoachProfilesInsert {
+  id?: string;
+  user_id: string;
+  display_name?: string;
+  status?: CoachProfileStatus;
+  business_name?: string | null;
+  avatar_path?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CoachProfilesUpdate {
+  display_name?: string;
+  status?: CoachProfileStatus;
+  business_name?: string | null;
+  avatar_path?: string | null;
+  updated_at?: string;
+}
+
+export interface CoachAthleteAssignmentsRow {
+  id: string;
+  coach_user_id: string;
+  athlete_user_id: string;
+  status: CoachAssignmentStatus;
+  assigned_at: string;
+  ended_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CoachAthleteAssignmentsInsert {
+  id?: string;
+  coach_user_id: string;
+  athlete_user_id: string;
+  status?: CoachAssignmentStatus;
+  assigned_at?: string;
+  ended_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CoachAthleteAssignmentsUpdate {
+  status?: CoachAssignmentStatus;
+  assigned_at?: string;
+  ended_at?: string | null;
+  updated_at?: string;
+}
+
+export interface CoachReviewNotesRow {
+  id: string;
+  coach_user_id: string;
+  athlete_user_id: string;
+  weekly_checkin_id: string;
+  note: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CoachReviewNotesInsert {
+  id?: string;
+  coach_user_id: string;
+  athlete_user_id: string;
+  weekly_checkin_id: string;
+  note: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CoachReviewNotesUpdate {
+  note?: string;
+  updated_at?: string;
+}
+
+export interface CoachActionEventsRow {
+  id: string;
+  coach_user_id: string;
+  athlete_user_id: string;
+  action_type: CoachActionType;
+  target_type: CoachActionTargetType;
+  target_id: string | null;
+  metadata: Json;
+  created_at: string;
+}
+
+export interface CoachActionEventsInsert {
+  id?: string;
+  coach_user_id: string;
+  athlete_user_id: string;
+  action_type: CoachActionType;
+  target_type: CoachActionTargetType;
+  target_id?: string | null;
+  metadata?: Json;
+  created_at?: string;
+}
+
+export interface CoachActionEventsUpdate {
+  target_id?: string | null;
+  metadata?: Json;
+}
+
 export interface AiRecommendationsRow {
   id: string;
   user_id: string;
@@ -1322,6 +1445,30 @@ export interface Database {
         Row: NotificationPreferencesRow;
         Insert: NotificationPreferencesInsert;
         Update: NotificationPreferencesUpdate;
+        Relationships: [];
+      };
+      coach_profiles: {
+        Row: CoachProfilesRow;
+        Insert: CoachProfilesInsert;
+        Update: CoachProfilesUpdate;
+        Relationships: [];
+      };
+      coach_athlete_assignments: {
+        Row: CoachAthleteAssignmentsRow;
+        Insert: CoachAthleteAssignmentsInsert;
+        Update: CoachAthleteAssignmentsUpdate;
+        Relationships: [];
+      };
+      coach_review_notes: {
+        Row: CoachReviewNotesRow;
+        Insert: CoachReviewNotesInsert;
+        Update: CoachReviewNotesUpdate;
+        Relationships: [];
+      };
+      coach_action_events: {
+        Row: CoachActionEventsRow;
+        Insert: CoachActionEventsInsert;
+        Update: CoachActionEventsUpdate;
         Relationships: [];
       };
       ai_recommendations: {

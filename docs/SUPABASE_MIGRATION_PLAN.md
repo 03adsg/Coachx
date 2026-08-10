@@ -407,6 +407,44 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - Storage is private where required
 - Demo fallback remains available only as a fallback, not the authority
 
+## Phase S10 - Coach panel foundation
+
+### Scope
+
+- Add coach roles and assignment-scoped access
+- Surface bounded athlete review summaries for assigned coaches only
+- Persist coach review notes and action audit events
+- Keep athlete isolation intact while allowing coach-read access through explicit assignment
+
+### Tables / entities
+
+- `coach_profiles`
+- `coach_athlete_assignments`
+- `coach_review_notes`
+- `coach_action_events`
+
+### Routes affected
+
+- `/coach`
+- `/coach/athletes`
+- `/coach/athletes/[athleteId]`
+- `/coach/athletes/[athleteId]/check-ins`
+- `/coach/athletes/[athleteId]/recommendations`
+- `/coach/reviews`
+- `/coach/profile`
+
+### Migration risk
+
+- Medium
+
+### Definition of done
+
+- Coach access is assignment-scoped and server-verified
+- Assigned athletes can be reviewed without exposing other athletes
+- Coach review notes and actions persist with audit history
+- Athlete routes remain isolated and unchanged for non-coaches
+- No coach route is publicly accessible without a valid coach session
+
 ## Recommended first slice
 
 The safest first vertical slice is:

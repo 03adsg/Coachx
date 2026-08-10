@@ -45,6 +45,7 @@ async function transpileLibraryChain() {
     "ai/recommendation-service.ts",
     "recommendations/change-proposal-service.ts",
     "notification-service.ts",
+    "coach/coach-policy.ts",
     "nutrition-data.ts",
     "workout-data.ts",
     "coachx-data.ts",
@@ -102,6 +103,7 @@ const programService = await import(pathToFileURL(path.join(tempDir, "program-se
 const checkinData = await import(pathToFileURL(path.join(tempDir, "checkin-data.mjs")).href);
 const checkinService = await import(pathToFileURL(path.join(tempDir, "checkin-service.mjs")).href);
 const notificationService = await import(pathToFileURL(path.join(tempDir, "notification-service.mjs")).href);
+const coachPolicy = await import(pathToFileURL(path.join(tempDir, "coach/coach-policy.mjs")).href);
 const aiSchemas = await import(pathToFileURL(path.join(tempDir, "ai/schemas.mjs")).href);
 const aiEngine = await import(pathToFileURL(path.join(tempDir, "ai/coach-engine.mjs")).href);
 const aiRecommendationService = await import(pathToFileURL(path.join(tempDir, "ai/recommendation-service.mjs")).href);
@@ -958,6 +960,67 @@ test("route helpers keep authenticated users out of entry", () => {
   assert.equal(authNavigation.resolveAthleteRouteForStatus("not_started"), "/entry");
   assert.equal(authNavigation.resolveAthleteRouteForStatus("in_progress"), "/onboarding");
   assert.equal(authNavigation.resolveAthleteRouteForStatus("completed"), "/");
+});
+
+test("coach role detection and assignment checks are explicit", () => {
+  assert.deepEqual(coachPolicy.resolveCoachAccess(false, false), {
+    allowed: false,
+    reason: "Coach access is required."
+  });
+  assert.deepEqual(coachPolicy.resolveCoachAccess(true, false), {
+    allowed: false,
+    reason: "This athlete is not assigned to the current coach."
+  });
+  assert.deepEqual(coachPolicy.resolveCoachAccess(true, true), {
+    allowed: true,
+    reason: null
+  });
+});
+
+test("coach attention queue logic stays deterministic", () => {
+  const reasons = coachPolicy.buildCoachAttentionReasons({
+    needsCheckInReview: true,
+    triggerKeys: ["pain_discomfort", "recovery", "training_adherence", "nutrition_adherence", "pain_discomfort"],
+    recommendationStatus: "reviewing",
+    proposalStatus: "proposed",
+    missedCheckIn: true,
+    coachReviewRequired: true
+  });
+
+  assert.deepEqual(reasons, [
+    "Check-in needs attention",
+    "Reported pain",
+    "Low recovery",
+    "Low training adherence",
+    "Low nutrition adherence",
+    "Pending recommendation",
+    "Pending proposal",
+    "Missed check-in",
+    "Coach review required"
+  ]);
+});
+
+test("coach review action mapping preserves explicit decisions", () => {
+  assert.equal(coachPolicy.mapCoachCheckinActionToStatus("followup_requested", ""), "needs_attention");
+  assert.equal(coachPolicy.mapCoachCheckinActionToStatus("checkin_acknowledged", ""), "acknowledged");
+  assert.equal(coachPolicy.mapCoachRecommendationActionToStatus("recommendation_rejected", ""), "rejected");
+  assert.equal(coachPolicy.mapCoachProposalActionToStatus("proposal_approved", ""), "approved");
+  assert.equal(coachPolicy.mapCoachProposalActionToStatus("proposal_rejected", ""), "rejected");
+});
+
+test("coach action audit metadata stays structured", () => {
+  assert.deepEqual(
+    coachPolicy.buildCoachActionAuditMetadata({
+      actionType: "checkin_reviewed",
+      status: "reviewed",
+      note: "Ready for follow-up"
+    }),
+    {
+      actionType: "checkin_reviewed",
+      status: "reviewed",
+      note: "Ready for follow-up"
+    }
+  );
 });
 
 test("athlete rows preserve profile and snapshot data", () => {
