@@ -838,7 +838,8 @@ export function setLocaleCookie(locale: Locale) {
     return;
   }
 
-  document.cookie = `${localeCookieName}=${encodeURIComponent(locale)}; path=/; max-age=31536000; samesite=lax`;
+  const secureAttribute = typeof window !== "undefined" && window.location.protocol === "https:" ? "; secure" : "";
+  document.cookie = `${localeCookieName}=${encodeURIComponent(locale)}; path=/; max-age=31536000; samesite=lax${secureAttribute}`;
 }
 
 export function setCurrentLocale(nextLocale: Locale) {

@@ -93,6 +93,7 @@ async function transpileLibraryChain() {
 }
 
 const onboarding = await transpileLibraryChain();
+const i18n = await import(pathToFileURL(path.join(tempDir, "i18n.mjs")).href);
 const progressData = await import(pathToFileURL(path.join(tempDir, "progress-data.mjs")).href);
 const profileSettings = await import(pathToFileURL(path.join(tempDir, "profile-settings-data.mjs")).href);
 const nutritionService = await import(pathToFileURL(path.join(tempDir, "nutrition-service.mjs")).href);
@@ -1056,6 +1057,33 @@ test("remote snapshots hydrate onboarding state without changing the active prog
   assert.equal(hydrated.profile.name, snapshot.profile.name);
   assert.equal(hydrated.progress.status, "in-progress");
   assert.equal(hydrated.program.status, onboarding.onboardingDemoState.program.status);
+});
+
+test("remote hydration preserves the current locale when the stored row has no locale field", () => {
+  const snapshot = profileSettings.createProfileSnapshot();
+  const remote = {
+    snapshot,
+    onboardingStatus: "completed",
+    onboardingCompletedAt: "2026-08-08T10:00:00.000Z",
+    profilePresent: true,
+    preferencesPresent: true,
+    localePresent: false,
+    source: "remote"
+  };
+  const hydrated = athleteService.mergeRemoteSnapshotIntoOnboardingState(
+    {
+      ...onboarding.onboardingDemoState,
+      profile: { ...onboarding.onboardingDemoState.profile, locale: "de" }
+    },
+    remote
+  );
+
+  assert.equal(hydrated.profile.locale, "de");
+  assert.equal(hydrated.progress.status, "complete");
+});
+
+test("initial locale prefers the provided server locale before persisted browser state", () => {
+  assert.equal(i18n.getInitialLocale("ca"), "ca");
 });
 
 test("nutrition snapshots derive training and rest contexts from the program calendar", () => {
