@@ -17,6 +17,10 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - Slice 3: complete + live verified
 - Slice 4: complete + live verified
 - Slice 5: complete + live verified
+- Slice 6: complete + live verified
+- Slice 7: complete + live verified
+- Slice 8: complete + live verified
+- Slice 9: complete + live verified
 
 ## Phase S0 - Supabase project + env + typed client
 
@@ -79,6 +83,42 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - Profile and preference edits save to Supabase
 - Onboarding state resumes from persisted data
 - Existing UI continues to function on fixture fallback if backend is unavailable
+
+## Phase S9 - Coach panel foundation
+
+### Scope
+
+- Add assignment-scoped coach review access
+- Surface bounded athlete summaries, check-in review, recommendation review, and proposal review
+- Keep athlete data isolated unless an active coach assignment exists
+
+### Tables / entities
+
+- `coach_profiles`
+- `coach_athlete_assignments`
+- `coach_review_notes`
+- `coach_action_events`
+
+### Routes affected
+
+- `/coach`
+- `/coach/athletes`
+- `/coach/athletes/[athleteId]`
+- `/coach/athletes/[athleteId]/check-ins`
+- `/coach/athletes/[athleteId]/recommendations`
+- `/coach/reviews`
+- `/coach/profile`
+
+### Migration risk
+
+- Medium
+
+### Definition of done
+
+- An assigned coach can review bounded athlete data
+- An unassigned coach or athlete cannot access coach routes
+- Coach review actions persist as audit events
+- Recommendation and proposal decision boundaries remain explicit
 
 ## Phase S2 - Program + calendar
 

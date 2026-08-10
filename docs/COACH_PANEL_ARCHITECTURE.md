@@ -158,6 +158,16 @@ Do not:
 - trust client-supplied athlete ids without verifying assignment
 - use service-role access in the browser
 
+## Live Verification
+
+Verified live on 2026-08-10 with a disposable coach, assigned athlete, and unassigned athlete.
+
+- Coach routes render only for the authenticated assigned coach session.
+- The assigned athlete is visible and the unassigned athlete is blocked.
+- Coach review actions persist through the RPC boundary and emit audit rows.
+- Recommendation approval does not mutate the active program.
+- Proposal approval remains separate from apply.
+
 ## UI Scope
 
 Routes in Slice 9:
@@ -190,4 +200,3 @@ Later slices may add:
 - broader search and filtering
 
 Those are intentionally out of scope for Slice 9 foundation.
-

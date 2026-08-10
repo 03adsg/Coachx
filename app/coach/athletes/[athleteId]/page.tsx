@@ -4,6 +4,8 @@ import { Card, PrimaryButton, Section } from "@/components/ui";
 import { loadCoachAthleteDetail } from "@/lib/coach/coach-dashboard-service";
 import { loadCoachSessionContext } from "@/lib/coach/coach-auth-service";
 
+export const dynamic = "force-dynamic";
+
 export default async function CoachAthleteDetailPage({ params }: { params: Promise<{ athleteId: string }> }) {
   const { athleteId } = await params;
   const session = await loadCoachSessionContext();
@@ -189,4 +191,3 @@ export default async function CoachAthleteDetailPage({ params }: { params: Promi
     </CoachPanelShell>
   );
 }
-

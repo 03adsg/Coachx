@@ -6,6 +6,8 @@ import { getWeeklyCheckinQuestion } from "@/lib/checkin-data";
 import { loadCoachAthleteDetail } from "@/lib/coach/coach-dashboard-service";
 import { loadCoachSessionContext } from "@/lib/coach/coach-auth-service";
 
+export const dynamic = "force-dynamic";
+
 export default async function CoachAthleteCheckInsPage({ params }: { params: Promise<{ athleteId: string }> }) {
   const { athleteId } = await params;
   const session = await loadCoachSessionContext();
@@ -121,4 +123,3 @@ export default async function CoachAthleteCheckInsPage({ params }: { params: Pro
     </CoachPanelShell>
   );
 }
-

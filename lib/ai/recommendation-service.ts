@@ -57,6 +57,10 @@ function parseRow(row: unknown) {
   } satisfies CoachRecommendationRecordView;
 }
 
+export function parseCoachRecommendation(row: unknown) {
+  return parseRow(row);
+}
+
 export async function getLatestCoachRecommendation(
   client: SupabaseClient<Database>,
   userId: string,

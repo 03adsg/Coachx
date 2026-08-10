@@ -12,6 +12,7 @@
 - Added agent docs and routing guidance under `.agents/`, `AGENTS.md`, and `AGENT_ROUTING.md`.
 - Slice 5 is now complete and live verified for progress persistence + private photos.
 - Added the recommendation application engine boundary so AI recommendations now flow through typed change proposals, explicit preview, and transactional apply rather than mutating program state directly.
+- Slice 9 is now complete and live verified for the coach panel foundation: coach login, assignment-scoped athlete access, bounded athlete detail, coach review actions, recommendation decisions, proposal decisions, and coach audit events.
 
 ## Visual Fidelity Pass
 
@@ -62,6 +63,16 @@
 - `/progress` is still a synthesized temporary screen because the Stitch ZIP did not contain a dedicated Progress export or asset set.
 - The avatar art is a temporary local placeholder until an approved athlete asset exists.
 - The exercise placeholder art remains temporary until approved Stitch assets are available for every movement family.
+- Coach Panel routes are now live verified for the assigned-athlete path; the remaining future work is broader coach operations expansion, not the Slice 9 foundation.
+
+## Batch 9 — Coach Panel
+
+- Verified with a disposable active coach, assigned athlete, and unassigned athlete.
+- Confirmed `/coach`, `/coach/athletes`, `/coach/athletes/[athleteId]`, `/coach/athletes/[athleteId]/check-ins`, `/coach/athletes/[athleteId]/recommendations`, `/coach/reviews`, and `/coach/profile`.
+- Confirmed anonymous users are redirected out of Coach Panel routes and unassigned athletes remain blocked.
+- Confirmed `coach_mark_checkin_reviewed`, `coach_decide_recommendation`, and `coach_decide_program_change_proposal` work on assigned athletes and write `coach_action_events`.
+- Confirmed coach review notes persist and athlete-submitted responses remain unchanged.
+- Confirmed recommendation approval does not mutate the active program; proposal approval remains separate from apply.
 
 ## Stitch fidelity
 
