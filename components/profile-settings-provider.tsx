@@ -124,7 +124,9 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
           saveError: null,
           lastSavedLabel: "Loaded from Supabase"
         }));
-        setLocale(remote.snapshot.profile.locale);
+        if (remote.localePresent) {
+          setLocale(remote.snapshot.profile.locale);
+        }
         onboardingRef.current.setProfile(remote.snapshot.profile);
         onboardingRef.current.setGoals(remote.snapshot.goals);
         onboardingRef.current.setTrainingPreferences(remote.snapshot.trainingPreferences);

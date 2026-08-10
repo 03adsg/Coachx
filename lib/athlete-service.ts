@@ -157,6 +157,7 @@ export interface AthleteSnapshotPayload {
   onboardingCompletedAt: string | null;
   profilePresent: boolean;
   preferencesPresent: boolean;
+  localePresent: boolean;
   source: "remote" | "default";
 }
 
@@ -261,11 +262,13 @@ export function buildAthleteProfileRow(
   userId: string,
   snapshot: ProfileSnapshot,
   onboardingStatus: AthleteOnboardingStatus,
-  onboardingCompletedAt: string | null
+  onboardingCompletedAt: string | null,
+  options: { includeLocale?: boolean } = {}
 ): AthleteProfilesInsert {
   const parsed = profileSnapshotSchema.parse(snapshot);
+  const includeLocale = options.includeLocale ?? true;
 
-  return {
+  const row: AthleteProfilesInsert = {
     id: userId,
     display_name: parsed.profile.name,
     age_years: parsed.profile.age,
@@ -273,10 +276,15 @@ export function buildAthleteProfileRow(
     height_cm: parsed.profile.heightCm,
     weight_kg: parsed.profile.weightKg,
     unit_system: parsed.profile.unitSystem,
-    locale: parsed.profile.locale,
     onboarding_status: onboardingStatus,
     onboarding_completed_at: onboardingCompletedAt
   };
+
+  if (includeLocale) {
+    row.locale = parsed.profile.locale;
+  }
+
+  return row;
 }
 
 export function buildAthletePreferencesRow(userId: string, snapshot: ProfileSnapshot, version = 1): AthletePreferencesInsert {
@@ -299,6 +307,7 @@ export function reviveProfileSnapshot(raw: unknown) {
 
 export function createSnapshotFromRows(profileRow: AthleteProfilesRow, preferencesRow?: AthletePreferencesRow | null): AthleteSnapshotPayload {
   const fallback = defaultSnapshot();
+  const localePresent = Object.prototype.hasOwnProperty.call(profileRow, "locale");
 
   const mergedProfile = athleteProfileRowSchema.parse(profileRow);
   const preferences = preferencesRow ? athletePreferencesRowSchema.parse(preferencesRow) : null;
@@ -329,6 +338,7 @@ export function createSnapshotFromRows(profileRow: AthleteProfilesRow, preferenc
     onboardingCompletedAt: mergedProfile.onboarding_completed_at,
     profilePresent: true,
     preferencesPresent: Boolean(preferences),
+    localePresent,
     source: "remote"
   };
 }
@@ -369,11 +379,16 @@ export async function saveAthleteSnapshot(
   onboardingCompletedAt: string | null,
   version = 1
 ) {
-  const profileRow = buildAthleteProfileRow(userId, snapshot, onboardingStatus, onboardingCompletedAt);
   const preferencesRow = buildAthletePreferencesRow(userId, snapshot, version);
   const databaseClient = client as SupabaseClient<any>;
 
-  const profileResult = await databaseClient.from("athlete_profiles").upsert(profileRow, { onConflict: "id" }).select("*").single();
+  const profileRow = buildAthleteProfileRow(userId, snapshot, onboardingStatus, onboardingCompletedAt);
+  let profileResult = await databaseClient.from("athlete_profiles").upsert(profileRow, { onConflict: "id" }).select("*").single();
+
+  if (profileResult.error && (profileResult.error.code === "PGRST204" || /locale/i.test(profileResult.error.message))) {
+    const profileFallbackRow = buildAthleteProfileRow(userId, snapshot, onboardingStatus, onboardingCompletedAt, { includeLocale: false });
+    profileResult = await databaseClient.from("athlete_profiles").upsert(profileFallbackRow, { onConflict: "id" }).select("*").single();
+  }
 
   if (profileResult.error) {
     throw profileResult.error;
@@ -421,9 +436,14 @@ export function mergeRemoteSnapshotIntoOnboardingState<T extends ReturnType<type
   state: T,
   payload: AthleteSnapshotPayload
 ): T {
+  const locale = payload.localePresent ? payload.snapshot.profile.locale : state.profile.locale;
+
   return {
     ...state,
-    profile: { ...payload.snapshot.profile },
+    profile: {
+      ...payload.snapshot.profile,
+      locale
+    },
     goals: { ...payload.snapshot.goals, priorities: [...payload.snapshot.goals.priorities] as GoalPriority[] },
     trainingPreferences: {
       ...payload.snapshot.trainingPreferences,
