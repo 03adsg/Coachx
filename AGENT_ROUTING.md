@@ -8,6 +8,7 @@
 - `Fix build errors` -> `qa-testing` + `architecture-typescript` if the failure is structural
 - `Add or adjust screen transitions` -> `frontend-stitch` + `visual-qa`
 - `Design feedback / confirmations / undo` -> `feedback-interaction-ux` + `frontend-stitch`
+- `Performance analytics / motion visualization` -> `data-visualization-motion` + `frontend-stitch` + `visual-qa` + `qa-testing`
 
 ## Collaboration Order
 
@@ -18,5 +19,5 @@
 
 ## Not Yet Created
 
-- No Supabase, OpenAI, Apple Health, Apple Watch, analytics, or admin agents for the current phase.
+- No Supabase, OpenAI, Apple Health, Apple Watch, or admin agents for the current phase.
 - Feedback/interaction memory work routes to `feedback-interaction-ux`.

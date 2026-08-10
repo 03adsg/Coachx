@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { Screen } from "@/components/screen";
-import { Card, PrimaryButton, Section } from "@/components/ui";
+import { Card, PrimaryButton, Section, StatTile } from "@/components/ui";
 import { AnalyticsChartCard } from "@/components/analytics-chart";
 import type { PerformanceAnalyticsDashboard } from "@/lib/performance-analytics";
 
-interface ProgressTrendsScreenProps {
+interface PerformanceAnalyticsScreenProps {
   dashboard: PerformanceAnalyticsDashboard;
   basePath: string;
 }
 
-function RangeSelector({ dashboard, basePath }: ProgressTrendsScreenProps) {
+function RangeSelector({ dashboard, basePath }: PerformanceAnalyticsScreenProps) {
   return (
     <div className="analytics-range-row" role="tablist" aria-label={dashboard.copy.rangeLabel}>
       {Object.entries(dashboard.copy.rangeOptions).map(([rangeId, label]) => {
@@ -31,7 +31,7 @@ function RangeSelector({ dashboard, basePath }: ProgressTrendsScreenProps) {
   );
 }
 
-export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScreenProps) {
+export function PerformanceAnalyticsScreen({ dashboard, basePath }: PerformanceAnalyticsScreenProps) {
   const hasData = dashboard.dataCoverage.workouts + dashboard.dataCoverage.progressEntries + dashboard.dataCoverage.nutritionDays + dashboard.dataCoverage.checkIns > 0;
 
   return (
@@ -39,17 +39,9 @@ export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScre
       activeTab="progress"
       shellClassName="progress-analytics-shell"
       topbar={
-        <header className="progress-trend-topbar analytics-topbar">
-          <Link href="/progress" className="progress-trend-topbar__back focus-ring" aria-label="Back">
-            <span className="icon" aria-hidden="true">
-              arrow_back
-            </span>
-          </Link>
-          <div>
-            <h1 className="headline-md">{dashboard.copy.title}</h1>
-            <p className="caption" style={{ marginTop: 4 }}>
-              {dashboard.copy.subtitle}
-            </p>
+        <header className="topbar center analytics-topbar">
+          <div className="eyebrow" style={{ margin: 0, color: "#c6c6c7" }}>
+            {dashboard.copy.title}
           </div>
         </header>
       }
@@ -63,8 +55,8 @@ export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScre
                 {dashboard.copy.subtitle}
               </p>
             </div>
-            <Link href="/progress" className="progress-mini-action focus-ring">
-              {dashboard.copy.heroLabel}
+            <Link href={`${basePath}/trends?range=${dashboard.range.id}`} className="progress-mini-action focus-ring">
+              {dashboard.copy.insightsSection}
             </Link>
           </div>
         </section>
@@ -76,7 +68,7 @@ export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScre
         <section className="section">
           <Card className="analytics-hero-card p-16 elevated" style={{ background: "var(--background-charcoal)" }}>
             <div className="row start" style={{ alignItems: "flex-start" }}>
-              <div>
+              <div style={{ minWidth: 0 }}>
                 <div className="eyebrow" style={{ marginBottom: 6 }}>
                   {dashboard.copy.heroLabel}
                 </div>
@@ -90,6 +82,42 @@ export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScre
               <span className={`analytics-chip analytics-chip--${dashboard.status === "attention" ? "warning" : "accent"}`.trim()}>
                 {dashboard.range.label}
               </span>
+            </div>
+
+            <div className="analytics-hero-grid">
+              <div>
+                <div className="eyebrow">{dashboard.copy.currentPhase}</div>
+                <div className="body-lg" style={{ marginTop: 4 }}>
+                  {dashboard.phaseLabel}
+                </div>
+              </div>
+              <div>
+                <div className="eyebrow">{dashboard.copy.currentGoal}</div>
+                <div className="body-lg" style={{ marginTop: 4 }}>
+                  {dashboard.goal}
+                </div>
+              </div>
+              <div>
+                <div className="eyebrow">{dashboard.copy.currentWorkout}</div>
+                <div className="body-lg" style={{ marginTop: 4 }}>
+                  {dashboard.currentWorkout}
+                </div>
+              </div>
+              <div>
+                <div className="eyebrow">{dashboard.copy.currentDay}</div>
+                <div className="body-lg" style={{ marginTop: 4 }}>
+                  {dashboard.currentDay}
+                </div>
+              </div>
+            </div>
+
+            <div className="stack" style={{ marginTop: 16, gap: 8 }}>
+              <div className="caption" style={{ textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                {dashboard.copy.nextFocusSection}
+              </div>
+              <p className="body-md" style={{ lineHeight: 1.6 }}>
+                {dashboard.nextFocus}
+              </p>
             </div>
           </Card>
         </section>
@@ -129,27 +157,28 @@ export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScre
         </section>
 
         <section className="section">
-          <div className="grid-2">
-            <AnalyticsChartCard
-              title={dashboard.charts.weight.title}
-              subtitle={dashboard.charts.weight.subtitle}
-              unit={dashboard.charts.weight.unit}
-              series={dashboard.charts.weight.series[0] ?? { id: "weight-empty", label: dashboard.charts.weight.title, unit: "kg", accent: "#FFFFFF", points: [] }}
-              pointsLabel={dashboard.copy.dataPoints}
-              emptyTitle={dashboard.charts.weight.emptyTitle}
-              emptyCopy={dashboard.charts.weight.emptyCopy}
-            />
-            <AnalyticsChartCard
-              title={dashboard.charts.waist.title}
-              subtitle={dashboard.charts.waist.subtitle}
-              unit={dashboard.charts.waist.unit}
-              series={dashboard.charts.waist.series[0] ?? { id: "waist-empty", label: dashboard.charts.waist.title, unit: "cm", accent: "#B6FF00", points: [] }}
-              pointsLabel={dashboard.copy.dataPoints}
-              emptyTitle={dashboard.charts.waist.emptyTitle}
-              emptyCopy={dashboard.charts.waist.emptyCopy}
-              chartTone="accent"
-            />
-          </div>
+          <AnalyticsChartCard
+            title={dashboard.charts.weight.title}
+            subtitle={dashboard.charts.weight.subtitle}
+            unit={dashboard.charts.weight.unit}
+            series={dashboard.charts.weight.series[0] ?? { id: "weight-empty", label: dashboard.charts.weight.title, unit: "kg", accent: "#FFFFFF", points: [] }}
+            pointsLabel={dashboard.copy.dataPoints}
+            emptyTitle={dashboard.charts.weight.emptyTitle}
+            emptyCopy={dashboard.charts.weight.emptyCopy}
+          />
+        </section>
+
+        <section className="section">
+          <AnalyticsChartCard
+            title={dashboard.charts.waist.title}
+            subtitle={dashboard.charts.waist.subtitle}
+            unit={dashboard.charts.waist.unit}
+            series={dashboard.charts.waist.series[0] ?? { id: "waist-empty", label: dashboard.charts.waist.title, unit: "cm", accent: "#B6FF00", points: [] }}
+            pointsLabel={dashboard.copy.dataPoints}
+            emptyTitle={dashboard.charts.waist.emptyTitle}
+            emptyCopy={dashboard.charts.waist.emptyCopy}
+            chartTone="accent"
+          />
         </section>
 
         <section className="section">
@@ -176,21 +205,34 @@ export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScre
           </div>
         </section>
 
-        <Section title={dashboard.copy.coverageSection} meta={String(dashboard.dataCoverage.workouts + dashboard.dataCoverage.nutritionDays + dashboard.dataCoverage.progressEntries + dashboard.dataCoverage.checkIns)}>
+        <Section title={dashboard.copy.coverageSection} meta={`${dashboard.dataCoverage.workouts + dashboard.dataCoverage.nutritionDays + dashboard.dataCoverage.progressEntries + dashboard.dataCoverage.checkIns}`}>
           <div className="grid-2">
             <Card className="analytics-summary-card p-16">
+              <StatTile label={dashboard.copy.trainingSection} value={String(dashboard.dataCoverage.workouts)} meta={dashboard.copy.recentSessions} />
+            </Card>
+            <Card className="analytics-summary-card p-16">
+              <StatTile label={dashboard.copy.latestEntries} value={String(dashboard.dataCoverage.progressEntries)} meta={dashboard.copy.dataCoverage} />
+            </Card>
+          </div>
+        </Section>
+
+        <Section title={dashboard.copy.insightsSection}>
+          <div className="stack">
+            <Card className="analytics-insight-card p-16">
               <div className="eyebrow" style={{ marginBottom: 8 }}>
                 {dashboard.copy.recentSessions}
               </div>
               <div className="stack">
                 {dashboard.recentSessions.length > 0 ? (
                   dashboard.recentSessions.map((session) => (
-                    <div key={`${session.label}-${session.detail}`}>
-                      <div className="body-md" style={{ fontWeight: 700 }}>
-                        {session.label}
-                      </div>
-                      <div className="caption" style={{ marginTop: 4 }}>
-                        {session.detail}
+                    <div key={`${session.label}-${session.detail}`} className="row start">
+                      <div>
+                        <div className="body-md" style={{ fontWeight: 700 }}>
+                          {session.label}
+                        </div>
+                        <div className="caption" style={{ marginTop: 4 }}>
+                          {session.detail}
+                        </div>
                       </div>
                     </div>
                   ))
@@ -200,7 +242,7 @@ export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScre
               </div>
             </Card>
 
-            <Card className="analytics-summary-card p-16">
+            <Card className="analytics-insight-card p-16">
               <div className="eyebrow" style={{ marginBottom: 8 }}>
                 {dashboard.copy.checkInSection}
               </div>
@@ -223,6 +265,53 @@ export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScre
           </div>
         </Section>
 
+          <div className="stack">
+          <PrimaryButton href={`${basePath}/trends?range=${dashboard.range.id}`} className="focus-ring">
+            {dashboard.copy.insightsSection}
+          </PrimaryButton>
+          <Link href="/progress/phase-review" className="button-secondary focus-ring">
+            {dashboard.copy.nextFocusSection}
+          </Link>
+        </div>
+
+        <section className="section">
+          <div className="stack">
+            <Link href="/progress/measurements" className="list-card focus-ring">
+              <div style={{ flex: 1 }}>
+                <div className="body-md" style={{ fontWeight: 700 }}>
+                  {dashboard.copy.weight}
+                </div>
+                <div className="caption">{dashboard.copy.currentGoal}</div>
+              </div>
+              <span className="icon muted" aria-hidden="true">
+                chevron_right
+              </span>
+            </Link>
+            <Link href="/progress/photos" className="list-card focus-ring">
+              <div style={{ flex: 1 }}>
+                <div className="body-md" style={{ fontWeight: 700 }}>
+                  {dashboard.copy.recentSessions}
+                </div>
+                <div className="caption">{dashboard.copy.chartTapHint}</div>
+              </div>
+              <span className="icon muted" aria-hidden="true">
+                chevron_right
+              </span>
+            </Link>
+            <Link href="/progress/check-in" className="list-card focus-ring">
+              <div style={{ flex: 1 }}>
+                <div className="body-md" style={{ fontWeight: 700 }}>
+                  {dashboard.copy.checkInSection}
+                </div>
+                <div className="caption">{dashboard.copy.noCheckIn}</div>
+              </div>
+              <span className="icon muted" aria-hidden="true">
+                chevron_right
+              </span>
+            </Link>
+          </div>
+        </section>
+
         {hasData ? null : (
           <section className="section">
             <Card className="analytics-empty p-16">
@@ -235,15 +324,6 @@ export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScre
             </Card>
           </section>
         )}
-
-        <div className="stack">
-          <PrimaryButton href="/progress" className="focus-ring">
-            {dashboard.copy.heroLabel}
-          </PrimaryButton>
-          <Link href="/progress/phase-review" className="button-secondary focus-ring">
-            {dashboard.copy.nextFocusSection}
-          </Link>
-        </div>
       </main>
     </Screen>
   );
