@@ -1188,7 +1188,7 @@ export function ProfileImpactReviewScreen() {
     whatChanged: [],
     currentProgram: [program.phaseLabel, program.goal, program.duration],
     potentialImpact: ["No meaningful difference from the saved profile."],
-    recommendedAction: "No program rebuild is required."
+    recommendedAction: "No further update is needed."
   };
 
   const canApply = review.classification === "PROGRAM_ADJUSTMENT_RECOMMENDED" || review.classification === "MINOR_REVIEW";

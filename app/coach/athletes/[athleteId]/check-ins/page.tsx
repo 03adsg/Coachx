@@ -52,7 +52,7 @@ export default async function CoachAthleteCheckInsPage({ params }: { params: Pro
           {detail.summary.displayName}
         </h1>
         <p className="caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
-          Latest submitted weekly check-in and deterministic review context.
+          Latest submitted weekly check-in and review context.
         </p>
       </section>
 

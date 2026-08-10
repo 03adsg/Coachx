@@ -38,7 +38,7 @@ async function resolveAuth(request: NextRequest, response: NextResponse) {
   const supabase = createSupabaseRouteClient(request, response);
 
   if (!supabase) {
-    return { supabase: null, userId: null, errorResponse: createFallbackResponse("Supabase is not configured.") };
+    return { supabase: null, userId: null, errorResponse: createFallbackResponse("AthlexForce is not ready yet.") };
   }
 
   const {

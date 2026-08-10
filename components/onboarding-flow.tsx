@@ -217,12 +217,12 @@ export function EntryScreen() {
     <Screen shellClassName="onboarding-shell" topbar={<header className="topbar center"><BrandLogo variant="full" width={156} alt="AthlexForce" /></header>}>
       <main className="content">
         <section className="section">
-          <div className="eyebrow" style={{ color: "#b6ff00" }}>{auth.isDemoMode ? "PROVISIONAL ENTRY" : "ATHLETE ENTRY"}</div>
+          <div className="eyebrow" style={{ color: "#b6ff00" }}>ATHLETE ENTRY</div>
           <h1 className="headline-xl" style={{ marginTop: 12 }}>Welcome back</h1>
           <p className="body-lg muted" style={{ marginTop: 12 }}>
             {auth.isConfigured
               ? "Sign in to restore your athlete profile and resume the correct route."
-              : "Continue with the demo athlete flow or resume your saved onboarding state."}
+              : "Continue where you left off or start fresh."}
           </p>
         </section>
 
@@ -232,7 +232,7 @@ export function EntryScreen() {
               <Card className="p-16 onboarding-callout">
                 <div className="stack" style={{ gap: 12 }}>
                   <div>
-                    <div className="eyebrow">Athlete sign-in</div>
+                    <div className="eyebrow">Sign in</div>
                     <p className="caption" style={{ marginTop: 6 }}>
                       {auth.statusLabel}
                     </p>
@@ -245,7 +245,7 @@ export function EntryScreen() {
                       </div>
                       <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
                         <span className="program-template-chip">Session restored</span>
-                        <span className="program-template-chip">Auth ready</span>
+                        <span className="program-template-chip">Ready</span>
                       </div>
                       <PrimaryButton className="focus-ring" onClick={() => router.push("/")}>Open app</PrimaryButton>
                       <SecondaryButton
@@ -280,7 +280,7 @@ export function EntryScreen() {
                         {submitting ? "Working..." : mode === "sign-in" ? "Sign in" : "Create account"}
                       </PrimaryButton>
                       <p className="caption" style={{ marginTop: 4 }}>
-                        {mode === "sign-in" ? "Use an existing Supabase athlete account." : "Create a new athlete account with email confirmation if enabled."}
+                        {mode === "sign-in" ? "Use your existing athlete account." : "Create a new athlete account with email confirmation if enabled."}
                       </p>
                       {status ? (
                         <p className="caption" style={{ color: "#ff9b9b" }}>
@@ -295,8 +295,8 @@ export function EntryScreen() {
 
             {auth.isDemoMode ? (
               <OnboardingStickyActions
-                secondary={<SecondaryButton className="focus-ring" onClick={() => router.push(entryDestination === "/" ? "/" : entryDestination)}>Resume saved flow</SecondaryButton>}
-                primary={<PrimaryButton className="focus-ring" onClick={() => router.push(entryDestination)}>Open demo flow</PrimaryButton>}
+                secondary={<SecondaryButton className="focus-ring" onClick={() => router.push(entryDestination === "/" ? "/" : entryDestination)}>Continue saved flow</SecondaryButton>}
+                primary={<PrimaryButton className="focus-ring" onClick={() => router.push(entryDestination)}>Open flow</PrimaryButton>}
               />
             ) : null}
           </>
@@ -322,7 +322,7 @@ export function EntryScreen() {
 
             {auth.isDemoMode ? (
               <OnboardingStickyActions
-                secondary={<SecondaryButton className="focus-ring" onClick={() => router.push(entryDestination === "/" ? "/" : entryDestination)}>Resume saved flow</SecondaryButton>}
+                secondary={<SecondaryButton className="focus-ring" onClick={() => router.push(entryDestination === "/" ? "/" : entryDestination)}>Continue saved flow</SecondaryButton>}
                 primary={<PrimaryButton className="focus-ring" onClick={() => router.push(entryDestination)}>Continue</PrimaryButton>}
               />
             ) : null}
@@ -374,7 +374,7 @@ export function ProfileScreen() {
   return (
     <FlowShell step="profile" title="Profile" subtitle="Name, age, height, weight, and units." backHref="/onboarding">
       <section className="section">
-        <SectionTitle title="What should we call you?" caption="Use the same athlete context throughout the demo flow." />
+              <SectionTitle title="What should we call you?" caption="Use the same athlete details throughout the flow." />
       </section>
 
       <section className="section stack">
@@ -635,7 +635,7 @@ export function HealthLimitationsScreen() {
           <Card className="program-section-card">
             <div className="eyebrow">Coach review required</div>
             <p className="caption" style={{ marginTop: 8 }}>
-              A significant limitation was entered. The demo keeps the state visible and routes the plan through review.
+              A significant limitation was entered. The plan stays visible and routes through review.
             </p>
           </Card>
         ) : null}
@@ -777,13 +777,13 @@ export function BuildingPlanScreen() {
   const { state, completeStep } = useOnboardingStore();
 
   return (
-    <FlowShell step="building-plan" title="Building Your Plan" subtitle="A calm processing state with deterministic fixture generation." backHref="/onboarding/review" rightLabel="Next" rightHref="/onboarding/plan-ready">
+    <FlowShell step="building-plan" title="Building Your Plan" subtitle="A calm pause while your plan is being prepared." backHref="/onboarding/review" rightLabel="Next" rightHref="/onboarding/plan-ready">
       <section className="section stack">
         <Card className="program-hero-card p-16">
           <div className="stack" style={{ gap: 16 }}>
             <div className="eyebrow">Processing</div>
             <h1 className="headline-lg">Building your plan</h1>
-            <p className="caption">No fake AI copy. The plan is generated from the structured demo state.</p>
+            <p className="caption">The plan is built from the details you entered.</p>
             <div className="progress-track">
               <div className="progress-fill" style={{ width: "72%" }} />
             </div>

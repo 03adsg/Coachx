@@ -210,7 +210,7 @@ export function WeeklyCheckInScreen() {
             <Card className="p-16 elevated">
               <div className="eyebrow">Loading check-in</div>
               <div className="headline-md" style={{ marginTop: 10 }}>
-                Restoring your answers from Supabase
+                Restoring your answers
               </div>
             </Card>
           </section>
@@ -257,7 +257,7 @@ export function WeeklyCheckInScreen() {
           <div className="progress-phase-timeline progress-phase-timeline--review" style={{ marginTop: 12 }}>
             <span className="accent">{store.currentQuestionIndex + 1} / {store.questions.length}</span>
             <span>{store.checkin?.status?.replaceAll("_", " ").toUpperCase() ?? "IN PROGRESS"}</span>
-            <span>{store.source === "remote" ? "Supabase" : "Demo"}</span>
+            <span>{store.source === "remote" ? "Saved" : "Draft"}</span>
           </div>
         </section>
 
@@ -275,7 +275,7 @@ export function WeeklyCheckInScreen() {
               </span>
             </div>
             <p className="caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
-              {store.summary?.review.summary ?? "Answers and adherence data are being captured from the athlete's remote state."}
+              {store.summary?.review.summary ?? "Your answers and adherence context are being captured."}
             </p>
           </Card>
         </section>

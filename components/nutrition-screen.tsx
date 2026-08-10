@@ -386,10 +386,10 @@ function NutritionStateScreen({
             </h1>
             <p className="caption" style={{ marginTop: 8 }}>
               {mode === "loading"
-                ? "The nutrition shell is preparing the day and syncing the local demo state."
+                ? "The nutrition view is preparing your day."
                 : mode === "empty"
                   ? "There is no nutrition plan for this day yet."
-                  : "The nutrition demo state could not be rendered. Try again from the current day."}
+                  : "The nutrition view could not be shown. Try again from the current day."}
             </p>
             {mode === "error" ? (
               <div style={{ marginTop: 16 }}>

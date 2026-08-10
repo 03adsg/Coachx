@@ -29,7 +29,7 @@ export default async function CoachReviewsPage() {
           <Card className="p-16">
             <div className="eyebrow">Reviews unavailable</div>
             <h1 className="headline-lg" style={{ marginTop: 8 }}>
-              Review data is pending migration
+              Review data is not ready yet
             </h1>
           </Card>
         </section>
@@ -90,4 +90,3 @@ export default async function CoachReviewsPage() {
     </CoachPanelShell>
   );
 }
-

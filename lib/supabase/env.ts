@@ -34,8 +34,8 @@ export function getSupabaseConfigSummary() {
   const config = getSupabaseConfig();
 
   if (!config) {
-    return "Athlete sign-in is unavailable.";
+    return "AthlexForce sign-in is unavailable.";
   }
 
-  return "Athlete sign-in is ready.";
+  return "AthlexForce sign-in is ready.";
 }

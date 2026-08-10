@@ -206,7 +206,7 @@ export default function WorkoutOverviewPage() {
             return (
               <Card key={exercise.id} className="workout-overview-card">
                 <div className="workout-overview-card__media">
-                  <img alt={`${definition.name} demo`} className="workout-overview-card__image" src={heroImage} />
+                  <img alt={`${definition.name} exercise illustration`} className="workout-overview-card__image" src={heroImage} />
                   <div className="workout-overview-card__fade" />
                   <div className="workout-overview-card__content">
                     <div className="workout-overview-card__number">{String(index + 1).padStart(2, "0")}</div>

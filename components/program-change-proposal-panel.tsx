@@ -317,15 +317,15 @@ export function ProgramChangeProposalPanel({
     <Card className="p-16">
       <div className="row start">
         <div>
-          <div className="eyebrow">COACH ENGINE</div>
+          <div className="eyebrow">COACH INSIGHT</div>
           <div className="headline-md" style={{ marginTop: 6 }}>
             {title}
           </div>
         </div>
-        <span className="progress-chip progress-chip--accent">{recommendation?.source === "openai" ? "OPENAI" : recommendation?.source === "fallback" ? "FALLBACK" : "READY"}</span>
+        <span className="progress-chip progress-chip--accent">{recommendation ? "REVIEW" : "READY"}</span>
       </div>
       <p className="caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
-        Recommendations are review-only. The active program is not mutated until a proposal is explicitly applied.
+        Recommendations are for review only. The active program changes only after you confirm a proposal.
       </p>
 
       {recommendation ? (
@@ -369,16 +369,16 @@ export function ProgramChangeProposalPanel({
           </div>
 
           <Card className="p-16" style={{ background: "var(--background-charcoal)" }}>
-            <div className="eyebrow">Application boundary</div>
+            <div className="eyebrow">Change details</div>
             <div className="body-md" style={{ marginTop: 8, fontWeight: 700 }}>
               {payload?.application.reason ?? "Review-only until explicitly confirmed."}
             </div>
             <p className="caption" style={{ marginTop: 8, lineHeight: 1.6 }}>
-              Status: {recommendation.applicationStatus.toUpperCase()} Â· Source: {recommendation.source.toUpperCase()}
+              Status: {recommendation.applicationStatus.toUpperCase()}
             </p>
             {recommendation.fallbackReason ? (
               <p className="caption" style={{ marginTop: 6, lineHeight: 1.6 }}>
-                Fallback note: {recommendation.fallbackReason}
+                Context note: {recommendation.fallbackReason}
               </p>
             ) : null}
           </Card>
@@ -386,9 +386,9 @@ export function ProgramChangeProposalPanel({
           <Card className="p-16">
             <div className="row start">
               <div>
-                <div className="eyebrow">Proposal preview</div>
+                <div className="eyebrow">Proposal review</div>
                 <div className="body-md" style={{ marginTop: 6, fontWeight: 700 }}>
-                  Select a safe command and preview the change.
+                  Select a safe command and review the change.
                 </div>
               </div>
               <span className="progress-chip progress-chip--accent">
@@ -423,14 +423,14 @@ export function ProgramChangeProposalPanel({
                       {selectedOption.note}
                     </p>
                     <p className="caption" style={{ marginTop: 6, lineHeight: 1.6 }}>
-                      Validation hint: {selectedOption.validationHint}
+                      Why this fits: {selectedOption.validationHint}
                     </p>
                   </Card>
                 ) : null}
 
                 <div className="stack" style={{ gap: 10 }}>
                   <PrimaryButton className="focus-ring" onClick={() => void createProposal()} disabled={proposalLoading || !selectedOption}>
-                    {proposalLoading ? "Working..." : proposal ? "Refresh preview" : "Create preview proposal"}
+                    {proposalLoading ? "Working..." : proposal ? "Refresh review" : "Create proposal"}
                   </PrimaryButton>
                   <SecondaryButton className="focus-ring" onClick={() => void rejectRecommendationOrProposal()} disabled={proposalLoading || loading || !recommendation}>
                     Dismiss
@@ -439,7 +439,7 @@ export function ProgramChangeProposalPanel({
               </div>
             ) : (
               <p className="caption" style={{ marginTop: 12, lineHeight: 1.6 }}>
-                No safe command preview is available for the current program state.
+                No safe command is available for the current program state.
               </p>
             )}
           </Card>
@@ -477,7 +477,7 @@ export function ProgramChangeProposalPanel({
                   {applyLoading ? "Applying..." : "Apply change"}
                 </PrimaryButton>
                 <SecondaryButton className="focus-ring" onClick={() => void rejectRecommendationOrProposal()} disabled={applyLoading}>
-                  Reject preview
+                  Reject proposal
                 </SecondaryButton>
               </div>
             </div>
@@ -485,7 +485,7 @@ export function ProgramChangeProposalPanel({
         </div>
       ) : (
         <p className="caption" style={{ marginTop: 12, lineHeight: 1.6 }}>
-          No recommendation has been generated yet.
+          No recommendation is ready yet.
         </p>
       )}
 

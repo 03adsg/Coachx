@@ -60,7 +60,7 @@ export default async function CoachAthleteRecommendationsPage({ params }: { para
               <Card key={recommendation.id} className="p-16">
                 <div className="row start">
                   <div>
-                    <div className="eyebrow">{recommendation.source}</div>
+                    <div className="eyebrow">{recommendation.source === "openai" ? "Live insight" : "Saved insight"}</div>
                     <div className="headline-md" style={{ marginTop: 6 }}>
                       {recommendation.title}
                     </div>

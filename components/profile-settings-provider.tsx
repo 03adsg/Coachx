@@ -131,7 +131,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
           pendingReview: null,
           saveState: "saved",
           saveError: null,
-          lastSavedLabel: "Loaded from Supabase"
+          lastSavedLabel: "Loaded"
         }));
         if (remote.localePresent) {
           setLocale(remote.snapshot.profile.locale);
@@ -160,7 +160,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
           setState((current) => ({
             ...current,
             saveState: "error",
-            saveError: "Unable to load saved profile from Supabase."
+            saveError: "Unable to load your saved profile."
           }));
         }
       }
@@ -206,7 +206,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
         setState((current) => ({
           ...current,
           saveState: "error",
-          saveError: "Unable to save profile to Supabase."
+          saveError: "Unable to save your profile."
         }));
       });
       return review;
@@ -243,7 +243,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
           setState((current) => ({
             ...current,
             saveState: "error",
-            saveError: "Unable to save language preference to Supabase."
+            saveError: "Unable to save your language preference."
           }));
         });
       }
@@ -266,7 +266,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
           setState((current) => ({
             ...current,
             saveState: "error",
-            saveError: "Unable to save notification preferences to Supabase."
+            saveError: "Unable to save your notification preferences."
           }));
         });
       }

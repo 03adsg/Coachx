@@ -134,9 +134,9 @@ export default function ProfilePage() {
           <Card className="elevated p-16">
             <div className="row start">
               <div>
-                <div className="eyebrow">Development mode</div>
+                <div className="eyebrow">Athlete settings</div>
                 <p className="body-md" style={{ marginTop: 6, color: "var(--text-secondary)" }}>
-                  This build uses local fixture data and can later switch to Supabase without changing the UI.
+                  This app is ready to connect to your athlete data without changing the experience.
                 </p>
                 {pendingReview ? (
                   <p className="caption" style={{ marginTop: 10 }}>

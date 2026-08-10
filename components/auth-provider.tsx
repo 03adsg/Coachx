@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const client = getSupabaseBrowserClient();
 
     if (!client) {
-      const notConfigured = "Supabase auth is not configured.";
+      const notConfigured = "Sign-in is not available right now.";
 
       return {
         isConfigured: false,
