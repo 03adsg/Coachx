@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Screen } from "@/components/screen";
 import { Card } from "@/components/ui";
 import { useAuthStore } from "@/components/auth-provider";
+import { useTranslator } from "@/components/locale-provider";
 import { useProfileSettingsStore } from "@/components/profile-settings-provider";
 import { useProgramStore } from "@/components/program-provider";
 
@@ -13,6 +14,7 @@ export default function ProfilePage() {
   const auth = useAuthStore();
   const { saved, pendingReview } = useProfileSettingsStore();
   const { program } = useProgramStore();
+  const { t } = useTranslator();
 
   return (
     <Screen
@@ -21,7 +23,7 @@ export default function ProfilePage() {
       topbar={
         <header className="topbar center">
           <div className="eyebrow" style={{ margin: 0, color: "#c6c6c7" }}>
-            Profile
+            {t("profile.hubTitle")}
           </div>
         </header>
       }
@@ -32,11 +34,11 @@ export default function ProfilePage() {
             <div>
               <h1 className="headline-lg">{saved.profile.name}</h1>
               <p className="caption" style={{ marginTop: 8 }}>
-                Provisional profile hub and foundation settings
+                {t("profile.provisionalHub")}
               </p>
               {auth.user?.email ? (
                 <p className="caption" style={{ marginTop: 4 }}>
-                  Signed in as {auth.user.email}
+                  {t("profile.signedInAs")} {auth.user.email}
                 </p>
               ) : null}
             </div>
@@ -48,30 +50,30 @@ export default function ProfilePage() {
           <Card className="p-16">
             <div className="row">
               <div>
-                <div className="eyebrow">Current plan</div>
+                <div className="eyebrow">{t("profile.currentPlan")}</div>
                 <h2 className="headline-md" style={{ marginTop: 6 }}>
                   {saved.goals.mainGoal}
                 </h2>
               </div>
-              <span className="pill">{program?.status === "active" ? "Active" : "Proposed"}</span>
+              <span className="pill">{program?.status === "active" ? t("profile.active") : t("profile.proposed")}</span>
             </div>
             <div className="grid-3" style={{ marginTop: 16 }}>
               <div>
                 <div className="headline-md">{saved.trainingPreferences.daysPerWeek}</div>
                 <div className="eyebrow" style={{ marginTop: 4 }}>
-                  Days / week
+                  {t("profile.daysPerWeek")}
                 </div>
               </div>
               <div>
                 <div className="headline-md">{saved.trainingPreferences.duration}</div>
                 <div className="eyebrow" style={{ marginTop: 4 }}>
-                  Duration
+                  {t("profile.duration")}
                 </div>
               </div>
               <div>
                 <div className="headline-md">{saved.trainingPreferences.location}</div>
                 <div className="eyebrow" style={{ marginTop: 4 }}>
-                  Location
+                  {t("profile.location")}
                 </div>
               </div>
             </div>
@@ -85,7 +87,7 @@ export default function ProfilePage() {
                 <div>
                   <div className="eyebrow">Profile editing</div>
                   <div className="body-md" style={{ marginTop: 6, fontWeight: 700 }}>
-                    Open profile & preferences
+                    {t("profile.profileEditing")}
                   </div>
                 </div>
                 <span className="icon" aria-hidden="true">
@@ -101,7 +103,7 @@ export default function ProfilePage() {
                 <div>
                   <div className="eyebrow">Notifications</div>
                   <div className="body-md" style={{ marginTop: 6, fontWeight: 700 }}>
-                    Workout, progress and coaching reminders
+                    {t("profile.notifications")}
                   </div>
                 </div>
                 <span className="icon" aria-hidden="true">
@@ -117,7 +119,7 @@ export default function ProfilePage() {
                 <div>
                   <div className="eyebrow">Program overview</div>
                   <div className="body-md" style={{ marginTop: 6, fontWeight: 700 }}>
-                    Review the current phase
+                    {t("profile.programOverview")}
                   </div>
                 </div>
                 <span className="icon" aria-hidden="true">

@@ -866,3 +866,20 @@
 - `OPENAI_API_KEY` is configured in Vercel production and preview, and a real OpenAI Responses API request now succeeds in production.
 - Slice 10 private-beta readiness is now unblocked on the OpenAI requirement; remaining readiness depends on rollout policy rather than missing infrastructure.
 
+## Slice 10 â€” Internationalization + Production Readiness (current)
+
+- Added centralized locale support for `es`, `ca`, `en`, and `de`.
+- Persisted athlete locale in Supabase-backed profile snapshots.
+- Bootstrapped the HTML `lang` attribute from the stored locale.
+- Added locale-aware date and number formatting in the main services.
+- Wired the shared locale store into the key athlete, profile, calendar, program, onboarding, and coach shell surfaces.
+- Local validation passes:
+  - `pnpm typecheck`
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm build`
+- Remaining work:
+  - deploy the current HEAD to the existing Vercel project
+  - run live browser smoke checks at the required mobile widths
+  - confirm the live deployment reflects the current commit
+

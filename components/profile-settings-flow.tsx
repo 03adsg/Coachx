@@ -10,6 +10,7 @@ import { ChoiceButton, PillToggle } from "@/components/onboarding-ui";
 import { useOnboardingStore } from "@/components/onboarding-provider";
 import { useProfileSettingsStore } from "@/components/profile-settings-provider";
 import { useProgramStore } from "@/components/program-provider";
+import { useTranslator } from "@/components/locale-provider";
 import { type GoalPriority } from "@/lib/onboarding-data";
 import { type NotificationCategory, type NotificationSettings, type ProfileSnapshot } from "@/lib/profile-settings-data";
 
@@ -518,7 +519,8 @@ export function ProfilePreferencesIndexScreen() {
 
 export function ProfilePersonalInfoScreen() {
   const router = useRouter();
-  const { saved, commitProfileSnapshot, saveState } = useProfileSettingsStore();
+  const { saved, commitProfileSnapshot, commitLocale, saveState } = useProfileSettingsStore();
+  const { t } = useTranslator();
   const [draft, setDraft] = useSyncedProfileDraft(saved);
   const [lastReview, setLastReview] = useState<string | null>(null);
   const guard = useUnsavedGuard(dirtyFromState(saved, draft), "/profile/preferences");
@@ -540,9 +542,22 @@ export function ProfilePersonalInfoScreen() {
                 <TextField label="Age" type="number" inputMode="numeric" value={draft.profile.age} onChange={(value) => setDraft((current) => ({ ...current, profile: { ...current.profile, age: Number(value || 0) } }))} />
               </div>
               <div style={{ flex: "1 1 140px" }}>
-                <div className="eyebrow" style={{ marginBottom: 8 }}>Timezone</div>
+                <div className="eyebrow" style={{ marginBottom: 8 }}>Language</div>
                 <Card className="p-16" style={{ borderRadius: 14 }}>
-                  <div className="body-md" style={{ fontWeight: 700 }}>Europe/Madrid</div>
+                  <div className="stack" style={{ gap: 8 }}>
+                    {(["es", "ca", "en", "de"] as const).map((locale) => (
+                      <ChoiceButton
+                        key={locale}
+                        label={t(`locale.${locale}`)}
+                        selected={draft.profile.locale === locale}
+                        onClick={() => {
+                          setDraft((current) => ({ ...current, profile: { ...current.profile, locale } }));
+                          commitLocale(locale);
+                        }}
+                        compact
+                      />
+                    ))}
+                  </div>
                 </Card>
               </div>
             </div>

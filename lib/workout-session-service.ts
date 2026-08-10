@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { formatDate, getCurrentLocale } from "@/lib/i18n";
 import type {
   Database,
   ScheduledWorkoutsRow,
@@ -187,11 +188,12 @@ function buildHistoryLabel(performance: WorkoutHistoryPerformance | null, fallba
   }
 
   const date = new Date(performance.completedAt);
-  const formattedDate = new Intl.DateTimeFormat("en-US", {
+  const formattedDate = formatDate(date, {
     month: "short",
     day: "numeric",
-    timeZone: "UTC"
-  }).format(date);
+    timeZone: "UTC",
+    locale: getCurrentLocale()
+  });
 
   return `${formattedDate.toUpperCase()} | COMPLETED`;
 }
@@ -216,7 +218,7 @@ function buildWorkoutSummary(
     duration: computeSummaryDuration(sessionRow, fallbackDuration),
     exercisesCompleted: `${completeExerciseCount} / ${exerciseRows.length}`,
     setsCompleted: String(completedSetRows.length),
-    totalVolume: `${Math.round(computeVolume(completedSetRows)).toLocaleString("en-US")} kg`,
+    totalVolume: `${Math.round(computeVolume(completedSetRows)).toLocaleString(getCurrentLocale())} kg`,
     insight: historyEntries.length > 0 ? "Workout history is now stored remotely and can power the next progression step." : fallbackSummary.insight,
     nextTime:
       historyEntries.length > 0

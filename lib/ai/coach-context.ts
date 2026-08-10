@@ -306,6 +306,7 @@ async function loadAthleteContext(client: SupabaseClient<Database>, userId: stri
   const profile = snapshot.snapshot.profile;
 
   return {
+    locale: profile.locale,
     displayName: profile.name,
     onboardingStatus: snapshot.onboardingStatus,
     goal: snapshot.snapshot.goals.mainGoal,
@@ -354,6 +355,7 @@ export async function buildCoachRecommendationContext(client: SupabaseClient<Dat
     contextType,
     contextKey,
     generatedAt: new Date().toISOString(),
+    locale: athlete.locale,
     athlete,
     program,
     workout: {

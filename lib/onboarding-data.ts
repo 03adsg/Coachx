@@ -1,3 +1,4 @@
+import { getCurrentLocale, type Locale } from "@/lib/i18n";
 import { createProgressDemoState } from "@/lib/progress-data";
 
 export type OnboardingStepId =
@@ -29,6 +30,7 @@ export interface AthleteProfile {
   heightCm: number;
   weightKg: number;
   unitSystem: UnitSystem;
+  locale: Locale;
 }
 
 export interface GoalProfile {
@@ -232,14 +234,26 @@ function baselinePhotos(): BaselinePhotos {
   };
 }
 
-export function createOnboardingDemoState(): OnboardingState {
+function weekdayShortLabels(locale: Locale) {
+  return [new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(new Date("2026-08-03T00:00:00Z")),
+    new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(new Date("2026-08-04T00:00:00Z")),
+    new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(new Date("2026-08-05T00:00:00Z")),
+    new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(new Date("2026-08-06T00:00:00Z")),
+    new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(new Date("2026-08-07T00:00:00Z")),
+    new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(new Date("2026-08-08T00:00:00Z")),
+    new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(new Date("2026-08-09T00:00:00Z"))];
+}
+
+export function createOnboardingDemoState(locale: Locale = getCurrentLocale()): OnboardingState {
+  const days = weekdayShortLabels(locale);
   return {
     profile: {
       name: "Alex",
       age: 29,
       heightCm: 171,
       weightKg: 62.8,
-      unitSystem: "metric"
+      unitSystem: "metric",
+      locale
     },
     goals: {
       mainGoal: "Body Recomposition",
@@ -258,7 +272,7 @@ export function createOnboardingDemoState(): OnboardingState {
     },
     trainingPreferences: {
       daysPerWeek: 4,
-      preferredDays: ["Mon", "Tue", "Thu", "Sat"],
+      preferredDays: [days[0], days[1], days[3], days[5]],
       duration: "60-75 min",
       location: "Full gym",
       equipment: ["Barbell", "Dumbbells", "Cable", "Machine"],

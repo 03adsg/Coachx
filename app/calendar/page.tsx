@@ -3,9 +3,11 @@
 import { Card, IconButton, PrimaryButton, Section } from "@/components/ui";
 import { Screen } from "@/components/screen";
 import { useProgramStore } from "@/components/program-provider";
+import { useTranslator } from "@/components/locale-provider";
 
 export default function CalendarPage() {
   const { getCalendarDays, getDaySummary, monthLabel, selectedDateKey, weekdays } = useProgramStore();
+  const { t } = useTranslator();
   const activeDateKey = selectedDateKey ?? "2026-08-08";
   const days = getCalendarDays(activeDateKey, activeDateKey);
   const day = getDaySummary(activeDateKey);
@@ -21,7 +23,7 @@ export default function CalendarPage() {
       topbar={
         <header className="topbar center">
           <div className="eyebrow" style={{ margin: 0, color: "#c6c6c7" }}>
-            Calendar
+            {t("calendar.title")}
           </div>
         </header>
       }
@@ -29,11 +31,11 @@ export default function CalendarPage() {
       <main className="content tight">
         <section className="calendar-toolbar">
           <div className="calendar-month-row">
-            <IconButton icon="chevron_left" label="Previous month" />
+            <IconButton icon="chevron_left" label={t("calendar.previousMonth")} />
             <h1 className="headline-md" style={{ textTransform: "uppercase", letterSpacing: "0.03em", textAlign: "center" }}>
-              {monthLabel ?? "August 2026"}
+              {monthLabel ?? t("calendar.monthFallback")}
             </h1>
-            <IconButton icon="chevron_right" label="Next month" />
+            <IconButton icon="chevron_right" label={t("calendar.nextMonth")} />
           </div>
 
           <div className="calendar-weekdays">
@@ -100,7 +102,7 @@ export default function CalendarPage() {
                   <span className="icon muted" style={{ fontSize: 18 }}>
                     restaurant
                   </span>
-                  <span className="body-md">Nutrition</span>
+                  <span className="body-md">{t("calendar.nutrition")}</span>
                 </div>
                 <div className="body-md" style={{ fontWeight: 700 }}>
                   {day.nutritionCalories}
@@ -114,7 +116,7 @@ export default function CalendarPage() {
                   <span className="icon muted" style={{ fontSize: 18 }}>
                     favorite
                   </span>
-                  <span className="body-md">Cardio &amp; Habits</span>
+                  <span className="body-md">{t("calendar.cardioHabits")}</span>
                 </div>
                 <div className="body-md">{day.cardio}</div>
                 <div className="caption" style={{ marginTop: 4 }}>
@@ -126,7 +128,7 @@ export default function CalendarPage() {
         </Section>
 
         <div className="sticky-action">
-          <PrimaryButton href={`/day/${day.dateKey}`}>View Day</PrimaryButton>
+          <PrimaryButton href={`/day/${day.dateKey}`}>{t("calendar.viewDay")}</PrimaryButton>
         </div>
       </main>
     </Screen>

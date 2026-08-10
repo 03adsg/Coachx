@@ -46,6 +46,7 @@ async function transpileLibraryChain() {
     "recommendations/change-proposal-service.ts",
     "notification-service.ts",
     "coach/coach-policy.ts",
+    "i18n.ts",
     "nutrition-data.ts",
     "workout-data.ts",
     "coachx-data.ts",

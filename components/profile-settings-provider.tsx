@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAuthStore } from "@/components/auth-provider";
+import { useLocale } from "@/components/locale-provider";
 import { useProgramStore } from "@/components/program-provider";
 import { useOnboardingStore } from "@/components/onboarding-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -27,6 +28,7 @@ import { loadNotificationPreferences, saveNotificationPreferences } from "@/lib/
 
 interface ProfileSettingsStoreValue extends ProfileSettingsState {
   commitProfileSnapshot: (nextSnapshot: ProfileSnapshot) => ProfileImpactReview;
+  commitLocale: (locale: ProfileSnapshot["profile"]["locale"]) => void;
   commitNotifications: (nextNotifications: NotificationSettings) => void;
   updateNotificationCategory: (categoryId: NotificationCategoryId, enabled: boolean) => void;
   setNotificationPermission: (permission: NotificationPermissionState) => void;
@@ -43,6 +45,7 @@ const ProfileSettingsContext = createContext<ProfileSettingsStoreValue | null>(n
 
 export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
   const auth = useAuthStore();
+  const { setLocale } = useLocale();
   const authRef = useRef(auth);
   const programStore = useProgramStore();
   const programStoreRef = useRef(programStore);
@@ -121,6 +124,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
           saveError: null,
           lastSavedLabel: "Loaded from Supabase"
         }));
+        setLocale(remote.snapshot.profile.locale);
         onboardingRef.current.setProfile(remote.snapshot.profile);
         onboardingRef.current.setGoals(remote.snapshot.goals);
         onboardingRef.current.setTrainingPreferences(remote.snapshot.trainingPreferences);
@@ -195,6 +199,43 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
         }));
       });
       return review;
+    };
+
+    const commitLocale: ProfileSettingsStoreValue["commitLocale"] = (nextLocale) => {
+      const nextSnapshot: ProfileSnapshot = {
+        ...state.saved,
+        profile: {
+          ...state.saved.profile,
+          locale: nextLocale
+        }
+      };
+
+      setLocale(nextLocale);
+      setState((current) => ({
+        ...current,
+        saved: nextSnapshot,
+        pendingReview: null,
+        saveState: "saved",
+        saveError: null,
+        lastSavedLabel: "Language saved"
+      }));
+      const client = getSupabaseBrowserClient();
+      const currentAuth = authRef.current;
+      if (currentAuth.isConfigured && currentAuth.user && client) {
+        void saveAthleteSnapshot(
+          client,
+          currentAuth.user.id,
+          nextSnapshot,
+          mapOnboardingStatus(onboardingRef.current.state.progress.status),
+          onboardingRef.current.state.progress.status === "complete" ? new Date().toISOString() : null
+        ).catch(() => {
+          setState((current) => ({
+            ...current,
+            saveState: "error",
+            saveError: "Unable to save language preference to Supabase."
+          }));
+        });
+      }
     };
 
     const commitNotifications: ProfileSettingsStoreValue["commitNotifications"] = (nextNotifications) => {
@@ -335,6 +376,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
     return {
       ...state,
       commitProfileSnapshot,
+      commitLocale,
       commitNotifications,
       updateNotificationCategory,
       setNotificationPermission,

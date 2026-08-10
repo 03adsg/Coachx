@@ -1,23 +1,27 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { CoachPanelShell } from "@/components/coach-panel-shell";
 import { Card, PrimaryButton, Section, StatTile } from "@/components/ui";
 import { loadCoachDashboard } from "@/lib/coach/coach-dashboard-service";
 import { loadCoachSessionContext } from "@/lib/coach/coach-auth-service";
+import { getInitialLocale, getTranslation, localeCookieName, type Locale } from "@/lib/i18n";
 
-function AccessDenied() {
+function AccessDenied({ locale }: { locale: Locale }) {
+  const t = (path: string) => getTranslation(locale, path);
+
   return (
     <CoachPanelShell activeTab="dashboard">
       <section className="section">
         <Card className="p-16">
-          <div className="eyebrow">Access denied</div>
+          <div className="eyebrow">{t("coach.accessDeniedTitle")}</div>
           <h1 className="headline-lg" style={{ marginTop: 8 }}>
-            Coach access required
+            {t("coach.dashboardTitle")}
           </h1>
           <p className="caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
-            This account is not configured as a coach or the coach tables are not available yet.
+            {t("coach.accessDeniedCopy")}
           </p>
           <div style={{ marginTop: 16 }}>
-            <PrimaryButton href="/entry">Go to entry</PrimaryButton>
+            <PrimaryButton href="/entry">{t("common.close")}</PrimaryButton>
           </div>
         </Card>
       </section>
@@ -26,9 +30,12 @@ function AccessDenied() {
 }
 
 export default async function CoachDashboardPage() {
+  const cookieStore = await cookies();
+  const locale = getInitialLocale(cookieStore.get(localeCookieName)?.value);
+  const t = (path: string) => getTranslation(locale, path);
   const session = await loadCoachSessionContext();
   if (!session?.isCoach) {
-    return <AccessDenied />;
+    return <AccessDenied locale={locale} />;
   }
 
   const dashboard = await loadCoachDashboard(session.client, session.userId).catch(() => null);
@@ -37,12 +44,12 @@ export default async function CoachDashboardPage() {
       <CoachPanelShell activeTab="dashboard">
         <section className="section">
           <Card className="p-16">
-            <div className="eyebrow">Coach panel</div>
+            <div className="eyebrow">{t("coach.dashboardTitle")}</div>
             <h1 className="headline-lg" style={{ marginTop: 8 }}>
-              Coach data is not ready yet
+              {t("coach.dataNotReadyTitle")}
             </h1>
             <p className="caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
-              The coach tables or assignment data are unavailable in this environment.
+              {t("coach.dataNotReadyCopy")}
             </p>
           </Card>
         </section>
@@ -53,16 +60,16 @@ export default async function CoachDashboardPage() {
   return (
     <CoachPanelShell activeTab="dashboard">
       <section className="section">
-        <div className="eyebrow">Coach dashboard</div>
+        <div className="eyebrow">{t("coach.dashboardTitle")}</div>
         <h1 className="headline-lg" style={{ marginTop: 8 }}>
           {dashboard.coachName}
         </h1>
         <p className="caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
-          Assigned athletes only. Review the athletes that need attention first.
+          {t("coach.assignedAthletesOnly")}
         </p>
       </section>
 
-      <Section title="Queue" meta={`${dashboard.attentionQueue.length} needing attention`}>
+      <Section title={t("coach.needsAttention")} meta={`${dashboard.attentionQueue.length} needing attention`}>
         <div className="grid-3">
           <Card className="p-16">
             <StatTile label="Athletes" value={String(dashboard.athletes.length)} meta="Assigned" />
@@ -76,7 +83,7 @@ export default async function CoachDashboardPage() {
         </div>
       </Section>
 
-      <Section title="Needs attention" meta="Deterministic triage">
+      <Section title={t("coach.needsAttention")} meta="Deterministic triage">
         <div className="stack">
           {dashboard.attentionQueue.length > 0 ? (
             dashboard.attentionQueue.map((athlete) => (
@@ -112,7 +119,7 @@ export default async function CoachDashboardPage() {
         </div>
       </Section>
 
-      <Section title="Quick links">
+      <Section title={t("coach.quickLinks")}>
         <div className="stack">
           <Link className="list-card focus-ring" href="/coach/athletes">
             <div>
@@ -143,4 +150,3 @@ export default async function CoachDashboardPage() {
     </CoachPanelShell>
   );
 }
-

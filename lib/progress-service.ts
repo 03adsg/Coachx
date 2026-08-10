@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createProgressDemoState, type MeasurementHistory, type MeasurementType, type PhotoPose, type ProgressState, type ProgressTrendsState } from "@/lib/progress-data";
+import { formatDate, getCurrentLocale } from "@/lib/i18n";
 import type {
   Database,
   ProgressEntriesInsert,
@@ -44,21 +45,21 @@ function isMissingRelationError(error: { code?: string; message?: string } | nul
 }
 
 function formatDateLabel(dateKey: string) {
-  return new Intl.DateTimeFormat("en-US", {
+  return formatDate(new Date(`${dateKey}T00:00:00.000Z`), {
     month: "long",
     day: "numeric",
-    timeZone: "UTC"
-  }).format(new Date(`${dateKey}T00:00:00.000Z`));
+    timeZone: "UTC",
+    locale: getCurrentLocale()
+  });
 }
 
 function formatMonthDayLabel(dateKey: string) {
-  return new Intl.DateTimeFormat("en-US", {
+  return formatDate(new Date(`${dateKey}T00:00:00.000Z`), {
     month: "short",
     day: "numeric",
-    timeZone: "UTC"
-  })
-    .format(new Date(`${dateKey}T00:00:00.000Z`))
-    .toUpperCase();
+    timeZone: "UTC",
+    locale: getCurrentLocale()
+  }).toUpperCase();
 }
 
 function normalizeDateKey(dateKey: string) {

@@ -122,7 +122,7 @@ export async function generateCoachRecommendation(
     const response = await openAIClient.responses.create({
       model,
       instructions:
-        "You are the AthlexForce Coach Engine. Return one concise, structured recommendation. Use only the provided athlete context. Do not diagnose medical conditions. Do not instruct the app to mutate the active program automatically. Recommendations are review-only until a human confirms them.",
+        `You are the AthlexForce Coach Engine. Return one concise, structured recommendation in ${context.athlete.locale}. Use only the provided athlete context. Do not diagnose medical conditions. Do not instruct the app to mutate the active program automatically. Recommendations are review-only until a human confirms them.`,
       input: [
         {
           role: "user",

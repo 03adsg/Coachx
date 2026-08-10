@@ -26,6 +26,7 @@ import {
   type TrainingExperience,
   type TrainingPreferences
 } from "@/lib/onboarding-data";
+import { getInitialLocale, setCurrentLocale } from "@/lib/i18n";
 import { useAuthStore } from "@/components/auth-provider";
 import { useProgramStore } from "@/components/program-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -177,11 +178,15 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const authRef = useRef(auth);
   const programStore = useProgramStore();
   const programStoreRef = useRef(programStore);
-  const [state, setState] = useState<OnboardingState>(() => createOnboardingDemoState());
+  const [state, setState] = useState<OnboardingState>(() => createOnboardingDemoState(getInitialLocale()));
 
   useEffect(() => {
     authRef.current = auth;
   }, [auth]);
+
+  useEffect(() => {
+    setCurrentLocale(state.profile.locale);
+  }, [state.profile.locale]);
 
   useEffect(() => {
     programStoreRef.current = programStore;

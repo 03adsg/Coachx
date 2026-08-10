@@ -48,4 +48,10 @@ Date: 2026-08-10
 - Any future Vercel deployment protection or auth mismatch
 - Future migration drift if new schema changes are applied without live verification
 
+## Current status
+
+- Local validation for the internationalization and production-readiness pass is green.
+- The current implementation now includes locale persistence and locale-aware formatting.
+- The remaining beta step is to deploy the current HEAD to the existing Vercel project and smoke the live app again.
+
 

@@ -11,6 +11,7 @@ import type {
 import type { CoachRecommendationRecordView } from "@/lib/ai/schemas";
 import { getWorkoutAlternativeCards, getExerciseDefinition } from "@/lib/workout-data";
 import type { ProgramBundleView } from "@/lib/program-service";
+import { formatDate, getCurrentLocale } from "@/lib/i18n";
 
 const programChangeStatusValues = ["draft", "proposed", "needs_review", "approved", "rejected", "applied", "failed", "superseded", "expired"] as const;
 const programChangeTypeValues = [
@@ -201,7 +202,7 @@ function addDays(dateKey: string, days: number) {
 
 function formatDateLabel(dateKey: string) {
   const date = new Date(`${dateKey}T00:00:00Z`);
-  return new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: "UTC" }).format(date);
+  return formatDate(date, { weekday: "long", month: "short", day: "numeric", timeZone: "UTC", locale: getCurrentLocale() });
 }
 
 function parsePreviewSnapshot(snapshot: unknown): ProgramChangePreviewSnapshot {

@@ -536,3 +536,8 @@ If a slightly larger but still safe slice is acceptable, expand it to:
 - It gives the app a real user/profile record before workout, nutrition, and progress history are migrated.
 - It keeps the highest-risk persistence domains out of the first backend pass.
 
+### Locale follow-up
+
+- The production readiness pass now persists athlete locale on the profile snapshot path and reads it back into the UI shell.
+- Locale support is a presentation-layer concern and does not add new persistence tables beyond the existing athlete profile snapshot schema.
+

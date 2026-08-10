@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnatomyPreview } from "@/components/anatomy-preview";
 import { BrandLogo } from "@/components/brand-logo";
+import { useTranslator } from "@/components/locale-provider";
 import { useProfileSettingsStore } from "@/components/profile-settings-provider";
 import { useProgramStore } from "@/components/program-provider";
 import { Screen } from "@/components/screen";
@@ -12,23 +13,25 @@ import { Card, IconButton, PrimaryButton, Section, StatTile } from "@/components
 import type { ProgramDaySummary } from "@/lib/program-service";
 
 function RestDayHero({ athleteName, day }: { athleteName: string; day: ProgramDaySummary }) {
+  const { t } = useTranslator();
+
   return (
     <>
       <section className="section">
         <div className="eyebrow" style={{ color: "#b6ff00" }}>
-          Rest Day
+          {t("today.restDay")}
         </div>
-        <h1 className="headline-xl">Recovery Day</h1>
+        <h1 className="headline-xl">{t("today.recoveryDay")}</h1>
         <p className="body-lg muted" style={{ marginTop: 12 }}>
           {athleteName} · {day.dateLabel}
         </p>
       </section>
 
-      <Section title="Next Workout" meta={day.phase}>
+      <Section title={t("today.nextWorkout")} meta={day.phase}>
         <Card className="p-16 elevated" style={{ background: "var(--background-charcoal)" }}>
           <div className="row start" style={{ marginBottom: 16 }}>
             <div>
-              <span className="pill">Ready tomorrow</span>
+              <span className="pill">{t("today.readyTomorrow")}</span>
               <h2 className="headline-md" style={{ marginTop: 14 }}>
                 {day.workoutTitle}
               </h2>
@@ -43,9 +46,9 @@ function RestDayHero({ athleteName, day }: { athleteName: string; day: ProgramDa
             </button>
           </div>
           <div className="grid-3">
-            <StatTile label="Duration" value={day.duration} />
-            <StatTile label="Calories" value={day.nutritionCalories} />
-            <StatTile label="Cardio" value={day.cardio} />
+            <StatTile label={t("today.duration")} value={day.duration} />
+            <StatTile label={t("today.calories")} value={day.nutritionCalories} />
+            <StatTile label={t("today.cardio")} value={day.cardio} />
           </div>
         </Card>
       </Section>
@@ -57,6 +60,7 @@ function TodayContent() {
   const searchParams = useSearchParams();
   const { saved } = useProfileSettingsStore();
   const { getDaySummary, selectedDateKey } = useProgramStore();
+  const { t } = useTranslator();
   const isRestDay = searchParams.get("state") === "rest-day";
   const athleteName = saved.profile.name;
   const activeDateKey = selectedDateKey ?? "2026-08-08";
@@ -73,7 +77,7 @@ function TodayContent() {
         <header className="topbar">
           <IconButton icon="menu" label="Open menu" />
           <BrandLogo variant="horizontal" width={128} alt="AthlexForce" />
-          <Link href="/profile" aria-label="Open profile" className="profile-avatar focus-ring">
+          <Link href="/profile" aria-label={t("common.profile")} className="profile-avatar focus-ring">
             <img src="/coachx-avatar.svg" alt="Athlete profile" width={52} height={52} />
           </Link>
         </header>
@@ -103,7 +107,7 @@ function TodayContent() {
                       {day.workoutType}
                     </p>
                   </div>
-                  <button aria-label="Start workout" className="tap-target focus-ring" type="button" style={{ background: "var(--accent-primary)", borderRadius: 9999 }}>
+                  <button aria-label={t("common.startWorkout")} className="tap-target focus-ring" type="button" style={{ background: "var(--accent-primary)", borderRadius: 9999 }}>
                     <span className="icon filled" style={{ color: "var(--background-deep)" }} aria-hidden="true">
                       play_arrow
                     </span>
@@ -111,25 +115,25 @@ function TodayContent() {
                 </div>
 
                 <div className="grid-3">
-                  <StatTile label="Duration" value={day.duration} />
-                  <StatTile label="Volume" value={day.volume} />
-                  <StatTile label="Sets" value={day.sets} />
+                  <StatTile label={t("today.duration")} value={day.duration} />
+                  <StatTile label={t("today.volume")} value={day.volume} />
+                  <StatTile label={t("today.sets")} value={day.sets} />
                 </div>
               </Card>
             </Section>
 
-            <Section title="Target Zones">
+            <Section title={t("today.targetZones")}>
               <Card className="p-16 elevated" style={{ background: "var(--background-charcoal)" }}>
                 <AnatomyPreview focus={day.muscleFocus} />
                 <div className="grid-2" style={{ marginTop: 16 }}>
                   <div>
-                    <div className="eyebrow">Primary</div>
+                    <div className="eyebrow">{t("today.primary")}</div>
                     <div className="body-lg" style={{ marginTop: 4 }}>
                       {day.primaryTarget}
                     </div>
                   </div>
                   <div>
-                    <div className="eyebrow">Secondary</div>
+                    <div className="eyebrow">{t("today.secondary")}</div>
                     <div className="body-lg" style={{ marginTop: 4 }}>
                       {day.secondaryTarget}
                     </div>
@@ -169,7 +173,7 @@ function TodayContent() {
 
         <div className="page-cta">
           <PrimaryButton href={`/workout/${day.scheduledWorkoutId}`} className="focus-ring">
-            {isRestDay ? "View Workout" : "Start Workout"}
+            {isRestDay ? t("common.viewWorkout") : t("common.startWorkout")}
           </PrimaryButton>
         </div>
       </main>

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Locale } from "@/lib/i18n";
 
 export const coachRecommendationContextTypeSchema = z.enum(["weekly_checkin", "phase_review", "profile_review", "onboarding", "manual"]);
 
@@ -43,6 +44,7 @@ export const coachRecommendationPayloadSchema = z.object({
 export type CoachRecommendationPayload = z.infer<typeof coachRecommendationPayloadSchema>;
 
 export interface CoachRecommendationContextAthlete {
+  locale: Locale;
   displayName: string;
   onboardingStatus: "not_started" | "in_progress" | "completed";
   goal: string;
@@ -127,6 +129,7 @@ export interface CoachRecommendationContext {
   contextType: z.infer<typeof coachRecommendationContextTypeSchema>;
   contextKey: string;
   generatedAt: string;
+  locale: Locale;
   athlete: CoachRecommendationContextAthlete;
   program: CoachRecommendationContextProgram;
   workout: CoachRecommendationContextWorkout;

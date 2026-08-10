@@ -1,3 +1,5 @@
+import { formatDate, getCurrentLocale, type Locale } from "@/lib/i18n";
+
 export type NutritionDayType = "training" | "rest";
 
 export type MealSlotState = "planned" | "selected" | "eaten" | "completed";
@@ -108,40 +110,41 @@ function cloneNutritionDay(day: NutritionDay): NutritionDay {
   return JSON.parse(JSON.stringify(day)) as NutritionDay;
 }
 
-function formatNutritionDateLabel(dateKey: string) {
-  const date = new Date(`${dateKey}T00:00:00Z`);
-  return new Intl.DateTimeFormat("en-US", {
+function formatNutritionDateLabel(dateKey: string, locale: Locale = getCurrentLocale()) {
+  return formatDate(new Date(`${dateKey}T00:00:00Z`), {
     weekday: "long",
     month: "long",
     day: "numeric",
     year: "numeric",
-    timeZone: "UTC"
-  }).format(date);
+    timeZone: "UTC",
+    locale
+  });
 }
 
-function formatNutritionCalendarLabel(dateKey: string) {
-  const date = new Date(`${dateKey}T00:00:00Z`);
-  return new Intl.DateTimeFormat("en-US", {
+function formatNutritionCalendarLabel(dateKey: string, locale: Locale = getCurrentLocale()) {
+  return formatDate(new Date(`${dateKey}T00:00:00Z`), {
     weekday: "long",
     month: "long",
     day: "numeric",
-    timeZone: "UTC"
-  }).format(date);
+    timeZone: "UTC",
+    locale
+  });
 }
 
-function rebaseNutritionDay(day: NutritionDay, dateKey: string) {
+function rebaseNutritionDay(day: NutritionDay, dateKey: string, locale: Locale = getCurrentLocale()) {
   return {
     ...cloneNutritionDay(day),
     dateKey,
-    dateLabel: formatNutritionDateLabel(dateKey),
-    calendarLabel: formatNutritionCalendarLabel(dateKey)
+    dateLabel: formatNutritionDateLabel(dateKey, locale),
+    calendarLabel: formatNutritionCalendarLabel(dateKey, locale)
   };
 }
 
-const trainingDay = createNutritionDay({
+function buildTrainingDay(locale: Locale) {
+  return createNutritionDay({
   dateKey: "2026-08-08",
-  dateLabel: "Saturday, August 8, 2026",
-  calendarLabel: "Saturday August 8",
+  dateLabel: formatNutritionDateLabel("2026-08-08", locale),
+  calendarLabel: formatNutritionCalendarLabel("2026-08-08", locale),
   dayType: "training",
   title: "Glutes + Hamstrings",
   subtitle: "Workout A",
@@ -401,12 +404,14 @@ const trainingDay = createNutritionDay({
     budget: ["batch"],
     variety: []
   }
-});
+  });
+}
 
-const restDay = createNutritionDay({
+function buildRestDay(locale: Locale) {
+  return createNutritionDay({
   dateKey: "2026-08-09",
-  dateLabel: "Sunday, August 9, 2026",
-  calendarLabel: "Sunday August 9",
+  dateLabel: formatNutritionDateLabel("2026-08-09", locale),
+  calendarLabel: formatNutritionCalendarLabel("2026-08-09", locale),
   dayType: "rest",
   title: "Recovery Day",
   subtitle: "Mobility + steps",
@@ -649,29 +654,31 @@ const restDay = createNutritionDay({
     budget: ["batch"],
     variety: []
   }
-});
-
-const nutritionDaySeeds: Record<string, NutritionDay> = {
-  [trainingDay.dateKey]: trainingDay,
-  [restDay.dateKey]: restDay
-};
-
-export function getNutritionDay(dateKey: string): NutritionDay {
-  const fallback = nutritionDaySeeds["2026-08-08"];
-  const seed = nutritionDaySeeds[dateKey] ?? fallback;
-  return rebaseNutritionDay(seed, dateKey);
+  });
 }
 
-export function getNutritionDayTemplate(dayType: NutritionDayType): NutritionDay {
+const nutritionDaySeeds: Record<string, NutritionDay> = {};
+
+export function getNutritionDay(dateKey: string, locale: Locale = getCurrentLocale()): NutritionDay {
+  const fallback = nutritionDaySeeds["2026-08-08"];
+  const trainingDay = nutritionDaySeeds["2026-08-08"] ?? (nutritionDaySeeds["2026-08-08"] = buildTrainingDay(locale));
+  const restDay = nutritionDaySeeds["2026-08-09"] ?? (nutritionDaySeeds["2026-08-09"] = buildRestDay(locale));
+  const seed = nutritionDaySeeds[dateKey] ?? fallback ?? trainingDay;
+  return rebaseNutritionDay(seed, dateKey, locale);
+}
+
+export function getNutritionDayTemplate(dayType: NutritionDayType, locale: Locale = getCurrentLocale()): NutritionDay {
+  const trainingDay = buildTrainingDay(locale);
+  const restDay = buildRestDay(locale);
   return cloneNutritionDay(dayType === "rest" ? restDay : trainingDay);
 }
 
-export function createNutritionDayForDate(dateKey: string, dayType: NutritionDayType = "training"): NutritionDay {
-  return rebaseNutritionDay(getNutritionDayTemplate(dayType), dateKey);
+export function createNutritionDayForDate(dateKey: string, dayType: NutritionDayType = "training", locale: Locale = getCurrentLocale()): NutritionDay {
+  return rebaseNutritionDay(getNutritionDayTemplate(dayType, locale), dateKey, locale);
 }
 
-export function createNutritionSession(dateKey: string): NutritionDay {
-  return getNutritionDay(dateKey);
+export function createNutritionSession(dateKey: string, locale: Locale = getCurrentLocale()): NutritionDay {
+  return getNutritionDay(dateKey, locale);
 }
 
 export function getSafeMealOptions(slot: MealSlot, profile: NutritionSafetyProfile): MealOption[] {

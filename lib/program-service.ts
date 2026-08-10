@@ -17,6 +17,7 @@ import type {
   WorkoutTemplatesInsert
 } from "@/lib/supabase/database.types";
 import { createOnboardingDemoState, type ProgramState } from "@/lib/onboarding-data";
+import { formatDate, getCurrentLocale } from "@/lib/i18n";
 import { getExerciseDefinition, type SessionAdjustmentState, type WorkoutSessionState } from "@/lib/workout-data";
 import { resolveAnatomyVisual } from "@/lib/anatomy";
 import type { MuscleGroup } from "@/lib/coachx-data";
@@ -202,7 +203,10 @@ const scheduledWorkoutRowSchema = z.object({
 });
 
 const demoStartDate = "2026-08-08";
-const weekdayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+function weekdayLabelsFor(locale: string) {
+  const dates = ["2026-08-03", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-08", "2026-08-09"];
+  return dates.map((dateKey) => new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(new Date(`${dateKey}T00:00:00Z`)));
+}
 
 const templateSeed = [
   {
@@ -273,18 +277,15 @@ function normalizeDateKey(value: string) {
 }
 
 function formatDateLabel(dateKey: string) {
-  const date = new Date(`${dateKey}T00:00:00Z`);
-  return new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }).format(date);
+  return formatDate(new Date(`${dateKey}T00:00:00Z`), { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
 function formatCalendarLabel(dateKey: string) {
-  const date = new Date(`${dateKey}T00:00:00Z`);
-  return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }).format(date);
+  return formatDate(new Date(`${dateKey}T00:00:00Z`), { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
 function formatMonthLabel(dateKey: string) {
-  const date = new Date(`${dateKey}T00:00:00Z`);
-  return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(date);
+  return formatDate(new Date(`${dateKey}T00:00:00Z`), { month: "long", year: "numeric", timeZone: "UTC" });
 }
 
 function addDays(dateKey: string, days: number) {
@@ -581,7 +582,7 @@ export function createProgramBundleFromRows(program: ProgramsRow, phase: Program
     scheduledWorkouts: scheduledWorkouts.map((row) => scheduledWorkoutRowSchema.parse(row)),
     selectedDateKey: scheduledWorkouts[0]?.scheduled_date ?? null,
     monthLabel: scheduledWorkouts[0] ? formatMonthLabel(scheduledWorkouts[0].scheduled_date) : null,
-    weekdays: [...weekdayLabels]
+    weekdays: [...weekdayLabelsFor(getCurrentLocale())]
   } satisfies ProgramBundleView;
 }
 
@@ -641,7 +642,7 @@ export async function loadProgramBundle(client: SupabaseClient<Database>, userId
     scheduledWorkouts,
     selectedDateKey: scheduledWorkouts[0]?.scheduled_date ?? null,
     monthLabel: scheduledWorkouts[0] ? formatMonthLabel(scheduledWorkouts[0].scheduled_date) : null,
-    weekdays: [...weekdayLabels]
+    weekdays: [...weekdayLabelsFor(getCurrentLocale())]
   };
 }
 
@@ -798,14 +799,14 @@ export function buildCalendarDays(bundle: ProgramBundleView, monthDateKey: strin
     return {
       key: dateKey,
       day: current.getUTCDate(),
-      weekday: weekdayLabels[weekdayIndex],
+      weekday: weekdayLabelsFor(getCurrentLocale())[weekdayIndex],
       monthOffset: monthOffset as -1 | 0 | 1,
       isDimmed: monthOffset !== 0,
       isSelected: dateKey === selectedDateKey,
       isToday: dateKey === selectedDateKey,
       hasActivity: scheduledDates.has(dateKey),
       completed: completedDates.has(dateKey),
-      label: weekdayLabels[weekdayIndex].toUpperCase()
+      label: weekdayLabelsFor(getCurrentLocale())[weekdayIndex].toUpperCase()
     } satisfies ProgramCalendarDay;
   });
 }
@@ -896,7 +897,7 @@ export async function loadOrCreateProgramBundle(client: SupabaseClient<Database>
       scheduledWorkouts: bundle.scheduledWorkouts,
       selectedDateKey: bundle.scheduledWorkouts[0]?.scheduled_date ?? null,
       monthLabel: bundle.scheduledWorkouts[0] ? formatMonthLabel(bundle.scheduledWorkouts[0].scheduled_date) : null,
-      weekdays: [...weekdayLabels]
+      weekdays: [...weekdayLabelsFor(getCurrentLocale())]
     } satisfies ProgramBundleView;
   }
 
@@ -910,7 +911,7 @@ export async function loadOrCreateProgramBundle(client: SupabaseClient<Database>
     scheduledWorkouts: [],
     selectedDateKey: null,
     monthLabel: null,
-    weekdays: [...weekdayLabels]
+    weekdays: [...weekdayLabelsFor(getCurrentLocale())]
   } satisfies ProgramBundleView;
 }
 

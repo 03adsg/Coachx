@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { useTranslator } from "@/components/locale-provider";
 
 export function OnboardingStepHeader({
   title,
@@ -18,9 +19,11 @@ export function OnboardingStepHeader({
   rightLabel?: string;
   rightHref?: string;
 }) {
+  const { t } = useTranslator();
+
   return (
     <header className="topbar onboarding-topbar">
-      <Link href={backHref} aria-label="Go back" className="tap-target focus-ring">
+      <Link href={backHref} aria-label={t("common.back")} className="tap-target focus-ring">
         <span className="icon" aria-hidden="true">
           arrow_back
         </span>

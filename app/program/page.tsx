@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Card } from "@/components/ui";
 import { Screen } from "@/components/screen";
 import { useProgramStore } from "@/components/program-provider";
+import { useTranslator } from "@/components/locale-provider";
 
 function SectionCard({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -18,6 +19,7 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
 
 export default function ProgramPage() {
   const { program, loading, ready } = useProgramStore();
+  const { t } = useTranslator();
 
   if (loading || !ready || !program) {
     return null;
@@ -30,16 +32,16 @@ export default function ProgramPage() {
       topbar={
         <header className="topbar center">
           <div className="eyebrow" style={{ margin: 0, color: "#c6c6c7" }}>
-            Program Overview
+            {t("program.overview")}
           </div>
         </header>
       }
     >
       <main className="content tight">
         <section className="section">
-          <div className="eyebrow">My Program</div>
+          <div className="eyebrow">{t("program.myProgram")}</div>
           <h1 className="headline-lg" style={{ marginTop: 6 }}>
-            {program.phaseLabel} · {program.status.toUpperCase()}
+            {program.phaseLabel} Â· {program.status.toUpperCase()}
           </h1>
         </section>
 
@@ -54,24 +56,24 @@ export default function ProgramPage() {
         </section>
 
         <section className="section stack">
-          <SectionCard title="Weekly structure">{program.weeklyStructure.join(" · ")}</SectionCard>
-          <SectionCard title="Workout templates">{program.workoutTemplates.join(" · ")}</SectionCard>
-          <SectionCard title="Key movements">{program.keyMovements.join(" · ")}</SectionCard>
+          <SectionCard title={t("program.weeklyStructure")}>{program.weeklyStructure.join(" Â· ")}</SectionCard>
+          <SectionCard title={t("program.workoutTemplates")}>{program.workoutTemplates.join(" Â· ")}</SectionCard>
+          <SectionCard title={t("program.keyMovements")}>{program.keyMovements.join(" Â· ")}</SectionCard>
         </section>
 
         <section className="section stack">
-          <SectionCard title="Progression">{program.progressionSystem}</SectionCard>
-          <SectionCard title="Nutrition">{program.nutrition}</SectionCard>
-          <SectionCard title="Cardio">{program.cardio}</SectionCard>
-          <SectionCard title="Recovery">{program.recovery}</SectionCard>
-          <SectionCard title="Habits">{program.habits}</SectionCard>
-          <SectionCard title="Check-in">{program.checkIn}</SectionCard>
-          <SectionCard title="Review timeline">{program.baselineTimeline.join(" · ")}</SectionCard>
+          <SectionCard title={t("program.progression")}>{program.progressionSystem}</SectionCard>
+          <SectionCard title={t("program.nutrition")}>{program.nutrition}</SectionCard>
+          <SectionCard title={t("program.cardio")}>{program.cardio}</SectionCard>
+          <SectionCard title={t("program.recovery")}>{program.recovery}</SectionCard>
+          <SectionCard title={t("program.habits")}>{program.habits}</SectionCard>
+          <SectionCard title={t("program.checkIn")}>{program.checkIn}</SectionCard>
+          <SectionCard title={t("program.reviewTimeline")}>{program.baselineTimeline.join(" Â· ")}</SectionCard>
         </section>
 
         <section className="section stack">
           <Card className="program-section-card">
-            <div className="eyebrow">Recent adjustments</div>
+            <div className="eyebrow">{t("program.recentAdjustments")}</div>
             <div className="stack" style={{ marginTop: 12 }}>
               {program.recentAdjustments.map((item) => (
                 <div key={item} className="row">

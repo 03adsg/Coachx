@@ -24,7 +24,8 @@ const athleteProfileSchema = z.object({
   age: z.number().int().min(0).max(130),
   heightCm: z.number().min(0).max(300),
   weightKg: z.number().min(0).max(500),
-  unitSystem: z.enum(unitSystemValues)
+  unitSystem: z.enum(unitSystemValues),
+  locale: z.enum(["es", "ca", "en", "de"])
 });
 
 const goalProfileSchema = z.object({
@@ -125,6 +126,7 @@ const athleteProfileRowSchema = z.object({
   height_cm: z.number().nullable(),
   weight_kg: z.number().nullable(),
   unit_system: z.enum(unitSystemValues),
+  locale: z.enum(["es", "ca", "en", "de"]).default("es"),
   onboarding_status: z.enum(onboardingStatusValues),
   onboarding_completed_at: z.string().nullable(),
   created_at: z.string(),
@@ -271,6 +273,7 @@ export function buildAthleteProfileRow(
     height_cm: parsed.profile.heightCm,
     weight_kg: parsed.profile.weightKg,
     unit_system: parsed.profile.unitSystem,
+    locale: parsed.profile.locale,
     onboarding_status: onboardingStatus,
     onboarding_completed_at: onboardingCompletedAt
   };
@@ -308,7 +311,8 @@ export function createSnapshotFromRows(profileRow: AthleteProfilesRow, preferenc
         age: mergedProfile.age_years ?? fallback.profile.age,
         heightCm: mergedProfile.height_cm ?? fallback.profile.heightCm,
         weightKg: mergedProfile.weight_kg ?? fallback.profile.weightKg,
-        unitSystem: mergedProfile.unit_system
+        unitSystem: mergedProfile.unit_system,
+        locale: mergedProfile.locale
       },
       goals: preferences?.goals,
       trainingPreferences: preferences?.training_preferences,
