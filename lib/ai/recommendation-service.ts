@@ -84,6 +84,20 @@ export async function getLatestCoachRecommendation(
   return parseRow(result.data);
 }
 
+export async function getCoachRecommendationById(client: SupabaseClient<Database>, userId: string, recommendationId: string) {
+  const result = await client.from("ai_recommendations").select("*").eq("user_id", userId).eq("id", recommendationId).maybeSingle();
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  if (!result.data) {
+    return null;
+  }
+
+  return parseRow(result.data);
+}
+
 export function buildCoachRecommendationInsert(
   userId: string,
   context: CoachRecommendationContext,
@@ -129,6 +143,35 @@ export async function saveCoachRecommendation(
 ) {
   const payload = buildCoachRecommendationInsert(userId, context, result);
   const response = await client.from("ai_recommendations").insert(payload as never).select("*").single();
+
+  if (response.error) {
+    throw response.error;
+  }
+
+  return parseRow(response.data);
+}
+
+export async function setCoachRecommendationApplicationStatus(
+  client: SupabaseClient<Database>,
+  userId: string,
+  recommendationId: string,
+  patch: {
+    applicationStatus: CoachRecommendationRecordView["applicationStatus"];
+    appliedAt?: string | null;
+    appliedChangeSummary?: Json | null;
+  }
+) {
+  const response = await client
+    .from("ai_recommendations")
+    .update({
+      application_status: patch.applicationStatus,
+      applied_at: patch.appliedAt ?? null,
+      applied_change_summary: patch.appliedChangeSummary ?? null
+    } as never)
+    .eq("id", recommendationId)
+    .eq("user_id", userId)
+    .select("*")
+    .single();
 
   if (response.error) {
     throw response.error;

@@ -258,6 +258,66 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - Weekly review summaries persist without auto-applying program changes
 - Master toggle, category toggles, and quiet hours persist
 - Device permission is still requested client-side
+
+## Phase S7 - AI recommendations
+
+### Scope
+
+- Persist structured coach recommendations
+- Keep recommendation generation server-only
+- Preserve a review-only boundary before any application layer
+
+### Tables / entities
+
+- `ai_recommendations`
+
+### Routes affected
+
+- `/progress/phase-review`
+- `/profile/program-impact-review`
+- `/api/coach/recommendations`
+
+### Migration risk
+
+- Medium
+
+### Definition of done
+
+- OpenAI and deterministic fallback recommendations persist identically behind the same row shape
+- Client code never talks directly to OpenAI
+- Recommendation acceptance does not mutate program state
+
+## Phase S8 - Recommendation application engine
+
+### Scope
+
+- Create typed change proposals from persisted recommendations
+- Preview before/after program mutations
+- Apply supported changes only through an explicit transactional boundary
+- Record immutable-ish audit events for applied changes
+
+### Tables / entities
+
+- `program_change_proposals`
+- `program_change_events`
+
+### Routes affected
+
+- `/progress/phase-review`
+- `/profile/program-impact-review`
+- `app/api/program-change-proposals/*`
+
+### Migration risk
+
+- Medium to high
+
+### Definition of done
+
+- Recommendation acceptance remains separate from application
+- Supported commands are validated before preview and again before apply
+- Stale proposals are blocked or superseded
+- Applying a proposal is idempotent and audit-backed
+- Historical completed workouts, nutrition days, check-ins, and reviews remain untouched
 - Turning off reminders does not delete underlying tasks/events
 - Live verification is complete for the connected Supabase project
 

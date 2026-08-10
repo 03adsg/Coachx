@@ -43,6 +43,7 @@ async function transpileLibraryChain() {
     "ai/coach-context.ts",
     "ai/coach-engine.ts",
     "ai/recommendation-service.ts",
+    "recommendations/change-proposal-service.ts",
     "notification-service.ts",
     "nutrition-data.ts",
     "workout-data.ts",
@@ -79,8 +80,8 @@ async function transpileLibraryChain() {
     }).outputText;
 
     const outputText = transpiled
-      .replace(/from "(\.\/[^"]+)"/g, 'from "$1.mjs"')
-      .replace(/from '(\.\/[^']+)'/g, "from '$1.mjs'");
+      .replace(/from "((?:\.{1,2}\/)[^"]+)"/g, (_, specifier) => `from "${specifier.endsWith(".mjs") ? specifier : `${specifier}.mjs`}"`)
+      .replace(/from '((?:\.{1,2}\/)[^']+)'/g, (_, specifier) => `from '${specifier.endsWith(".mjs") ? specifier : `${specifier}.mjs`}'`);
 
     await mkdir(path.dirname(outputPath), { recursive: true });
     await writeFile(outputPath, outputText, "utf8");
@@ -104,6 +105,7 @@ const notificationService = await import(pathToFileURL(path.join(tempDir, "notif
 const aiSchemas = await import(pathToFileURL(path.join(tempDir, "ai/schemas.mjs")).href);
 const aiEngine = await import(pathToFileURL(path.join(tempDir, "ai/coach-engine.mjs")).href);
 const aiRecommendationService = await import(pathToFileURL(path.join(tempDir, "ai/recommendation-service.mjs")).href);
+const changeProposalService = await import(pathToFileURL(path.join(tempDir, "recommendations/change-proposal-service.mjs")).href);
 
 test("onboarding step ordering works", () => {
   assert.equal(onboarding.getNextOnboardingStep("goals"), "training-experience");
@@ -425,6 +427,474 @@ test("coach recommendation records keep application state separate from the payl
   assert.equal(insert.source, "fallback");
   assert.equal(insert.context_type, "phase_review");
   assert.equal(insert.recommendation_type, fallback.recommendationType);
+});
+
+test("program change previews stay typed and preserve the before/after boundary", () => {
+  const bundle = programService.createDemoProgramBundle("00000000-0000-4000-8000-000000000099");
+  const commandOptions = changeProposalService.buildProgramChangeCommandOptions({
+    source: "remote",
+    program: programService.buildProgramBundleFromProposal("00000000-0000-4000-8000-000000000099", onboarding.onboardingDemoState.program).program,
+    activeProgram: bundle.program,
+    activePhase: bundle.phase,
+    templates: bundle.templates,
+    templateExercises: bundle.templateExercises,
+    scheduledWorkouts: bundle.scheduledWorkouts,
+    selectedDateKey: bundle.scheduledWorkouts[0]?.scheduled_date ?? null,
+    monthLabel: bundle.scheduledWorkouts[0]?.scheduled_date ?? null,
+    weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  });
+
+  assert.ok(commandOptions.length > 0);
+  const selected = commandOptions[0];
+  const recommendation = {
+    id: "00000000-0000-4000-8000-000000000199",
+    userId: "00000000-0000-4000-8000-000000000099",
+    contextType: "phase_review",
+    contextKey: "program-123",
+    source: "fallback",
+    generationStatus: "fallback",
+    model: "fallback",
+    promptVersion: "coachx-ai-v1",
+    title: "Phase review",
+    summary: "Preview the current phase.",
+    recommendationType: "program_adjustment",
+    applicationStatus: "recommended",
+    appliedAt: null,
+    appliedChangeSummary: null,
+    fallbackReason: null,
+    createdAt: "2026-08-10T08:00:00.000Z",
+    updatedAt: "2026-08-10T08:00:00.000Z",
+    payload: aiEngine.buildFallbackRecommendation({
+      contextType: "phase_review",
+      contextKey: "program-123",
+      generatedAt: "2026-08-10T08:00:00.000Z",
+      athlete: {
+        displayName: "Alex",
+        onboardingStatus: "completed",
+        goal: "Body Recomposition",
+        priorities: ["Glutes", "Legs", "Abdomen"],
+        trainingDaysPerWeek: 4,
+        scheduleSnapshot: ["4 days"],
+        nutritionSnapshot: ["Meal prep"],
+        healthSnapshot: {
+          currentPain: null,
+          coachReviewRequired: false,
+          movementLimitations: [],
+          allergies: []
+        }
+      },
+      program: {
+        id: bundle.program.id,
+        phaseLabel: bundle.program.phaseLabel,
+        goal: bundle.program.goal,
+        status: "active",
+        currentDayLabel: "Saturday, August 8, 2026",
+        currentWorkoutLabel: bundle.templates[0].name,
+        scheduledWorkoutCount: bundle.scheduledWorkouts.length,
+        recentExerciseKeys: ["barbell-hip-thrust"],
+        recentPerformanceSummary: ["barbell hip thrust · 80 kg · 10 reps"],
+        recentSessions: []
+      },
+      workout: { recentSessions: [] },
+      nutrition: {
+        planName: "Training Nutrition Plan",
+        status: "active",
+        dayType: "training",
+        calendarDate: "2026-08-10",
+        calorieTarget: 2050,
+        macroTarget: "2050 kcal · 140P · 220C · 60F",
+        mealProgress: {
+          plannedMeals: 4,
+          selectedMeals: 3,
+          eatenMeals: 2,
+          hydrationMl: 1600,
+          hydrationTargetMl: 2500,
+          supplementsCompleted: 1,
+          supplementsTotal: 2
+        },
+        safetyHighlights: []
+      },
+      progress: {
+        trendSummary: "Stable.",
+        latestMeasurements: ["Waist: 72.8 cm"],
+        lastSavedAt: "2026-08-10T08:00:00.000Z"
+      },
+      checkIn: {
+        weekStartDate: "2026-08-09",
+        weekEndDate: "2026-08-15",
+        status: "submitted",
+        reviewLabel: "No weekly check-in yet",
+        reviewSummary: "No submitted weekly check-in is available yet.",
+        triggerKeys: [],
+        adherence: { training: 88, nutrition: 90 }
+      }
+    })
+  };
+
+  const draft = changeProposalService.buildProgramChangeProposalFromCommand(bundle, recommendation, selected.command);
+  assert.equal(draft.status, "proposed");
+  assert.equal(draft.targetEntityType, selected.command.type === "phase_extension" ? "program_phase" : selected.command.type === "workout_reschedule" ? "scheduled_workout" : "workout_template_exercise");
+  assert.equal(draft.validationResult.status, "approved");
+  assert.ok(draft.beforeSnapshot.headline.length > 0);
+  assert.ok(draft.afterSnapshot.headline.length > 0);
+});
+
+function createFakeProgramChangeClient(seedState) {
+  const state = structuredClone(seedState);
+
+  function createId() {
+    return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  function matchesRow(row, filters) {
+    return filters.every((filter) => {
+      if (filter.kind === "eq") {
+        return row[filter.column] === filter.value;
+      }
+
+      if (filter.kind === "in") {
+        return filter.values.includes(row[filter.column]);
+      }
+
+      return true;
+    });
+  }
+
+  function applyOrdering(rows, order) {
+    if (!order) {
+      return rows;
+    }
+
+    return rows.slice().sort((left, right) => {
+      const leftValue = left[order.column];
+      const rightValue = right[order.column];
+
+      if (leftValue === rightValue) {
+        return 0;
+      }
+
+      return order.ascending ? (leftValue > rightValue ? 1 : -1) : leftValue > rightValue ? -1 : 1;
+    });
+  }
+
+  function runQuery(tableName, query) {
+    const table = state[tableName];
+
+    if (query.type === "insert") {
+      const inserted = query.payload.map((row) => ({
+        id: row.id ?? createId(),
+        created_at: row.created_at ?? "2026-08-10T08:00:00.000Z",
+        updated_at: row.updated_at ?? row.created_at ?? "2026-08-10T08:00:00.000Z",
+        ...structuredClone(row)
+      }));
+      table.push(...inserted);
+      return inserted;
+    }
+
+    if (query.type === "update") {
+      const rows = table.filter((row) => matchesRow(row, query.filters));
+      for (const row of rows) {
+        Object.assign(row, query.payload, { updated_at: "2026-08-10T09:00:00.000Z" });
+      }
+      return rows;
+    }
+
+    let rows = table.filter((row) => matchesRow(row, query.filters));
+    rows = applyOrdering(rows, query.order);
+    if (typeof query.limit === "number") {
+      rows = rows.slice(0, query.limit);
+    }
+    return rows;
+  }
+
+  function createQuery(tableName) {
+    const query = {
+      type: "select",
+      filters: [],
+      payload: null,
+      order: null,
+      limit: null
+    };
+
+    const api = {
+      select() {
+        return api;
+      },
+      eq(column, value) {
+        query.filters.push({ kind: "eq", column, value });
+        return api;
+      },
+      in(column, values) {
+        query.filters.push({ kind: "in", column, values });
+        return api;
+      },
+      order(column, options) {
+        query.order = { column, ascending: options?.ascending !== false };
+        return api;
+      },
+      limit(count) {
+        query.limit = count;
+        return api;
+      },
+      update(values) {
+        query.type = "update";
+        query.payload = values;
+        return api;
+      },
+      insert(values) {
+        query.type = "insert";
+        query.payload = Array.isArray(values) ? values : [values];
+        return api;
+      },
+      async maybeSingle() {
+        const rows = runQuery(tableName, query);
+        return { data: rows[0] ?? null, error: null };
+      },
+      async single() {
+        const rows = runQuery(tableName, query);
+        return { data: rows[0] ?? null, error: rows[0] ? null : new Error("Not found") };
+      }
+    };
+
+    return api;
+  }
+
+  return {
+    state,
+    from(tableName) {
+      return createQuery(tableName);
+    },
+    async rpc(name, args) {
+      if (name !== "apply_program_change_proposal") {
+        return { data: null, error: new Error("Unexpected rpc") };
+      }
+
+      const proposal = state.program_change_proposals.find((row) => row.id === args.p_proposal_id);
+      if (!proposal) {
+        return { data: null, error: new Error("Not found") };
+      }
+
+      if (proposal.status === "applied") {
+        return { data: proposal, error: null };
+      }
+
+      if (proposal.status !== "proposed" || proposal.validation_result.status !== "approved") {
+        return { data: null, error: new Error("Requires review") };
+      }
+
+      if (proposal.change_type === "phase_extension") {
+        const phase = state.program_phases.find((row) => row.id === proposal.target_entity_id);
+        if (!phase) {
+          proposal.status = "superseded";
+          proposal.validation_result = { status: "needs_review", messages: ["The phase was no longer available."], safetyFlags: [], sourceUpdatedAt: proposal.source_updated_at };
+          return { data: proposal, error: null };
+        }
+
+        if (proposal.source_updated_at && phase.updated_at !== proposal.source_updated_at) {
+          proposal.status = "superseded";
+          proposal.validation_result = { status: "needs_review", messages: ["The phase changed after the proposal was created."], safetyFlags: [], sourceUpdatedAt: proposal.source_updated_at };
+          return { data: proposal, error: null };
+        }
+
+        phase.end_date = proposal.change_command.proposedEndDate;
+        phase.week_count += 1;
+        phase.updated_at = "2026-08-10T09:00:00.000Z";
+      }
+
+      if (state.program_change_events.some((event) => event.proposal_id === proposal.id)) {
+        proposal.status = "applied";
+        proposal.applied_at = proposal.applied_at ?? "2026-08-10T09:00:00.000Z";
+        return { data: proposal, error: null };
+      }
+
+      state.program_change_events.push({
+        id: createId(),
+        user_id: proposal.user_id,
+        program_id: proposal.program_id,
+        proposal_id: proposal.id,
+        recommendation_id: proposal.recommendation_id,
+        change_type: proposal.change_type,
+        before_snapshot: structuredClone(proposal.before_snapshot),
+        after_snapshot: structuredClone(proposal.after_snapshot),
+        source: proposal.recommendation_id ? "ai" : "deterministic",
+        applied_at: "2026-08-10T09:00:00.000Z",
+        created_at: "2026-08-10T09:00:00.000Z"
+      });
+
+      proposal.status = "applied";
+      proposal.applied_at = "2026-08-10T09:00:00.000Z";
+      return { data: proposal, error: null };
+    }
+  };
+}
+
+test("program change proposals create once, detect staleness, and stay idempotent on apply", async () => {
+  const bundle = programService.createDemoProgramBundle("00000000-0000-4000-8000-000000000099");
+  const bundleView = programService.createProgramBundleFromRows(bundle.program, bundle.phase, bundle.templates, bundle.templateExercises, bundle.scheduledWorkouts);
+  const recommendation = {
+    id: "00000000-0000-4000-8000-000000000299",
+    userId: "00000000-0000-4000-8000-000000000099",
+    contextType: "phase_review",
+    contextKey: "program-123",
+    source: "fallback",
+    generationStatus: "fallback",
+    model: "fallback",
+    promptVersion: "coachx-ai-v1",
+    title: "Phase review",
+    summary: "Preview the current phase.",
+    recommendationType: "program_adjustment",
+    applicationStatus: "recommended",
+    appliedAt: null,
+    appliedChangeSummary: null,
+    fallbackReason: null,
+    createdAt: "2026-08-10T08:00:00.000Z",
+    updatedAt: "2026-08-10T08:00:00.000Z",
+    payload: aiEngine.buildFallbackRecommendation({
+      contextType: "phase_review",
+      contextKey: "program-123",
+      generatedAt: "2026-08-10T08:00:00.000Z",
+      athlete: {
+        displayName: "Alex",
+        onboardingStatus: "completed",
+        goal: "Body Recomposition",
+        priorities: ["Glutes", "Legs", "Abdomen"],
+        trainingDaysPerWeek: 4,
+        scheduleSnapshot: ["4 days"],
+        nutritionSnapshot: ["Meal prep"],
+        healthSnapshot: {
+          currentPain: null,
+          coachReviewRequired: false,
+          movementLimitations: [],
+          allergies: []
+        }
+      },
+      program: {
+        id: bundle.program.id,
+        phaseLabel: bundle.program.phaseLabel,
+        goal: bundle.program.goal,
+        status: "active",
+        currentDayLabel: "Saturday, August 8, 2026",
+        currentWorkoutLabel: bundle.templates[0].name,
+        scheduledWorkoutCount: bundle.scheduledWorkouts.length,
+        recentExerciseKeys: ["barbell-hip-thrust"],
+        recentPerformanceSummary: ["barbell hip thrust · 80 kg · 10 reps"],
+        recentSessions: []
+      },
+      workout: { recentSessions: [] },
+      nutrition: {
+        planName: "Training Nutrition Plan",
+        status: "active",
+        dayType: "training",
+        calendarDate: "2026-08-10",
+        calorieTarget: 2050,
+        macroTarget: "2050 kcal · 140P · 220C · 60F",
+        mealProgress: {
+          plannedMeals: 4,
+          selectedMeals: 3,
+          eatenMeals: 2,
+          hydrationMl: 1600,
+          hydrationTargetMl: 2500,
+          supplementsCompleted: 1,
+          supplementsTotal: 2
+        },
+        safetyHighlights: []
+      },
+      progress: {
+        trendSummary: "Stable.",
+        latestMeasurements: ["Waist: 72.8 cm"],
+        lastSavedAt: "2026-08-10T08:00:00.000Z"
+      },
+      checkIn: {
+        weekStartDate: "2026-08-09",
+        weekEndDate: "2026-08-15",
+        status: "submitted",
+        reviewLabel: "No weekly check-in yet",
+        reviewSummary: "No submitted weekly check-in is available yet.",
+        triggerKeys: [],
+        adherence: { training: 88, nutrition: 90 }
+      }
+    })
+  };
+  const commandOptions = changeProposalService.buildProgramChangeCommandOptions(bundleView);
+  assert.ok(commandOptions.length > 0);
+  const command = commandOptions.find((option) => option.command.type === "phase_extension")?.command ?? commandOptions[0].command;
+
+  const client = createFakeProgramChangeClient({
+    ai_recommendations: [
+      {
+        id: recommendation.id,
+        user_id: recommendation.userId,
+        context_type: recommendation.contextType,
+        context_key: recommendation.contextKey,
+        source: recommendation.source,
+        generation_status: recommendation.generationStatus,
+        model: recommendation.model,
+        prompt_version: recommendation.promptVersion,
+        title: recommendation.title,
+        summary: recommendation.summary,
+        recommendation_type: recommendation.recommendationType,
+        recommendation_payload: recommendation.payload,
+        context_snapshot: recommendation.contextSnapshot,
+        application_status: recommendation.applicationStatus,
+        applied_at: recommendation.appliedAt,
+        applied_change_summary: recommendation.appliedChangeSummary,
+        error_message: recommendation.fallbackReason,
+        created_at: recommendation.createdAt,
+        updated_at: recommendation.updatedAt
+      }
+    ],
+    program_change_proposals: [],
+    program_change_events: [],
+    programs: [bundleView.program],
+    program_phases: [bundleView.activePhase],
+    workout_templates: bundleView.templates,
+    workout_template_exercises: bundleView.templateExercises,
+    scheduled_workouts: bundleView.scheduledWorkouts
+  });
+
+  const proposal = await changeProposalService.createProgramChangeProposal(client, recommendation.userId, recommendation, {
+    source: "remote",
+    program: bundleView.program,
+    activeProgram: bundleView.activeProgram,
+    activePhase: bundleView.activePhase,
+    templates: bundleView.templates,
+    templateExercises: bundleView.templateExercises,
+    scheduledWorkouts: bundleView.scheduledWorkouts,
+    selectedDateKey: bundleView.scheduledWorkouts[0]?.scheduled_date ?? null,
+    monthLabel: bundleView.scheduledWorkouts[0]?.scheduled_date ?? null,
+    weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  }, command);
+
+  const duplicate = await changeProposalService.createProgramChangeProposal(client, recommendation.userId, recommendation, {
+    source: "remote",
+    program: bundleView.program,
+    activeProgram: bundleView.activeProgram,
+    activePhase: bundleView.activePhase,
+    templates: bundleView.templates,
+    templateExercises: bundleView.templateExercises,
+    scheduledWorkouts: bundleView.scheduledWorkouts,
+    selectedDateKey: bundleView.scheduledWorkouts[0]?.scheduled_date ?? null,
+    monthLabel: bundleView.scheduledWorkouts[0]?.scheduled_date ?? null,
+    weekdays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  }, command);
+
+  assert.equal(proposal.id, duplicate.id);
+  assert.equal(client.state.program_change_proposals.length, 1);
+
+  const staleProposal = client.state.program_change_proposals[0];
+  client.state.program_phases[0].updated_at = "2026-08-10T09:30:00.000Z";
+  const staleResult = await changeProposalService.applyProgramChangeProposal(client, staleProposal.id);
+  assert.equal(staleResult.status, "superseded");
+  assert.equal(client.state.program_change_events.length, 0);
+
+  client.state.program_phases[0].updated_at = staleProposal.source_updated_at ?? client.state.program_phases[0].updated_at;
+  staleProposal.status = "proposed";
+  staleProposal.validation_result = { status: "approved", messages: [], safetyFlags: [], sourceUpdatedAt: staleProposal.source_updated_at };
+  const applied = await changeProposalService.applyProgramChangeProposal(client, staleProposal.id);
+  const appliedAgain = await changeProposalService.applyProgramChangeProposal(client, staleProposal.id);
+  assert.equal(applied.status, "applied");
+  assert.equal(appliedAgain.status, "applied");
+  assert.equal(client.state.program_change_events.length, 1);
 });
 
 test("weekly check-in service creates one record and updates the same response row", async () => {

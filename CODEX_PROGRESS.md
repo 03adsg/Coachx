@@ -11,6 +11,7 @@
 - Centralized the demo day and workout session so the public screens and workout routes share one fixture state.
 - Added agent docs and routing guidance under `.agents/`, `AGENTS.md`, and `AGENT_ROUTING.md`.
 - Slice 5 is now complete and live verified for progress persistence + private photos.
+- Added the recommendation application engine boundary so AI recommendations now flow through typed change proposals, explicit preview, and transactional apply rather than mutating program state directly.
 
 ## Visual Fidelity Pass
 
@@ -195,6 +196,17 @@
 - Anonymous RLS blocks private nutrition data writes, and the live browser flow restores from Supabase rather than treating localStorage as authoritative.
 - localStorage remains a cache/fallback only for unauthenticated/demo scenarios.
 - Slice 4 is `COMPLETE + LIVE VERIFIED`.
+
+## Slice 8 Local Implementation
+
+- Added `program_change_proposals` and `program_change_events` as the durable recommendation-application boundary.
+- Implemented typed recommendation-to-proposal mapping for exercise swaps, set adjustments, rep-range adjustments, workout reschedules, and phase extensions.
+- Added explicit preview and apply routes so accepting a recommendation remains separate from applying a program change.
+- Added a shared proposal preview panel to the phase review flow.
+- Added transactional application support through the `apply_program_change_proposal(...)` RPC boundary.
+- Added local tests for typed previews, stale proposal rejection, idempotent apply behavior, and historical integrity.
+- Validation currently passes locally with `pnpm typecheck`, `pnpm lint`, `pnpm test`, and `pnpm build`.
+- Live Supabase verification for Slice 8 is still pending.
 
 ## Batch A Live QA
 

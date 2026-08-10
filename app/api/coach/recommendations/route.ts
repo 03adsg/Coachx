@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getOpenAIClient } from "@/lib/ai/openai-client";
 import { buildCoachRecommendationContext } from "@/lib/ai/coach-context";
 import { generateCoachRecommendation } from "@/lib/ai/coach-engine";
-import { getLatestCoachRecommendation, saveCoachRecommendation } from "@/lib/ai/recommendation-service";
+import { getLatestCoachRecommendation, saveCoachRecommendation, setCoachRecommendationApplicationStatus } from "@/lib/ai/recommendation-service";
 import { coachRecommendationContextTypeSchema } from "@/lib/ai/schemas";
 import { createSupabaseRouteClient } from "@/lib/supabase/server";
 
@@ -64,6 +64,25 @@ function parseRequestBody(body: unknown) {
   };
 }
 
+function parseRecommendationPatchBody(body: unknown) {
+  const value = body as Record<string, unknown> | null;
+  const recommendationId = typeof value?.recommendationId === "string" ? value.recommendationId.trim() : "";
+  const applicationStatus = value?.applicationStatus;
+
+  if (!recommendationId) {
+    throw new Error("recommendationId is required.");
+  }
+
+  if (!["recommended", "reviewing", "applied", "rejected"].includes(String(applicationStatus))) {
+    throw new Error("Unsupported recommendation status.");
+  }
+
+  return {
+    recommendationId,
+    applicationStatus: applicationStatus as "recommended" | "reviewing" | "applied" | "rejected"
+  };
+}
+
 export async function GET(request: NextRequest) {
   const response = NextResponse.json({ ok: true });
   const auth = await resolveAuth(request, response);
@@ -105,4 +124,26 @@ export async function POST(request: NextRequest) {
     source: result.source,
     openaiConfigured: Boolean(openAI)
   });
+}
+
+export async function PATCH(request: NextRequest) {
+  const response = NextResponse.json({ ok: true });
+  const auth = await resolveAuth(request, response);
+
+  if (auth.errorResponse) {
+    return auth.errorResponse;
+  }
+
+  const body = await request.json().catch(() => ({}));
+
+  try {
+    const { recommendationId, applicationStatus } = parseRecommendationPatchBody(body);
+    const updated = await setCoachRecommendationApplicationStatus(auth.supabase!, auth.userId!, recommendationId, {
+      applicationStatus
+    });
+
+    return jsonWithCookies(response, { recommendation: updated });
+  } catch (error) {
+    return createFallbackResponse(error instanceof Error ? error.message : "Unable to update recommendation.", 400);
+  }
 }

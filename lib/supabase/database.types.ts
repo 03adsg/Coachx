@@ -26,6 +26,20 @@ export type CoachRecommendationContextType = "weekly_checkin" | "phase_review" |
 export type CoachRecommendationSource = "openai" | "fallback";
 export type CoachRecommendationGenerationStatus = "generated" | "fallback" | "failed";
 export type CoachRecommendationApplicationStatus = "recommended" | "reviewing" | "applied" | "rejected";
+export type ProgramChangeType =
+  | "exercise_swap"
+  | "set_adjustment"
+  | "rep_range_adjustment"
+  | "load_guidance"
+  | "volume_adjustment"
+  | "workout_reschedule"
+  | "workout_frequency_adjustment"
+  | "recovery_adjustment"
+  | "phase_extension"
+  | "phase_transition";
+export type ProgramChangeStatus = "draft" | "proposed" | "needs_review" | "approved" | "rejected" | "applied" | "failed" | "superseded" | "expired";
+export type ProgramChangeTargetEntityType = "workout_template_exercise" | "scheduled_workout" | "program_phase";
+export type ProgramChangeEventSource = "ai" | "deterministic" | "athlete" | "coach";
 
 export interface ProgramsRow {
   id: string;
@@ -1107,6 +1121,110 @@ export interface AiRecommendationsUpdate {
   updated_at?: string;
 }
 
+export interface ProgramChangeProposalsRow {
+  id: string;
+  user_id: string;
+  recommendation_id: string | null;
+  program_id: string | null;
+  program_phase_id: string | null;
+  change_type: ProgramChangeType;
+  status: ProgramChangeStatus;
+  target_entity_type: ProgramChangeTargetEntityType;
+  target_entity_id: string | null;
+  change_command: Json;
+  before_snapshot: Json;
+  after_snapshot: Json;
+  reason: string;
+  validation_result: Json;
+  source_updated_at: string | null;
+  created_at: string;
+  updated_at: string;
+  approved_at: string | null;
+  applied_at: string | null;
+  rejected_at: string | null;
+}
+
+export interface ProgramChangeProposalsInsert {
+  id?: string;
+  user_id: string;
+  recommendation_id?: string | null;
+  program_id?: string | null;
+  program_phase_id?: string | null;
+  change_type: ProgramChangeType;
+  status?: ProgramChangeStatus;
+  target_entity_type: ProgramChangeTargetEntityType;
+  target_entity_id?: string | null;
+  change_command: Json;
+  before_snapshot: Json;
+  after_snapshot: Json;
+  reason: string;
+  validation_result: Json;
+  source_updated_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  approved_at?: string | null;
+  applied_at?: string | null;
+  rejected_at?: string | null;
+}
+
+export interface ProgramChangeProposalsUpdate {
+  recommendation_id?: string | null;
+  program_id?: string | null;
+  program_phase_id?: string | null;
+  change_type?: ProgramChangeType;
+  status?: ProgramChangeStatus;
+  target_entity_type?: ProgramChangeTargetEntityType;
+  target_entity_id?: string | null;
+  change_command?: Json;
+  before_snapshot?: Json;
+  after_snapshot?: Json;
+  reason?: string;
+  validation_result?: Json;
+  source_updated_at?: string | null;
+  updated_at?: string;
+  approved_at?: string | null;
+  applied_at?: string | null;
+  rejected_at?: string | null;
+}
+
+export interface ProgramChangeEventsRow {
+  id: string;
+  user_id: string;
+  program_id: string | null;
+  proposal_id: string;
+  recommendation_id: string | null;
+  change_type: ProgramChangeType;
+  before_snapshot: Json;
+  after_snapshot: Json;
+  source: ProgramChangeEventSource;
+  applied_at: string;
+  created_at: string;
+}
+
+export interface ProgramChangeEventsInsert {
+  id?: string;
+  user_id: string;
+  program_id?: string | null;
+  proposal_id: string;
+  recommendation_id?: string | null;
+  change_type: ProgramChangeType;
+  before_snapshot: Json;
+  after_snapshot: Json;
+  source?: ProgramChangeEventSource;
+  applied_at?: string;
+  created_at?: string;
+}
+
+export interface ProgramChangeEventsUpdate {
+  program_id?: string | null;
+  recommendation_id?: string | null;
+  change_type?: ProgramChangeType;
+  before_snapshot?: Json;
+  after_snapshot?: Json;
+  source?: ProgramChangeEventSource;
+  applied_at?: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -1212,6 +1330,18 @@ export interface Database {
         Update: AiRecommendationsUpdate;
         Relationships: [];
       };
+      program_change_proposals: {
+        Row: ProgramChangeProposalsRow;
+        Insert: ProgramChangeProposalsInsert;
+        Update: ProgramChangeProposalsUpdate;
+        Relationships: [];
+      };
+      program_change_events: {
+        Row: ProgramChangeEventsRow;
+        Insert: ProgramChangeEventsInsert;
+        Update: ProgramChangeEventsUpdate;
+        Relationships: [];
+      };
       programs: {
         Row: ProgramsRow;
         Insert: ProgramsInsert;
@@ -1270,6 +1400,12 @@ export interface Database {
           p_notes?: string | null;
         };
         Returns: WorkoutSessionsRow;
+      };
+      apply_program_change_proposal: {
+        Args: {
+          p_proposal_id: string;
+        };
+        Returns: ProgramChangeProposalsRow;
       };
     };
     Enums: Record<string, never>;
