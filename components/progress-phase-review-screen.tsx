@@ -1,10 +1,13 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand-logo";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
+import { useProgramStore } from "@/components/program-provider";
 import { useProgressStore } from "@/components/progress-provider";
+import type { CoachRecommendationRecordView } from "@/lib/ai/schemas";
 import type { AthleteFeedback } from "@/lib/progress-data";
 
 const feedbackOptions: AthleteFeedback[] = ["Very Good", "Good", "Mixed", "Too Hard", "Too Easy", "Not Sure"];
@@ -48,11 +51,178 @@ function PhotoCompareCard({ image, label, accent = false }: { image: string; lab
   );
 }
 
+function CoachRecommendationPanel({ contextKey }: { contextKey: string }) {
+  const [recommendation, setRecommendation] = useState<CoachRecommendationRecordView | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const endpoint = useMemo(
+    () => `/api/coach/recommendations?contextType=phase_review&contextKey=${encodeURIComponent(contextKey)}`,
+    [contextKey]
+  );
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadLatest() {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(endpoint, { method: "GET", cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Unable to load recommendation (${response.status}).`);
+        }
+
+        const data = (await response.json()) as { recommendation: CoachRecommendationRecordView | null };
+        if (!active) {
+          return;
+        }
+
+        setRecommendation(data.recommendation ?? null);
+      } catch (loadError) {
+        if (active) {
+          setError(loadError instanceof Error ? loadError.message : "Unable to load recommendation.");
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadLatest();
+
+    return () => {
+      active = false;
+    };
+  }, [endpoint]);
+
+  const generate = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/coach/recommendations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contextType: "phase_review",
+          contextKey
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Unable to generate recommendation (${response.status}).`);
+      }
+
+      const data = (await response.json()) as { recommendation: CoachRecommendationRecordView };
+      setRecommendation(data.recommendation);
+    } catch (generateError) {
+      setError(generateError instanceof Error ? generateError.message : "Unable to generate recommendation.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const payload = recommendation?.payload ?? null;
+
+  return (
+    <Card className="p-16">
+      <div className="row start">
+        <div>
+          <div className="eyebrow">COACH ENGINE</div>
+          <div className="headline-md" style={{ marginTop: 6 }}>
+            Structured recommendation
+          </div>
+        </div>
+        <span className="progress-chip progress-chip--accent">{recommendation?.source === "openai" ? "OPENAI" : recommendation?.source === "fallback" ? "FALLBACK" : "READY"}</span>
+      </div>
+      <p className="caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
+        Recommendations are review-only. The active program is not mutated automatically.
+      </p>
+      {recommendation ? (
+        <div className="stack" style={{ gap: 14, marginTop: 14 }}>
+          <div>
+            <div className="headline-md" style={{ textTransform: "uppercase" }}>
+              {recommendation.title}
+            </div>
+            <p className="body-md" style={{ marginTop: 8, lineHeight: 1.6 }}>
+              {recommendation.summary}
+            </p>
+          </div>
+
+          <div className="progress-review-grid">
+            {(payload?.keySignals ?? []).slice(0, 3).map((signal) => (
+              <Card key={signal} className="p-16">
+                <div className="caption">Signal</div>
+                <div className="body-md" style={{ marginTop: 8, fontWeight: 700 }}>
+                  {signal}
+                </div>
+              </Card>
+            ))}
+          </div>
+
+          <div className="stack" style={{ gap: 10 }}>
+            <div className="eyebrow">What worked</div>
+            <ul className="progress-dialog-list">
+              {(payload?.whatWorked ?? []).map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
+
+          <div className="stack" style={{ gap: 10 }}>
+            <div className="eyebrow">Focus next</div>
+            <ul className="progress-dialog-list">
+              {(payload?.focusNext ?? []).map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
+
+          <Card className="p-16" style={{ background: "var(--background-charcoal)" }}>
+            <div className="eyebrow">Application boundary</div>
+            <div className="body-md" style={{ marginTop: 8, fontWeight: 700 }}>
+              {payload?.application.reason ?? "Review-only until explicitly confirmed."}
+            </div>
+            <p className="caption" style={{ marginTop: 8, lineHeight: 1.6 }}>
+              Status: {recommendation.applicationStatus.toUpperCase()} · Source: {recommendation.source.toUpperCase()}
+            </p>
+            {recommendation.fallbackReason ? (
+              <p className="caption" style={{ marginTop: 6, lineHeight: 1.6 }}>
+                Fallback note: {recommendation.fallbackReason}
+              </p>
+            ) : null}
+          </Card>
+        </div>
+      ) : (
+        <p className="caption" style={{ marginTop: 12, lineHeight: 1.6 }}>
+          No recommendation has been generated yet.
+        </p>
+      )}
+
+      {error ? (
+        <p className="caption" style={{ marginTop: 12, color: "var(--accent-primary)" }}>
+          {error}
+        </p>
+      ) : null}
+
+      <div className="stack" style={{ gap: 10, marginTop: 16 }}>
+        <PrimaryButton className="focus-ring" onClick={() => void generate()} disabled={loading}>
+          {loading ? "Working..." : recommendation ? "Refresh recommendation" : "Generate recommendation"}
+        </PrimaryButton>
+        <Link className="button-secondary focus-ring" href="/profile/program-impact-review">
+          REVIEW PROFILE IMPACT
+        </Link>
+      </div>
+    </Card>
+  );
+}
+
 export function ProgressPhaseReviewScreen() {
   const { state, setAthleteFeedback, setGoalDecision, setPriorityDecision } = useProgressStore();
+  const { activeProgram } = useProgramStore();
   const review = state.phaseReview;
   const baselineFront = state.photos.checkpoints[0]?.photos.front.image ?? "/progress-photo-front.svg";
   const currentFront = state.photos.checkpoints[1]?.photos.front.image ?? "/progress-photo-front.svg";
+  const recommendationContextKey = activeProgram?.id ?? "phase-review";
 
   return (
     <Screen shellClassName="progress-flow-shell" topbar={<PhaseTopbar />}>
@@ -258,6 +428,10 @@ export function ProgressPhaseReviewScreen() {
               </ul>
             </Card>
           </div>
+        </section>
+
+        <section className="section">
+          <CoachRecommendationPanel contextKey={recommendationContextKey} />
         </section>
       </main>
 

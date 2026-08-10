@@ -22,6 +22,10 @@ export type WeeklyCheckinResponseType = "scale" | "boolean" | "text" | "single_c
 export type WeeklyCheckinReviewStatus = "pending" | "needs_attention" | "reviewed" | "acknowledged";
 export type WeeklyCheckinRecommendationType = "none" | "light_review" | "coach_review" | "program_adjustment";
 export type NotificationReminderIntensity = "minimal" | "recommended" | "more-support";
+export type CoachRecommendationContextType = "weekly_checkin" | "phase_review" | "profile_review" | "onboarding" | "manual";
+export type CoachRecommendationSource = "openai" | "fallback";
+export type CoachRecommendationGenerationStatus = "generated" | "fallback" | "failed";
+export type CoachRecommendationApplicationStatus = "recommended" | "reviewing" | "applied" | "rejected";
 
 export interface ProgramsRow {
   id: string;
@@ -1040,6 +1044,69 @@ export interface NotificationPreferencesUpdate {
   updated_at?: string;
 }
 
+export interface AiRecommendationsRow {
+  id: string;
+  user_id: string;
+  context_type: CoachRecommendationContextType;
+  context_key: string;
+  source: CoachRecommendationSource;
+  generation_status: CoachRecommendationGenerationStatus;
+  model: string;
+  prompt_version: string;
+  title: string;
+  summary: string;
+  recommendation_type: WeeklyCheckinRecommendationType;
+  recommendation_payload: Json;
+  context_snapshot: Json;
+  application_status: CoachRecommendationApplicationStatus;
+  applied_at: string | null;
+  applied_change_summary: Json | null;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AiRecommendationsInsert {
+  id?: string;
+  user_id: string;
+  context_type: CoachRecommendationContextType;
+  context_key: string;
+  source?: CoachRecommendationSource;
+  generation_status?: CoachRecommendationGenerationStatus;
+  model: string;
+  prompt_version?: string;
+  title: string;
+  summary: string;
+  recommendation_type: WeeklyCheckinRecommendationType;
+  recommendation_payload: Json;
+  context_snapshot: Json;
+  application_status?: CoachRecommendationApplicationStatus;
+  applied_at?: string | null;
+  applied_change_summary?: Json | null;
+  error_message?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AiRecommendationsUpdate {
+  context_type?: CoachRecommendationContextType;
+  context_key?: string;
+  source?: CoachRecommendationSource;
+  generation_status?: CoachRecommendationGenerationStatus;
+  model?: string;
+  prompt_version?: string;
+  title?: string;
+  summary?: string;
+  recommendation_type?: WeeklyCheckinRecommendationType;
+  recommendation_payload?: Json;
+  context_snapshot?: Json;
+  application_status?: CoachRecommendationApplicationStatus;
+  applied_at?: string | null;
+  applied_change_summary?: Json | null;
+  error_message?: string | null;
+  updated_at?: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -1137,6 +1204,12 @@ export interface Database {
         Row: NotificationPreferencesRow;
         Insert: NotificationPreferencesInsert;
         Update: NotificationPreferencesUpdate;
+        Relationships: [];
+      };
+      ai_recommendations: {
+        Row: AiRecommendationsRow;
+        Insert: AiRecommendationsInsert;
+        Update: AiRecommendationsUpdate;
         Relationships: [];
       };
       programs: {

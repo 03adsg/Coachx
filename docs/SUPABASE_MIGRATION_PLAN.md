@@ -268,16 +268,17 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - Add server-side recommendation generation
 - Validate structured outputs
 - Store recommendation records without auto-applying them
+- Keep the recommendation boundary review-only until a later explicit approval flow exists
 
 ### Tables / entities
 
-- `ai_recommendation_records`
-- `program_change_proposals`
+- `ai_recommendations`
 
 ### Routes affected
 
 - `/profile/program-impact-review`
 - `/progress/phase-review`
+- `app/api/coach/recommendations`
 - future recommendation surfaces
 
 ### Migration risk
@@ -287,8 +288,10 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 ### Definition of done
 
 - AI generates structured output only on the server
-- Recommendations are reviewable records
+- Recommendations are reviewable records with bounded athlete context
+- Recommendation records persist the model output, source, fallback state, and application boundary
 - No AI output mutates the active program automatically
+- Fallback behavior is calm and explicit when OpenAI is unavailable
 
 ## Phase S8 - Coach review workflow
 

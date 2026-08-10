@@ -214,7 +214,7 @@ Minimum useful persistent entities:
 - `notification_preferences`
 - `program_change_proposals`
 - `coach_reviews`
-- `ai_recommendation_records`
+- `ai_recommendations`
 
 ### Normalization guidance
 
@@ -394,4 +394,3 @@ Why this slice:
 - it resolves the biggest duplicate source-of-truth problem early
 - it gives the app a real identity/profile record without forcing workout, nutrition, or progress migration at the same time
 - it is the least disruptive path into Supabase while preserving the current athlete UX
-

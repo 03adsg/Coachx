@@ -780,3 +780,14 @@
 - The dedicated `progress_photos` RLS fix migration is in place to enforce both photo ownership and parent `progress_entries` ownership on insert/update/delete.
 - Anonymous reads against the progress tables return empty arrays, which is consistent with RLS.
 - The main `/progress` dashboard remains a provisional hub because the Stitch ZIP still does not contain a dedicated physical export for that screen.
+
+## Slice 7 — OpenAI Coach Engine
+
+- Implemented a server-only OpenAI coach engine that generates structured recommendations from bounded athlete context.
+- Added `POST /api/coach/recommendations` and `GET /api/coach/recommendations` for authenticated athlete review.
+- Persisted recommendation records in `ai_recommendations` with source, generation status, model, structured payload, and application boundary.
+- Kept the active program separate from recommendation application; recommendations remain review-only until explicitly confirmed.
+- Added fallback generation so the UI still receives a valid structured recommendation when OpenAI is unavailable.
+- Added `docs/AI_COACH_ENGINE.md` to document the server flow, structured output contract, and safety rules.
+- Updated the Supabase migration plan and backend readiness audit to include the new `ai_recommendations` entity.
+- Remaining scope is still limited to structured recommendations only; no automated program mutation was added.

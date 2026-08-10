@@ -10,11 +10,39 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const libDir = path.join(repoRoot, "lib");
 const tempDir = await mkdtemp(path.join(tmpdir(), "coachx-onboarding-tests-"));
 
+function rewriteAliasImport(specifier, currentOutputPath) {
+  const currentDir = path.dirname(currentOutputPath);
+
+  function normalizeRelativeImport(targetPath) {
+    const relativePath = path.relative(currentDir, targetPath).replaceAll(path.sep, "/").replace(/\.mjs$/, "");
+    return relativePath.startsWith(".") ? relativePath : `./${relativePath}`;
+  }
+
+  if (specifier.startsWith("@/lib/")) {
+    const relativeSourcePath = specifier.slice("@/lib/".length);
+    const targetPath = path.join(tempDir, `${relativeSourcePath}.mjs`);
+    return normalizeRelativeImport(targetPath);
+  }
+
+  if (specifier.startsWith("@/components/")) {
+    const relativeSourcePath = specifier.slice("@/components/".length);
+    const targetPath = path.join(tempDir, "components", `${relativeSourcePath}.mjs`);
+    return normalizeRelativeImport(targetPath);
+  }
+
+  return specifier;
+}
+
 async function transpileLibraryChain() {
   const sourceFiles = [
     "anatomy.ts",
     "checkin-data.ts",
     "checkin-service.ts",
+    "ai/schemas.ts",
+    "ai/openai-client.ts",
+    "ai/coach-context.ts",
+    "ai/coach-engine.ts",
+    "ai/recommendation-service.ts",
     "notification-service.ts",
     "nutrition-data.ts",
     "workout-data.ts",
@@ -33,11 +61,12 @@ async function transpileLibraryChain() {
   for (const fileName of sourceFiles) {
     const sourcePath = path.join(libDir, fileName);
     const sourceText = await readFile(sourcePath, "utf8");
+    const outputPath = path.join(tempDir, fileName.replace(/\.ts$/, ".mjs"));
     const rewrittenSource = sourceText
-      .replaceAll("@/lib/", "./")
-      .replaceAll("@/components/", "./components/")
-      .replaceAll('from "zod"', `from "${pathToFileURL(path.join(repoRoot, "node_modules/zod/index.js")).href}"`)
-      .replaceAll("from 'zod'", `from '${pathToFileURL(path.join(repoRoot, "node_modules/zod/index.js")).href}'`);
+      .replace(/from\s+["'](@\/(?:lib|components)\/[^"']+)["']/g, (_, specifier) => `from "${rewriteAliasImport(specifier, outputPath)}"`)
+      .replace(/from\s+["']openai\/helpers\/zod["']/g, `from "${pathToFileURL(path.join(repoRoot, "node_modules/openai/helpers/zod.mjs")).href}"`)
+      .replace(/from\s+['"]openai['"]/g, `from "${pathToFileURL(path.join(repoRoot, "node_modules/openai/index.mjs")).href}"`)
+      .replace(/from\s+["']zod["']/g, `from "${pathToFileURL(path.join(repoRoot, "node_modules/zod/index.js")).href}"`);
 
     const transpiled = ts.transpileModule(rewrittenSource, {
       compilerOptions: {
@@ -53,7 +82,6 @@ async function transpileLibraryChain() {
       .replace(/from "(\.\/[^"]+)"/g, 'from "$1.mjs"')
       .replace(/from '(\.\/[^']+)'/g, "from '$1.mjs'");
 
-    const outputPath = path.join(tempDir, fileName.replace(/\.ts$/, ".mjs"));
     await mkdir(path.dirname(outputPath), { recursive: true });
     await writeFile(outputPath, outputText, "utf8");
   }
@@ -73,6 +101,9 @@ const programService = await import(pathToFileURL(path.join(tempDir, "program-se
 const checkinData = await import(pathToFileURL(path.join(tempDir, "checkin-data.mjs")).href);
 const checkinService = await import(pathToFileURL(path.join(tempDir, "checkin-service.mjs")).href);
 const notificationService = await import(pathToFileURL(path.join(tempDir, "notification-service.mjs")).href);
+const aiSchemas = await import(pathToFileURL(path.join(tempDir, "ai/schemas.mjs")).href);
+const aiEngine = await import(pathToFileURL(path.join(tempDir, "ai/coach-engine.mjs")).href);
+const aiRecommendationService = await import(pathToFileURL(path.join(tempDir, "ai/recommendation-service.mjs")).href);
 
 test("onboarding step ordering works", () => {
   assert.equal(onboarding.getNextOnboardingStep("goals"), "training-experience");
@@ -224,6 +255,176 @@ test("notification preferences round-trip through the service boundary", () => {
   assert.equal(revived.masterEnabled, false);
   assert.equal(revived.intensity, "more-support");
   assert.equal(revived.categories.find((category) => category.id === "weekly-check-in")?.enabled, true);
+});
+
+test("coach recommendation fallback stays review-only and never auto-applies", () => {
+  const context = {
+    contextType: "phase_review",
+    contextKey: "program-123",
+    generatedAt: "2026-08-10T08:00:00.000Z",
+    athlete: {
+      displayName: "Alex",
+      onboardingStatus: "completed",
+      goal: "Body Recomposition",
+      priorities: ["Glutes", "Legs", "Abdomen"],
+      trainingDaysPerWeek: 4,
+      scheduleSnapshot: ["4 days", "Europe/Madrid"],
+      nutritionSnapshot: ["Meal prep", "High protein"],
+      healthSnapshot: {
+        currentPain: "Knee pain during deep flexion",
+        coachReviewRequired: true,
+        movementLimitations: ["Squat"],
+        allergies: ["Shellfish"]
+      }
+    },
+    program: {
+      id: "program-123",
+      phaseLabel: "Phase 1",
+      goal: "Body Recomposition",
+      status: "active",
+      currentDayLabel: "Saturday, August 8, 2026",
+      currentWorkoutLabel: "Glutes + Hamstrings",
+      scheduledWorkoutCount: 4,
+      recentExerciseKeys: ["barbell-hip-thrust", "romanian-deadlift"],
+      recentPerformanceSummary: ["barbell hip thrust · 80 kg · 10 reps"],
+      recentSessions: [{ id: "session-1", completedAt: "2026-08-09T08:00:00.000Z", durationMinutes: 68, notes: null }]
+    },
+    workout: {
+      recentSessions: [{ id: "session-1", completedAt: "2026-08-09T08:00:00.000Z", durationMinutes: 68, notes: null }]
+    },
+    nutrition: {
+      planName: "Training Nutrition Plan",
+      status: "active",
+      dayType: "training",
+      calendarDate: "2026-08-10",
+      calorieTarget: 2050,
+      macroTarget: "2050 kcal · 140P · 220C · 60F",
+      mealProgress: {
+        plannedMeals: 4,
+        selectedMeals: 3,
+        eatenMeals: 2,
+        hydrationMl: 1600,
+        hydrationTargetMl: 2500,
+        supplementsCompleted: 1,
+        supplementsTotal: 2
+      },
+      safetyHighlights: ["Shellfish"]
+    },
+    progress: {
+      trendSummary: "Waist moved to 72.8 cm and weight is steady.",
+      latestMeasurements: ["Waist: 72.8 cm", "Weight: 62.8 kg"],
+      lastSavedAt: "2026-08-10T08:00:00.000Z"
+    },
+    checkIn: {
+      weekStartDate: "2026-08-09",
+      weekEndDate: "2026-08-15",
+      status: "submitted",
+      reviewLabel: "Coach review required",
+      reviewSummary: "A safety-sensitive signal is present.",
+      triggerKeys: ["pain_discomfort", "recovery"],
+      adherence: {
+        training: 68,
+        nutrition: 74
+      }
+    }
+  };
+
+  const fallback = aiEngine.buildFallbackRecommendation(context);
+  assert.equal(fallback.source, "fallback");
+  assert.equal(fallback.recommendationType, "coach_review");
+  assert.equal(fallback.application.canApplyAutomatically, false);
+  assert.equal(fallback.application.status, "recommended");
+  assert.equal(fallback.nextPhase.title, "Stabilize and review");
+  assert.ok(fallback.safetyNotes.some((note) => note.includes("Do not auto-apply")));
+  assert.doesNotThrow(() => aiSchemas.coachRecommendationPayloadSchema.parse(fallback));
+});
+
+test("coach recommendation records keep application state separate from the payload", () => {
+  const context = {
+    contextType: "phase_review",
+    contextKey: "program-123",
+    generatedAt: "2026-08-10T08:00:00.000Z",
+    athlete: {
+      displayName: "Alex",
+      onboardingStatus: "completed",
+      goal: "Body Recomposition",
+      priorities: ["Glutes", "Legs", "Abdomen"],
+      trainingDaysPerWeek: 4,
+      scheduleSnapshot: ["4 days"],
+      nutritionSnapshot: ["Meal prep"],
+      healthSnapshot: {
+        currentPain: null,
+        coachReviewRequired: false,
+        movementLimitations: [],
+        allergies: []
+      }
+    },
+    program: {
+      id: "program-123",
+      phaseLabel: "Phase 1",
+      goal: "Body Recomposition",
+      status: "active",
+      currentDayLabel: "Saturday, August 8, 2026",
+      currentWorkoutLabel: "Glutes + Hamstrings",
+      scheduledWorkoutCount: 4,
+      recentExerciseKeys: ["barbell-hip-thrust"],
+      recentPerformanceSummary: ["barbell hip thrust · 80 kg · 10 reps"],
+      recentSessions: []
+    },
+    workout: {
+      recentSessions: []
+    },
+    nutrition: {
+      planName: "Training Nutrition Plan",
+      status: "active",
+      dayType: "training",
+      calendarDate: "2026-08-10",
+      calorieTarget: 2050,
+      macroTarget: "2050 kcal · 140P · 220C · 60F",
+      mealProgress: {
+        plannedMeals: 4,
+        selectedMeals: 3,
+        eatenMeals: 2,
+        hydrationMl: 1600,
+        hydrationTargetMl: 2500,
+        supplementsCompleted: 1,
+        supplementsTotal: 2
+      },
+      safetyHighlights: []
+    },
+    progress: {
+      trendSummary: "Stable.",
+      latestMeasurements: ["Waist: 72.8 cm"],
+      lastSavedAt: "2026-08-10T08:00:00.000Z"
+    },
+    checkIn: {
+      weekStartDate: "2026-08-09",
+      weekEndDate: "2026-08-15",
+      status: "submitted",
+      reviewLabel: "No weekly check-in yet",
+      reviewSummary: "No submitted weekly check-in is available yet.",
+      triggerKeys: [],
+      adherence: {
+        training: 88,
+        nutrition: 90
+      }
+    }
+  };
+
+  const fallback = aiEngine.buildFallbackRecommendation(context);
+  const insert = aiRecommendationService.buildCoachRecommendationInsert("00000000-0000-4000-8000-000000000099", context, {
+    payload: fallback,
+    source: "fallback",
+    model: "fallback",
+    generationStatus: "fallback",
+    errorMessage: "OpenAI unavailable."
+  });
+
+  assert.equal(insert.application_status, "recommended");
+  assert.equal(insert.applied_at, null);
+  assert.equal(insert.source, "fallback");
+  assert.equal(insert.context_type, "phase_review");
+  assert.equal(insert.recommendation_type, fallback.recommendationType);
 });
 
 test("weekly check-in service creates one record and updates the same response row", async () => {
