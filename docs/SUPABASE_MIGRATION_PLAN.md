@@ -259,6 +259,41 @@ This plan assumes the current athlete-side UI remains intact while persistence i
 - Trends are derived from stored facts, not manually maintained as primary truth
 - Live migration and authenticated browser verification are complete
 
+## Phase S10 - Production readiness + private beta
+
+### Scope
+
+- Deploy the current AthlexForce head to Vercel
+- Verify the live athlete entry flow and coach panel are usable on the deployed preview
+- Close Slice 7 only if a real OpenAI Responses API request is possible in the configured environment
+- Verify the beta path for a fresh athlete account from sign-up through onboarding and the Today surface
+
+### Tables / entities
+
+- No new persistence model is required for beta readiness itself
+
+### Routes affected
+
+- `/entry`
+- `/onboarding/*`
+- `/`
+- `/coach`
+- `/api/coach/recommendations`
+
+### Migration risk
+
+- Low for docs/deploy verification
+- High for any environment-variable or auth mismatch
+
+### Definition of done
+
+- Preview deployment matches the current repository head
+- AthlexForce branding and metadata are live on the deployed preview
+- Fresh athlete sign-up reaches onboarding and program start
+- Coach and athlete route boundaries still hold
+- OpenAI live verification remains explicitly gated on `OPENAI_API_KEY`
+- Private beta is ready only after the live OpenAI requirement is satisfied or the beta policy explicitly allows fallback-only operation
+
 ## Phase S6 - Notifications preferences
 
 ### Scope

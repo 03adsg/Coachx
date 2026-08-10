@@ -851,3 +851,15 @@
 - Added a new repo-first hardening migration at `supabase/migrations/20260810_coach_panel_security_hardening.sql`.
 - The hardening migration removes self-promotion via coach-profile insert policy, replaces broad coach updates with narrow security-definer RPCs, and tightens the phase-extension apply path to a one-week increment.
 - Live execution of the hardening migration is still pending.
+
+## Slice 10 â€” Production Readiness + Private Beta
+
+- Current preview deployment is ready at `https://coachx-kibgbqqzr-projectmanagmentnotion-costacleans-projects.vercel.app`.
+- Verified the AthlexForce entry shell, branding, manifest, icon metadata, and entry route on the deployed preview build.
+- Verified the deployed preview includes `/api/coach/recommendations`.
+- Fresh athlete sign-up works on the deployed preview and reaches onboarding immediately.
+- The onboarding flow advances through profile, goals, training, schedule, health, nutrition, baseline, review, build, and plan reveal.
+- The saved athlete state routes to the Today screen after program start.
+- Vercel has the Supabase preview and production public environment variables configured.
+- `OPENAI_API_KEY` is not configured locally or in Vercel, so the real Slice 7 OpenAI live close remains blocked pending manual environment provisioning.
+- Slice 10 private-beta readiness is therefore partial: the athlete and coach flows are functional, but the live OpenAI verification requirement is still pending.
