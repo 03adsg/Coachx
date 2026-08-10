@@ -834,3 +834,9 @@
   - Coach Panel foundation is local-only until the migration is executed in live Supabase.
   - Assigned coach data will remain empty until coach profiles and assignments are created in Supabase.
   - Progress photos remain excluded from Coach Panel v1 by design.
+
+## Slice 9 Security Hardening
+
+- Added a new repo-first hardening migration at `supabase/migrations/20260810_coach_panel_security_hardening.sql`.
+- The hardening migration removes self-promotion via coach-profile insert policy, replaces broad coach updates with narrow security-definer RPCs, and tightens the phase-extension apply path to a one-week increment.
+- Live execution of the hardening migration is still pending.

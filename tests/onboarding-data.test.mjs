@@ -820,6 +820,12 @@ test("program change proposals create once, detect staleness, and stay idempoten
   const commandOptions = changeProposalService.buildProgramChangeCommandOptions(bundleView);
   assert.ok(commandOptions.length > 0);
   const command = commandOptions.find((option) => option.command.type === "phase_extension")?.command ?? commandOptions[0].command;
+  if (command.type === "phase_extension") {
+    assert.equal(
+      new Date(`${command.proposedEndDate}T00:00:00Z`).getTime() - new Date(`${command.currentEndDate}T00:00:00Z`).getTime(),
+      7 * 24 * 60 * 60 * 1000
+    );
+  }
 
   const client = createFakeProgramChangeClient({
     ai_recommendations: [

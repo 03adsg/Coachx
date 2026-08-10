@@ -1554,6 +1554,34 @@ export interface Database {
         };
         Returns: ProgramChangeProposalsRow;
       };
+      coach_can_access_athlete: {
+        Args: {
+          target_athlete_id: string;
+        };
+        Returns: boolean;
+      };
+      coach_mark_checkin_reviewed: {
+        Args: {
+          p_weekly_checkin_id: string;
+          p_action: string;
+          p_note?: string | null;
+        };
+        Returns: WeeklyCheckinReviewsRow;
+      };
+      coach_decide_recommendation: {
+        Args: {
+          p_recommendation_id: string;
+          p_decision: string;
+        };
+        Returns: AiRecommendationsRow;
+      };
+      coach_decide_program_change_proposal: {
+        Args: {
+          p_proposal_id: string;
+          p_decision: string;
+        };
+        Returns: ProgramChangeProposalsRow;
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

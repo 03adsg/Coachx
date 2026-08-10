@@ -1,13 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isAssignedCoach } from "@/lib/coach/coach-auth-service";
 import {
-  addCoachReviewNote,
   markCoachCheckinReview,
   setCoachProposalDecision,
   setCoachRecommendationDecision
 } from "@/lib/coach/coach-review-service";
 import { createSupabaseRouteClient } from "@/lib/supabase/server";
-import type { CoachActionTargetType, CoachActionType, CoachRecommendationApplicationStatus, ProgramChangeStatus, WeeklyCheckinReviewStatus } from "@/lib/supabase/database.types";
+import type { CoachActionTargetType, CoachActionType } from "@/lib/supabase/database.types";
 
 function createFallbackResponse(message: string, status = 503) {
   return NextResponse.json({ error: message }, { status });
@@ -55,7 +54,6 @@ function parseBody(body: unknown) {
   const targetType = typeof value?.targetType === "string" ? value.targetType.trim() : "";
   const targetId = typeof value?.targetId === "string" ? value.targetId.trim() : "";
   const actionType = typeof value?.actionType === "string" ? value.actionType.trim() : "";
-  const status = typeof value?.status === "string" ? value.status.trim() : "";
   const note = typeof value?.note === "string" ? value.note.trim() : "";
 
   if (!targetType || !targetId || !actionType) {
@@ -66,41 +64,32 @@ function parseBody(body: unknown) {
     targetType: targetType as CoachActionTargetType,
     targetId,
     actionType: actionType as CoachActionType,
-    status,
     note: note.length > 0 ? note : null
   };
 }
 
-function parseCheckinStatus(actionType: CoachActionType, status: string): WeeklyCheckinReviewStatus {
-  if (status === "reviewed" || status === "needs_attention" || status === "acknowledged") {
-    return status;
-  }
-
+function parseCheckinAction(actionType: CoachActionType) {
   if (actionType === "checkin_acknowledged") {
     return "acknowledged";
   }
 
   if (actionType === "followup_requested") {
-    return "needs_attention";
+    return "needs_followup";
   }
 
   return "reviewed";
 }
 
-function parseProposalStatus(actionType: CoachActionType, status: string): ProgramChangeStatus {
-  if (status === "approved" || status === "rejected") {
-    return status;
-  }
-
-  return actionType === "proposal_rejected" ? "rejected" : "approved";
+function parseProposalDecision(actionType: CoachActionType) {
+  return actionType === "proposal_rejected" ? "reject" : "approve";
 }
 
-function parseRecommendationStatus(actionType: CoachActionType, status: string): CoachRecommendationApplicationStatus {
-  if (status === "reviewing" || status === "rejected") {
-    return status;
+function parseRecommendationDecision(actionType: CoachActionType) {
+  if (actionType === "recommendation_rejected") {
+    return "reject";
   }
 
-  return actionType === "recommendation_rejected" ? "rejected" : "reviewing";
+  return "approve";
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ athleteId: string }> }) {
@@ -119,33 +108,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const body = await request.json().catch(() => ({}));
 
   try {
-    const { targetType, targetId, actionType, status, note } = parseBody(body);
+    const { targetType, targetId, actionType, note } = parseBody(body);
 
     if (targetType === "weekly_checkin") {
-      if (actionType === "note_added" && note) {
-        const noteRow = await addCoachReviewNote(auth.supabase!, auth.userId!, athleteId, targetId, note);
-        return jsonWithCookies(response, { note: noteRow });
-      }
-
-      const review = await markCoachCheckinReview(
-        auth.supabase!,
-        auth.userId!,
-        athleteId,
-        targetId,
-        parseCheckinStatus(actionType, status),
-        note
-      );
+      const review = await markCoachCheckinReview(auth.supabase!, targetId, actionType === "note_added" && note ? "reviewed" : parseCheckinAction(actionType), note);
 
       return jsonWithCookies(response, review);
     }
 
     if (targetType === "recommendation") {
-      const recommendation = await setCoachRecommendationDecision(auth.supabase!, auth.userId!, athleteId, targetId, parseRecommendationStatus(actionType, status));
+      const recommendation = await setCoachRecommendationDecision(auth.supabase!, targetId, parseRecommendationDecision(actionType));
       return jsonWithCookies(response, { recommendation });
     }
 
     if (targetType === "proposal") {
-      const proposal = await setCoachProposalDecision(auth.supabase!, auth.userId!, athleteId, targetId, parseProposalStatus(actionType, status));
+      const proposal = await setCoachProposalDecision(auth.supabase!, targetId, parseProposalDecision(actionType));
       return jsonWithCookies(response, { proposal });
     }
 
@@ -154,4 +131,3 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return createFallbackResponse(error instanceof Error ? error.message : "Unable to process coach action.", 400);
   }
 }
-
