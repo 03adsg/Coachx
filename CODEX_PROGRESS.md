@@ -883,3 +883,18 @@
   - run live browser smoke checks at the required mobile widths
   - confirm the live deployment reflects the current commit
 
+## Slice 11 â€” Cinematic Frontend / GSAP / Overlay Hardening
+
+- Added the specialized frontend motion agent at `.agents/cinematic-frontend-gsap.md`.
+- Captured current GSAP and Awwwards references in `docs/MOTION_REFERENCE_LOG.md`.
+- Documented the frontend motion and overlay audit in `docs/FRONTEND_MOTION_AUDIT.md`.
+- Documented the slice summary and implementation guardrails in `docs/SLICE_11_CINEMATIC_FRONTEND.md`.
+- Hardened viewport-sensitive containers to use `100dvh`/`100svh` fallbacks.
+- Tightened modal and sheet sizing so progress and nutrition overlays remain usable when mobile browser chrome changes height.
+- Added overflow containment to the primary overlay sheets.
+- Local Chrome QA confirmed the live app shell, progress measurements, progress photos, and locale persistence remain stable after the hardening changes.
+- Remaining work:
+  - run full repo validation after the latest frontend changes
+  - deploy the current HEAD to the existing Vercel project
+  - verify the production deployment reflects the current commit
+
