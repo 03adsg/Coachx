@@ -38,6 +38,7 @@ import {
   saveAthleteSnapshot
 } from "@/lib/athlete-service";
 import { createProgressDemoState, type ProgressState } from "@/lib/progress-data";
+import { publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
 import type { MeasurementType } from "@/lib/progress-data";
 import { seedProgressBaseline } from "@/lib/progress-service";
 
@@ -536,6 +537,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
           status: "complete"
         }
       }));
+      publishFeedbackSuccess("onboarding.complete", "Onboarding complete", "Your plan is ready to review.");
     };
 
     const finalizeOnboardingAction: OnboardingStoreValue["finalizeOnboarding"] = () => {
@@ -549,7 +551,13 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         if (client && authRef.current.isConfigured && authRef.current.user) {
           void seedProgressBaseline(client, authRef.current.user.id, PROGRESS_BASELINE_DATE_KEY, seed).catch(() => undefined);
         }
-        void persistCurrentSnapshot(nextState);
+        void persistCurrentSnapshot(nextState)
+          .then(() => {
+            publishFeedbackSuccess("onboarding.complete", "Onboarding complete", "Your profile and plan are saved.");
+          })
+          .catch(() => {
+            publishFeedbackError("onboarding.complete", "Onboarding could not be saved", "Your current setup is still here.");
+          });
         return nextState;
       });
     };

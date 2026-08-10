@@ -25,6 +25,7 @@ import {
 } from "@/lib/profile-settings-data";
 import { buildProfileSnapshotFromOnboarding, loadAthleteSnapshot, mapOnboardingStatus, saveAthleteSnapshot } from "@/lib/athlete-service";
 import { loadNotificationPreferences, saveNotificationPreferences } from "@/lib/notification-service";
+import { publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
 
 interface ProfileSettingsStoreValue extends ProfileSettingsState {
   commitProfileSnapshot: (nextSnapshot: ProfileSnapshot) => ProfileImpactReview;
@@ -202,13 +203,24 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
         saveError: null,
         lastSavedLabel: "Saved just now"
       }));
-      void persistSnapshot(nextSnapshot).catch(() => {
-        setState((current) => ({
-          ...current,
-          saveState: "error",
-          saveError: "Unable to save your profile."
-        }));
-      });
+      void persistSnapshot(nextSnapshot)
+        .then(() => {
+          publishFeedbackSuccess(
+            "profile.save",
+            review.classification === "NO_IMPACT" ? "Profile saved" : "Profile saved for review",
+            review.classification === "NO_IMPACT"
+              ? "Your profile is ready."
+              : "Your current program stays unchanged until you confirm the review."
+          );
+        })
+        .catch(() => {
+          publishFeedbackError("profile.save", "Profile could not be saved", "Your previous profile is still intact.");
+          setState((current) => ({
+            ...current,
+            saveState: "error",
+            saveError: "Unable to save your profile."
+          }));
+        });
       return review;
     };
 
@@ -239,13 +251,18 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
           nextSnapshot,
           mapOnboardingStatus(onboardingRef.current.state.progress.status),
           onboardingRef.current.state.progress.status === "complete" ? new Date().toISOString() : null
-        ).catch(() => {
-          setState((current) => ({
-            ...current,
-            saveState: "error",
-            saveError: "Unable to save your language preference."
-          }));
-        });
+        )
+          .then(() => {
+            publishFeedbackSuccess("profile.locale", "Language updated", "Your choice will stay with this device.");
+          })
+          .catch(() => {
+            publishFeedbackError("profile.locale", "Language could not be saved", "Your current language stays in place.");
+            setState((current) => ({
+              ...current,
+              saveState: "error",
+              saveError: "Unable to save your language preference."
+            }));
+          });
       }
     };
 
@@ -262,13 +279,18 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
       const client = getSupabaseBrowserClient();
       const currentAuth = authRef.current;
       if (currentAuth.isConfigured && currentAuth.user && client) {
-        void saveNotificationPreferences(client, currentAuth.user.id, nextNotifications).catch(() => {
-          setState((current) => ({
-            ...current,
-            saveState: "error",
-            saveError: "Unable to save your notification preferences."
-          }));
-        });
+        void saveNotificationPreferences(client, currentAuth.user.id, nextNotifications)
+          .then(() => {
+            publishFeedbackSuccess("profile.notifications", "Notification preferences saved", "Your notification preferences are ready.");
+          })
+          .catch(() => {
+            publishFeedbackError("profile.notifications", "Notification preferences could not be saved", "Your current preferences stay in place.");
+            setState((current) => ({
+              ...current,
+              saveState: "error",
+              saveError: "Unable to save your notification preferences."
+            }));
+          });
       }
     };
 
@@ -347,6 +369,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
         saveError: null,
         lastSavedLabel: "Program update applied"
       }));
+      publishFeedbackSuccess("program-change.apply", "Program updated", "Your approved change is now active.");
     };
 
     const markSaveError: ProfileSettingsStoreValue["markSaveError"] = (message) => {

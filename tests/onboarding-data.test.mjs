@@ -55,6 +55,7 @@ async function transpileLibraryChain() {
     "program-service.ts",
     "onboarding-data.ts",
     "profile-settings-data.ts",
+    "feedback.ts",
     "nutrition-service.ts",
     "auth/navigation.ts",
     "athlete-service.ts",
@@ -105,6 +106,7 @@ const programService = await import(pathToFileURL(path.join(tempDir, "program-se
 const checkinData = await import(pathToFileURL(path.join(tempDir, "checkin-data.mjs")).href);
 const checkinService = await import(pathToFileURL(path.join(tempDir, "checkin-service.mjs")).href);
 const notificationService = await import(pathToFileURL(path.join(tempDir, "notification-service.mjs")).href);
+const feedback = await import(pathToFileURL(path.join(tempDir, "feedback.mjs")).href);
 const coachPolicy = await import(pathToFileURL(path.join(tempDir, "coach/coach-policy.mjs")).href);
 const aiSchemas = await import(pathToFileURL(path.join(tempDir, "ai/schemas.mjs")).href);
 const aiEngine = await import(pathToFileURL(path.join(tempDir, "ai/coach-engine.mjs")).href);
@@ -1084,6 +1086,43 @@ test("remote hydration preserves the current locale when the stored row has no l
 
 test("initial locale prefers the provided server locale before persisted browser state", () => {
   assert.equal(i18n.getInitialLocale("ca"), "ca");
+});
+
+test("feedback notices resolve consistent titles across locales", () => {
+  const english = feedback.buildFeedbackNotice("en", {
+    actionId: "workout.set",
+    kind: "success",
+    detail: "Your reps and load are saved."
+  });
+  const german = feedback.buildFeedbackNotice("de", {
+    actionId: "workout.set",
+    kind: "success",
+    detail: "Deine Wiederholungen und Last sind gespeichert."
+  });
+
+  assert.equal(english.kind, "success");
+  assert.equal(english.placement, "inline");
+  assert.equal(german.kind, "success");
+  assert.equal(german.placement, "inline");
+  assert.notEqual(english.title, german.title);
+});
+
+test("feedback memory deduplicates repeated notices by action and state", () => {
+  const initial = feedback.createInitialFeedbackMemory();
+  const notice = feedback.buildFeedbackNotice("en", {
+    actionId: "profile.locale",
+    kind: "success",
+    detail: "Your choice will stay with this device."
+  });
+  const memory = {
+    recent: [notice, { ...notice, id: "duplicate" }],
+    lastByAction: { "profile.locale": notice }
+  };
+
+  const revived = feedback.reviveFeedbackMemory(feedback.serializeFeedbackMemory(memory));
+  assert.equal(revived.recent.length, 2);
+  assert.equal(initial.recent.length, 0);
+  assert.equal(revived.lastByAction["profile.locale"]?.actionId, "profile.locale");
 });
 
 test("nutrition snapshots derive training and rest contexts from the program calendar", () => {

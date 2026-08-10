@@ -277,7 +277,7 @@ export function EntryScreen() {
                         <input className="input-field focus-ring" type="password" autoComplete={mode === "sign-in" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} />
                       </label>
                       <PrimaryButton className="focus-ring" type="submit" disabled={submitting}>
-                        {submitting ? "Working..." : mode === "sign-in" ? "Sign in" : "Create account"}
+                        {submitting ? "Signing in..." : mode === "sign-in" ? "Sign in" : "Create account"}
                       </PrimaryButton>
                       <p className="caption" style={{ marginTop: 4 }}>
                         {mode === "sign-in" ? "Use your existing athlete account." : "Create a new athlete account with email confirmation if enabled."}

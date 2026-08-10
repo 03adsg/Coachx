@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import type { Session, User } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getSupabaseConfigSummary, isCoachxDemoMode, isSupabaseConfigured } from "@/lib/supabase/env";
+import { publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
 
 interface AuthStoreValue {
   isConfigured: boolean;
@@ -93,6 +94,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password
       });
 
+      if (error) {
+        publishFeedbackError("auth.sign-in", "Sign in could not be completed", error.message);
+      } else {
+        publishFeedbackSuccess("auth.sign-in", "Signed in", "Your athlete route is ready.");
+      }
+
       return error?.message ?? null;
     };
 
@@ -104,11 +111,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         options: redirectTo ? { emailRedirectTo: redirectTo } : undefined
       });
 
+      if (error) {
+        publishFeedbackError("auth.sign-up", "Sign up could not be completed", error.message);
+      } else {
+        publishFeedbackSuccess("auth.sign-up", "Account created", "Your athlete flow is ready.");
+      }
+
       return error?.message ?? null;
     };
 
     const signOut: AuthStoreValue["signOut"] = async () => {
       const { error } = await client.auth.signOut();
+      if (error) {
+        publishFeedbackError("auth.sign-out", "Sign out could not be completed", error.message);
+      } else {
+        publishFeedbackSuccess("auth.sign-out", "Signed out", "Your session has ended.");
+      }
       return error?.message ?? null;
     };
 

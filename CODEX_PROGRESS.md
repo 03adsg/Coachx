@@ -900,3 +900,11 @@
   - `pnpm build`
 - Production deployment was promoted to `https://coachxsync1.vercel.app` from the current HEAD.
 
+## Slice 13 — Feedback System + Interaction Memory
+
+- Added the specialist agent at `.agents/feedback-interaction-ux.md`.
+- Added canonical documentation for the feedback system, interaction audit, and confirmation matrix.
+- Added a shared feedback provider and memory layer so key athlete and coach actions can emit consistent success, warning, pending, and error states.
+- Began wiring the shared feedback layer into auth, onboarding, workout, progress, check-in, recommendation, profile, and coach actions.
+- Kept business logic, persistence, RLS, and RPC boundaries unchanged.
+

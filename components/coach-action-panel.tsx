@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
+import { publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
 import type { CoachActionTargetType, CoachActionType } from "@/lib/supabase/database.types";
 
 export interface CoachActionButtonConfig {
@@ -53,8 +54,10 @@ export function CoachActionPanel({
       }
 
       setNote("");
+      publishFeedbackSuccess("coach.review", "Coach action saved", "The athlete record reflects your review.");
       router.refresh();
     } catch (submitError) {
+      publishFeedbackError("coach.review", "Coach action could not be saved", "The athlete record is unchanged.");
       setError(submitError instanceof Error ? submitError.message : "Coach action failed.");
     } finally {
       setLoadingAction(null);
@@ -80,7 +83,7 @@ export function CoachActionPanel({
       <div className="stack" style={{ gap: 10, marginTop: 12 }}>
         {actions.map((action) => (
           <PrimaryButton key={action.actionType} className="focus-ring" onClick={() => void submitAction(action)} disabled={loadingAction !== null}>
-            {loadingAction === action.actionType ? "Working..." : action.label}
+            {loadingAction === action.actionType ? "Saving..." : action.label}
           </PrimaryButton>
         ))}
         <SecondaryButton className="focus-ring" onClick={() => setNote("")} disabled={!note.trim()}>
@@ -96,4 +99,3 @@ export function CoachActionPanel({
     </Card>
   );
 }
-

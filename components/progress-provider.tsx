@@ -19,6 +19,7 @@ import {
   type ProgressState
 } from "@/lib/progress-data";
 import { useAuthStore } from "@/components/auth-provider";
+import { publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   deleteProgressPhoto,
@@ -284,7 +285,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       if (client && authRef.current.isConfigured && userId) {
         try {
           await persistProgressMeasurements(client, userId, nextState);
+          publishFeedbackSuccess("progress.measurement", "Measurement saved", "Your trend view is up to date.");
         } catch {
+          publishFeedbackError("progress.measurement", "Measurement could not be saved", "Your current values are still here.");
           // Keep the optimistic local state if remote persistence is temporarily unavailable.
         }
       }
@@ -386,6 +389,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             updatedAt: result.photo.updated_at
           })
         );
+        publishFeedbackSuccess("progress.photo", "Photo added", "Your progress photo is ready.");
 
         return { ok: true, error: null };
       } catch {
@@ -401,6 +405,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             updatedAt: new Date().toISOString()
           })
         );
+        publishFeedbackError("progress.photo", "Photo could not be uploaded", "Your local preview stays in place.");
 
         return { ok: true, error: null };
       }
@@ -413,6 +418,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       if (client && authRef.current.isConfigured && userId) {
         try {
           await deleteProgressPhoto(client, userId, pose, state.measurement.currentDateKey);
+          publishFeedbackSuccess("progress.photo-remove", "Photo removed", "The photo was removed from this checkpoint.");
         } catch {
           // Best-effort cleanup only; the local state still reflects the user's action.
         }
@@ -496,6 +502,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           status: "COACH REVIEW REQUIRED"
         }
       }));
+      publishFeedbackSuccess("progress.measurement", "Phase review saved", "Your latest review is recorded.");
     };
 
     const resetProgressDemo: ProgressStoreValue["resetProgressDemo"] = () => {

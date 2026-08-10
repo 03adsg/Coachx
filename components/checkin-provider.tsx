@@ -14,6 +14,7 @@ import {
   type WeeklyCheckinSummary,
   type WeeklyCheckinResponseInput
 } from "@/lib/checkin-service";
+import { publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
 import {
   computeSignalFromScoredQuestions,
   createEmptyWeeklyCheckinResponses,
@@ -243,8 +244,14 @@ export function CheckInProvider({ children, dateKey = new Date().toISOString().s
         return;
       }
 
-      await saveCheckinResponse(client, currentAuth.user.id, snapshot.checkin.id, input);
-      await reloadCheckIn();
+      try {
+        await saveCheckinResponse(client, currentAuth.user.id, snapshot.checkin.id, input);
+        publishFeedbackSuccess("checkin.answer", "Answer saved", "Your check-in draft is up to date.");
+        await reloadCheckIn();
+      } catch {
+        publishFeedbackError("checkin.answer", "Answer could not be saved", "Your draft stays here.");
+        throw new Error("Unable to save weekly check-in.");
+      }
     };
 
     const submitCheckIn: CheckInStoreValue["submitCheckIn"] = async (overallNotes = null) => {
@@ -255,8 +262,14 @@ export function CheckInProvider({ children, dateKey = new Date().toISOString().s
         return;
       }
 
-      await submitWeeklyCheckin(client, currentAuth.user.id, snapshot.checkin.id, overallNotes);
-      await reloadCheckIn();
+      try {
+        await submitWeeklyCheckin(client, currentAuth.user.id, snapshot.checkin.id, overallNotes);
+        publishFeedbackSuccess("checkin.submit", "Check-in submitted", "Your weekly summary is ready to review.");
+        await reloadCheckIn();
+      } catch {
+        publishFeedbackError("checkin.submit", "Check-in could not be submitted", "Your draft is still available.");
+        throw new Error("Unable to submit weekly check-in.");
+      }
     };
 
     const acknowledgeReview: CheckInStoreValue["acknowledgeReview"] = async () => {
@@ -267,8 +280,14 @@ export function CheckInProvider({ children, dateKey = new Date().toISOString().s
         return;
       }
 
-      await acknowledgeWeeklyCheckinReview(client, currentAuth.user.id, snapshot.checkin.id);
-      await reloadCheckIn();
+      try {
+        await acknowledgeWeeklyCheckinReview(client, currentAuth.user.id, snapshot.checkin.id);
+        publishFeedbackSuccess("checkin.review", "Review acknowledged", "Your check-in review stays recorded.");
+        await reloadCheckIn();
+      } catch {
+        publishFeedbackError("checkin.review", "Review could not be acknowledged", "Your current review stays in place.");
+        throw new Error("Unable to acknowledge check-in review.");
+      }
     };
 
     return {

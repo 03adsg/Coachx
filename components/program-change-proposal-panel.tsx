@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { useProgramStore } from "@/components/program-provider";
+import { publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
 import type { CoachRecommendationRecordView } from "@/lib/ai/schemas";
 import {
   buildProgramChangeCommandOptions,
@@ -110,16 +111,19 @@ export function ProgramChangeProposalPanel({
           throw new Error(`Unable to load recommendation (${response.status}).`);
         }
 
-        const data = (await response.json()) as { recommendation: CoachRecommendationRecordView | null };
-        if (!active) {
-          return;
-        }
+      const data = (await response.json()) as { recommendation: CoachRecommendationRecordView | null };
+      if (!active) {
+        return;
+      }
 
-        setRecommendation(data.recommendation ?? null);
-      } catch (loadError) {
-        if (active) {
-          setError(loadError instanceof Error ? loadError.message : "Unable to load recommendation.");
-        }
+      setRecommendation(data.recommendation ?? null);
+      if (data.recommendation) {
+        publishFeedbackSuccess("ai.recommendation", "Recommendation ready", "You can review the next step now.");
+      }
+    } catch (loadError) {
+      if (active) {
+        setError(loadError instanceof Error ? loadError.message : "Unable to load recommendation.");
+      }
       } finally {
         if (active) {
           setLoading(false);
@@ -202,7 +206,9 @@ export function ProgramChangeProposalPanel({
       const data = (await response.json()) as { recommendation: CoachRecommendationRecordView };
       setRecommendation(data.recommendation);
       setProposal(null);
+      publishFeedbackSuccess("ai.recommendation", "Recommendation ready", "You can review the next step now.");
     } catch (generateError) {
+      publishFeedbackError("ai.recommendation", "Recommendation could not be loaded", "A safe retry is available.");
       setError(generateError instanceof Error ? generateError.message : "Unable to generate recommendation.");
     } finally {
       setLoading(false);
@@ -236,7 +242,9 @@ export function ProgramChangeProposalPanel({
       setProposal(data.proposal);
       setSelectedCommandType(data.proposal.changeCommand.type);
       await reloadProgram();
+      publishFeedbackSuccess("program-change.proposal", "Proposal ready", "Before and after are now visible.");
     } catch (proposalError) {
+      publishFeedbackError("program-change.proposal", "Proposal could not be created", "Your recommendation stays intact.");
       setError(proposalError instanceof Error ? proposalError.message : "Unable to create proposal.");
     } finally {
       setProposalLoading(false);
@@ -262,7 +270,9 @@ export function ProgramChangeProposalPanel({
       const data = (await response.json()) as { proposal: ProgramChangeProposalRecordView };
       setProposal(data.proposal);
       await reloadProgram();
+      publishFeedbackSuccess("program-change.apply", "Program updated", "Your approved change is now active.");
     } catch (applyError) {
+      publishFeedbackError("program-change.apply", "Program change could not be applied", "Your current program is unchanged.");
       setError(applyError instanceof Error ? applyError.message : "Unable to apply proposal.");
     } finally {
       setApplyLoading(false);
@@ -286,6 +296,7 @@ export function ProgramChangeProposalPanel({
 
       const data = (await response.json()) as { proposal: ProgramChangeProposalRecordView | null };
       setProposal(data.proposal ?? null);
+      publishFeedbackSuccess("program-change.reject", "Proposal dismissed", "The current program stays in place.");
       return;
     }
 
@@ -311,6 +322,7 @@ export function ProgramChangeProposalPanel({
 
     const data = (await response.json()) as { recommendation: CoachRecommendationRecordView };
     setRecommendation(data.recommendation);
+    publishFeedbackSuccess("program-change.reject", "Recommendation dismissed", "The current program stays in place.");
   };
 
   return (
@@ -430,7 +442,7 @@ export function ProgramChangeProposalPanel({
 
                 <div className="stack" style={{ gap: 10 }}>
                   <PrimaryButton className="focus-ring" onClick={() => void createProposal()} disabled={proposalLoading || !selectedOption}>
-                    {proposalLoading ? "Working..." : proposal ? "Refresh review" : "Create proposal"}
+                    {proposalLoading ? "Creating review..." : proposal ? "Refresh review" : "Create proposal"}
                   </PrimaryButton>
                   <SecondaryButton className="focus-ring" onClick={() => void rejectRecommendationOrProposal()} disabled={proposalLoading || loading || !recommendation}>
                     Dismiss
@@ -474,7 +486,7 @@ export function ProgramChangeProposalPanel({
 
               <div className="stack" style={{ gap: 10 }}>
                 <PrimaryButton className="focus-ring" onClick={() => void applyProposal()} disabled={applyLoading || proposal.status !== "proposed" || proposal.validationResult.status !== "approved"}>
-                  {applyLoading ? "Applying..." : "Apply change"}
+                  {applyLoading ? "Applying change..." : "Apply change"}
                 </PrimaryButton>
                 <SecondaryButton className="focus-ring" onClick={() => void rejectRecommendationOrProposal()} disabled={applyLoading}>
                   Reject proposal
@@ -497,7 +509,7 @@ export function ProgramChangeProposalPanel({
 
       <div className="stack" style={{ gap: 10, marginTop: 16 }}>
         <PrimaryButton className="focus-ring" onClick={() => void generateRecommendation()} disabled={loading}>
-          {loading ? "Working..." : recommendation ? "Refresh recommendation" : "Generate recommendation"}
+          {loading ? "Generating..." : recommendation ? "Refresh recommendation" : "Generate recommendation"}
         </PrimaryButton>
         <Link className="button-secondary focus-ring" href="/profile/program-impact-review">
           REVIEW PROFILE IMPACT

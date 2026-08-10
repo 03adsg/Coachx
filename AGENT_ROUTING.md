@@ -7,6 +7,7 @@
 - `Refactor shared models` -> `architecture-typescript`
 - `Fix build errors` -> `qa-testing` + `architecture-typescript` if the failure is structural
 - `Add or adjust screen transitions` -> `frontend-stitch` + `visual-qa`
+- `Design feedback / confirmations / undo` -> `feedback-interaction-ux` + `frontend-stitch`
 
 ## Collaboration Order
 
@@ -18,3 +19,4 @@
 ## Not Yet Created
 
 - No Supabase, OpenAI, Apple Health, Apple Watch, analytics, or admin agents for the current phase.
+- Feedback/interaction memory work routes to `feedback-interaction-ux`.

@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAuthStore } from "@/components/auth-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
 import {
   completeWorkoutSession,
   saveWorkoutSet,
@@ -227,6 +228,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           payload
         });
 
+        publishFeedbackSuccess("workout.set", "Set completed", "Your reps and load are saved.");
         setSession((current) => ({
           ...current,
           saveState: "saved",
@@ -276,6 +278,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           })
         }));
       } catch (error) {
+        publishFeedbackError("workout.set", "Set could not be saved", "Your previous set data is still here.");
         setSession((current) => ({
           ...current,
           saveState: "error",
@@ -312,12 +315,14 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           swapReason: "manual swap"
         });
 
+        publishFeedbackSuccess("workout.swap", "Exercise swapped", "The current set history is preserved.");
         setSession((current) => ({
           ...current,
           saveState: "saved",
           saveError: null
         }));
       } catch (error) {
+        publishFeedbackError("workout.swap", "Exercise swap could not be saved", "Your workout history is unchanged.");
         setSession((current) => ({
           ...current,
           saveState: "error",
@@ -410,6 +415,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           notes: sessionRef.current.notes ?? null
         });
 
+        publishFeedbackSuccess("workout.finish", "Workout complete", "Your session is saved and ready to review.");
         setSession((current) => ({
           ...current,
           status: finished.status,
@@ -432,6 +438,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           source: "remote"
         }));
       } catch (error) {
+        publishFeedbackError("workout.finish", "Workout could not be completed", "Your current session is still open.");
         setSession((current) => ({
           ...current,
           saveState: "error",
