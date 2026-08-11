@@ -205,6 +205,18 @@ const scheduledWorkoutRowSchema = z.object({
 });
 
 const demoStartDate = "2026-08-08";
+
+export function getCurrentLocalDateKey(now = new Date()) {
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function resolveDateKeyOrCurrentLocal(requestedDate: string | null | undefined, currentDateKey: string) {
+  return requestedDate ?? currentDateKey;
+}
+
 function weekdayLabelsFor(locale: string) {
   const dates = ["2026-08-03", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-08", "2026-08-09"];
   return dates.map((dateKey) => new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(new Date(`${dateKey}T00:00:00Z`)));
@@ -789,7 +801,7 @@ export function getProgramDaySummary(bundle: ProgramBundleView, dateKey: string)
   };
 }
 
-export function buildCalendarDays(bundle: ProgramBundleView, monthDateKey: string, selectedDateKey: string) {
+export function buildCalendarDays(bundle: ProgramBundleView, monthDateKey: string, selectedDateKey: string, todayDateKey = getCurrentLocalDateKey()) {
   const currentMonth = new Date(`${monthDateKey}T00:00:00Z`);
   const monthIndex = currentMonth.getUTCMonth();
   const year = currentMonth.getUTCFullYear();
@@ -814,7 +826,7 @@ export function buildCalendarDays(bundle: ProgramBundleView, monthDateKey: strin
       monthOffset: monthOffset as -1 | 0 | 1,
       isDimmed: monthOffset !== 0,
       isSelected: dateKey === selectedDateKey,
-      isToday: dateKey === selectedDateKey,
+      isToday: dateKey === todayDateKey,
       hasActivity: scheduledDates.has(dateKey),
       completed: completedDates.has(dateKey),
       isAdHoc: adHocDates.has(dateKey),

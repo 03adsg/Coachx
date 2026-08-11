@@ -151,6 +151,8 @@ type MessageTree = {
     cardio: string;
     volume: string;
     sets: string;
+    movements: string;
+    posteriorChainEmphasis: string;
   };
   program: {
     overview: string;
@@ -306,7 +308,9 @@ const messages: Record<Locale, MessageTree> = {
       calories: "Calories",
       cardio: "Cardio",
       volume: "Volume",
-      sets: "Sets"
+      sets: "Sets",
+      movements: "Movements",
+      posteriorChainEmphasis: "Posterior chain emphasis"
     },
     program: {
       overview: "Program Overview",
@@ -454,7 +458,9 @@ const messages: Record<Locale, MessageTree> = {
       calories: "Calorías",
       cardio: "Cardio",
       volume: "Volumen",
-      sets: "Series"
+      sets: "Series",
+      movements: "Movimientos",
+      posteriorChainEmphasis: "Énfasis en la cadena posterior"
     },
     program: {
       overview: "Resumen del programa",
@@ -602,7 +608,9 @@ const messages: Record<Locale, MessageTree> = {
       calories: "Calories",
       cardio: "Cardio",
       volume: "Volum",
-      sets: "Sèries"
+      sets: "Sèries",
+      movements: "Moviments",
+      posteriorChainEmphasis: "Èmfasi en la cadena posterior"
     },
     program: {
       overview: "Resum del programa",
@@ -750,7 +758,9 @@ const messages: Record<Locale, MessageTree> = {
       calories: "Kalorien",
       cardio: "Cardio",
       volume: "Volumen",
-      sets: "Sätze"
+      sets: "Sätze",
+      movements: "Übungen",
+      posteriorChainEmphasis: "Fokus auf die hintere Muskelkette"
     },
     program: {
       overview: "Programmübersicht",

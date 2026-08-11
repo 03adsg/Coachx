@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { gsap } from "gsap";
 import type { MealOption, MealSlot } from "@/lib/nutrition-data";
 import { useReducedMotion } from "@/motion/useReducedMotion";
@@ -23,7 +24,12 @@ export function NutritionMealSheet({
   onClose
 }: NutritionMealSheetProps) {
   const sheetRef = useRef<HTMLDivElement | null>(null);
+  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
   const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    setPortalRoot(document.body);
+  }, []);
 
   useLayoutEffect(() => {
     const sheet = sheetRef.current;
@@ -41,7 +47,7 @@ export function NutritionMealSheet({
     }, sheet);
 
     return () => context.revert();
-  }, [reducedMotion, slot.id]);
+  }, [portalRoot, reducedMotion, slot.id]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -56,7 +62,11 @@ export function NutritionMealSheet({
 
   const selectedOption = options.find((option) => option.id === selectedOptionId) ?? null;
 
-  return (
+  if (!portalRoot) {
+    return null;
+  }
+
+  return createPortal(
     <div className="nutrition-sheet-backdrop" role="presentation" onClick={onClose}>
       <div
         ref={sheetRef}
@@ -147,6 +157,7 @@ export function NutritionMealSheet({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    portalRoot
   );
 }

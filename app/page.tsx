@@ -12,9 +12,10 @@ import { useProfileSettingsStore } from "@/components/profile-settings-provider"
 import { useProgramStore } from "@/components/program-provider";
 import { Screen } from "@/components/screen";
 import { Card, IconButton, PrimaryButton, Section, StatTile } from "@/components/ui";
+import { useCurrentLocalDateKey } from "@/components/use-current-local-date-key";
 import type { ProgramDaySummary } from "@/lib/program-service";
 
-function RestDayHero({ athleteName, day }: { athleteName: string; day: ProgramDaySummary }) {
+function RestDayHero({ athleteName, day, nextWorkout }: { athleteName: string; day: ProgramDaySummary; nextWorkout: ProgramDaySummary | null }) {
   const { t } = useTranslator();
 
   return (
@@ -29,16 +30,18 @@ function RestDayHero({ athleteName, day }: { athleteName: string; day: ProgramDa
         </p>
       </section>
 
-      <Section title={t("today.nextWorkout")} meta={day.phase}>
+      {nextWorkout ? <Section title={t("today.nextWorkout")} meta={nextWorkout.phase}>
         <Card className="p-16 elevated" style={{ background: "var(--background-charcoal)" }}>
           <div className="row start" style={{ marginBottom: 16 }}>
             <div>
               <span className="pill">{t("today.readyTomorrow")}</span>
               <h2 className="headline-md" style={{ marginTop: 14 }}>
-                {day.workoutTitle}
+                {nextWorkout.workoutTitle}
               </h2>
               <p className="caption" style={{ marginTop: 6 }}>
-                {day.workoutType}
+                {nextWorkout.workoutType === "Posterior chain emphasis"
+                  ? t("today.posteriorChainEmphasis")
+                  : nextWorkout.workoutType}
               </p>
             </div>
             <button aria-label="Open workout" className="tap-target focus-ring" type="button" style={{ background: "var(--accent-primary)", borderRadius: 9999 }}>
@@ -48,12 +51,12 @@ function RestDayHero({ athleteName, day }: { athleteName: string; day: ProgramDa
             </button>
           </div>
           <div className="grid-3">
-            <StatTile label={t("today.duration")} value={day.duration} />
-            <StatTile label={t("today.calories")} value={day.nutritionCalories} />
-            <StatTile label={t("today.cardio")} value={day.cardio} />
+            <StatTile label={t("today.duration")} value={nextWorkout.duration} />
+            <StatTile label={t("today.calories")} value={nextWorkout.nutritionCalories} />
+            <StatTile label={t("today.cardio")} value={nextWorkout.cardio} />
           </div>
         </Card>
-      </Section>
+      </Section> : null}
     </>
   );
 }
@@ -61,17 +64,23 @@ function RestDayHero({ athleteName, day }: { athleteName: string; day: ProgramDa
 function TodayContent() {
   const searchParams = useSearchParams();
   const { saved } = useProfileSettingsStore();
-  const { getDaySummary, selectedDateKey } = useProgramStore();
+  const { getDaySummary, scheduledWorkouts } = useProgramStore();
   const { t } = useTranslator();
   const [menuOpen, setMenuOpen] = useState(false);
-  const isRestDay = searchParams.get("state") === "rest-day";
   const athleteName = saved.profile.name;
-  const activeDateKey = selectedDateKey ?? "2026-08-08";
-  const day = getDaySummary(activeDateKey) ?? getDaySummary("2026-08-08");
+  const activeDateKey = useCurrentLocalDateKey();
+  const day = activeDateKey ? getDaySummary(activeDateKey) : null;
 
-  if (!day) {
+  if (!activeDateKey || !day) {
     return null;
   }
+
+  const isRestDay = day.isRestDay || searchParams.get("state") === "rest-day";
+  const nextWorkoutDateKey = scheduledWorkouts
+    .filter((workout) => workout.scheduled_date > activeDateKey && workout.status !== "cancelled" && workout.status !== "skipped")
+    .map((workout) => workout.scheduled_date)
+    .sort()[0];
+  const nextWorkout = nextWorkoutDateKey ? getDaySummary(nextWorkoutDateKey) : null;
 
   return (
     <>
@@ -89,7 +98,7 @@ function TodayContent() {
       >
         <main className="content">
         {isRestDay ? (
-          <RestDayHero athleteName={athleteName} day={day} />
+          <RestDayHero athleteName={athleteName} day={day} nextWorkout={nextWorkout} />
         ) : (
           <>
             <section className="section">
@@ -108,7 +117,9 @@ function TodayContent() {
                       {day.workoutTitle}
                     </h2>
                     <p className="caption" style={{ marginTop: 6 }}>
-                      {day.workoutType}
+                      {day.workoutType === "Posterior chain emphasis"
+                        ? t("today.posteriorChainEmphasis")
+                        : day.workoutType}
                     </p>
                   </div>
                   <button aria-label={t("common.startWorkout")} className="tap-target focus-ring" type="button" style={{ background: "var(--accent-primary)", borderRadius: 9999 }}>
@@ -146,7 +157,7 @@ function TodayContent() {
               </Card>
             </Section>
 
-            <Section title="Movements" meta={day.workoutCount}>
+            <Section title={t("today.movements")} meta={day.workoutCount}>
               <div className="stack">
                 {day.movements.map((movement) => (
                   <Link key={movement.name} href={`/day/${day.dateKey}`} className="list-card focus-ring">
@@ -176,8 +187,8 @@ function TodayContent() {
         )}
 
         <div className="page-cta">
-          <PrimaryButton href={`/workout/${day.scheduledWorkoutId}`} className="focus-ring">
-            {isRestDay ? t("common.viewWorkout") : t("common.startWorkout")}
+          <PrimaryButton href={isRestDay ? `/calendar?date=${day.dateKey}&month=${day.dateKey.slice(0, 7)}-01` : `/workout/${day.scheduledWorkoutId}`} className="focus-ring">
+            {isRestDay ? t("common.calendar") : t("common.startWorkout")}
           </PrimaryButton>
         </div>
         </main>

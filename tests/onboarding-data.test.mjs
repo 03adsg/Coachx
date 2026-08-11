@@ -1176,6 +1176,12 @@ test("athlete rows preserve profile and snapshot data", () => {
   assert.deepEqual(preferencesRow.goals, snapshot.goals);
 });
 
+test("athlete profile avatar migration adds the nullable path idempotently", async () => {
+  const migration = await readFile(path.join(repoRoot, "supabase", "migrations", "20260811_athlete_profile_avatar_path.sql"), "utf8");
+
+  assert.match(migration, /alter table public\.athlete_profiles\s+add column if not exists avatar_path text null/i);
+});
+
 test("remote snapshots hydrate onboarding state without changing the active program", () => {
   const snapshot = profileSettings.createProfileSnapshot();
   const remote = {
@@ -1285,6 +1291,52 @@ test("nutrition snapshots derive training and rest contexts from the program cal
   assert.equal(restSnapshot.day.dayType, "rest");
   assert.equal(nutritionService.buildNutritionDayView(trainingSnapshot).title, "Glutes + Hamstrings");
   assert.equal(nutritionService.buildNutritionDayView(restSnapshot).title, "Recovery Day");
+});
+
+test("current date keys use local civil calendar fields", () => {
+  assert.equal(programService.getCurrentLocalDateKey(new Date(2026, 7, 11, 0, 30)), "2026-08-11");
+  assert.equal(programService.getCurrentLocalDateKey(new Date(2026, 0, 2, 23, 30)), "2026-01-02");
+});
+
+test("explicit nutrition dates take precedence over the current local date", () => {
+  assert.equal(programService.resolveDateKeyOrCurrentLocal("2026-08-08", "2026-08-11"), "2026-08-08");
+  assert.equal(programService.resolveDateKeyOrCurrentLocal(null, "2026-08-11"), "2026-08-11");
+});
+
+test("calendar marks the civil current date independently from the selected date", () => {
+  const demoBundle = programService.createDemoProgramBundle("00000000-0000-4000-8000-000000000018");
+  const bundleView = programService.createProgramBundleFromRows(
+    demoBundle.program,
+    demoBundle.phase,
+    demoBundle.templates,
+    demoBundle.templateExercises,
+    demoBundle.scheduledWorkouts
+  );
+  const days = programService.buildCalendarDays(bundleView, "2026-08-01", "2026-08-08", "2026-08-11");
+
+  assert.equal(days.find((day) => day.key === "2026-08-08")?.isSelected, true);
+  assert.equal(days.find((day) => day.key === "2026-08-08")?.isToday, false);
+  assert.equal(days.find((day) => day.key === "2026-08-11")?.isSelected, false);
+  assert.equal(days.find((day) => day.key === "2026-08-11")?.isToday, true);
+});
+
+test("an unscheduled current day resolves to rest without mutating the program", () => {
+  const demoBundle = programService.createDemoProgramBundle("00000000-0000-4000-8000-000000000019");
+  const bundleView = programService.createProgramBundleFromRows(
+    demoBundle.program,
+    demoBundle.phase,
+    demoBundle.templates,
+    demoBundle.templateExercises,
+    demoBundle.scheduledWorkouts
+  );
+  const scheduledBefore = structuredClone(bundleView.scheduledWorkouts);
+  const today = programService.getCurrentLocalDateKey(new Date(2026, 7, 11, 12));
+  const summary = programService.getProgramDaySummary(bundleView, today);
+
+  assert.equal(summary?.dateKey, "2026-08-11");
+  assert.equal(summary?.isRestDay, true);
+  assert.equal(summary?.scheduledWorkoutId, "");
+  assert.deepEqual(bundleView.scheduledWorkouts, scheduledBefore);
 });
 
 test("nutrition selections update in place and do not duplicate slot records", () => {

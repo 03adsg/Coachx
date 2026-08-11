@@ -2,15 +2,21 @@
 
 import { useSearchParams } from "next/navigation";
 import { NutritionScreen } from "@/components/nutrition-screen";
-import { useProgramStore } from "@/components/program-provider";
+import { useCurrentLocalDateKey } from "@/components/use-current-local-date-key";
+import { resolveDateKeyOrCurrentLocal } from "@/lib/program-service";
 
 export default function NutritionPage() {
   const searchParams = useSearchParams();
-  const { selectedDateKey } = useProgramStore();
+  const currentDateKey = useCurrentLocalDateKey();
   const requestedDate = searchParams.get("date");
   const requestedMode = searchParams.get("state");
-  const dateKey = requestedDate ?? selectedDateKey ?? new Date().toISOString().slice(0, 10);
   const mode = requestedMode === "loading" || requestedMode === "empty" || requestedMode === "error" ? requestedMode : "ready";
+
+  if (!currentDateKey) {
+    return null;
+  }
+
+  const dateKey = resolveDateKeyOrCurrentLocal(requestedDate, currentDateKey);
 
   return <NutritionScreen dateKey={dateKey} mode={mode} />;
 }

@@ -7,6 +7,7 @@ import { Card, IconButton, PrimaryButton, Section } from "@/components/ui";
 import { Screen } from "@/components/screen";
 import { useProgramStore } from "@/components/program-provider";
 import { useTranslator } from "@/components/locale-provider";
+import { useCurrentLocalDateKey } from "@/components/use-current-local-date-key";
 
 function addMonths(dateKey: string, delta: number) {
   const source = new Date(`${dateKey}T00:00:00Z`);
@@ -138,15 +139,14 @@ function CalendarActionSheet({
   );
 }
 
-export default function CalendarPage() {
+function CalendarContent({ todayKey }: { todayKey: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { getCalendarDays, getDaySummary, monthLabel, selectedDateKey, weekdays, templates, activePhase, scheduleWorkoutOnDate, rescheduleWorkoutDay } = useProgramStore();
   const { t, locale } = useTranslator();
-  const todayKey = new Date().toISOString().slice(0, 10);
   const summaryDateKey = formatDateKey(searchParams.get("date"), selectedDateKey ?? todayKey);
   const viewMonthKey = formatDateKey(searchParams.get("month"), `${summaryDateKey.slice(0, 7)}-01`);
-  const days = getCalendarDays(viewMonthKey, summaryDateKey);
+  const days = getCalendarDays(viewMonthKey, summaryDateKey, todayKey);
   const day = getDaySummary(summaryDateKey);
   const [sheetMode, setSheetMode] = useState<"add" | "move" | null>(null);
   const [targetDate, setTargetDate] = useState(summaryDateKey);
@@ -371,4 +371,9 @@ export default function CalendarPage() {
       ) : null}
     </>
   );
+}
+
+export default function CalendarPage() {
+  const todayKey = useCurrentLocalDateKey();
+  return todayKey ? <CalendarContent todayKey={todayKey} /> : null;
 }

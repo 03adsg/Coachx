@@ -40,7 +40,7 @@ interface ProgramStoreValue {
   scheduleWorkoutOnDate: (payload: { scheduledDate: string; workoutTemplateId: string; plannedDurationMinutes: number; programPhaseId?: string | null; origin?: "ad-hoc" | "program" }) => Promise<void>;
   rescheduleWorkoutDay: (workoutId: string, nextDate: string) => Promise<void>;
   getDaySummary: (dateKey: string) => ProgramDaySummary | null;
-  getCalendarDays: (monthDateKey: string, selectedDateKey?: string | null) => ProgramCalendarDay[];
+  getCalendarDays: (monthDateKey: string, selectedDateKey?: string | null, todayDateKey?: string) => ProgramCalendarDay[];
   buildWorkoutSessionForDate: (dateKey: string) => WorkoutSessionState | null;
   buildWorkoutSessionForScheduledWorkout: (workoutId: string) => WorkoutSessionState | null;
 }
@@ -97,18 +97,25 @@ export function ProgramProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        if (loaded.source === "empty") {
-          setBundle(createDemoBundleView());
-        } else {
-          setBundle(loaded);
-        }
+        setBundle(loaded);
         setError(null);
       } catch (loadError) {
         if (!active) {
           return;
         }
 
-        setBundle(createDemoBundleView());
+        setBundle((current) => ({
+          ...current,
+          source: "empty",
+          program: null,
+          activeProgram: null,
+          activePhase: null,
+          templates: [],
+          templateExercises: [],
+          scheduledWorkouts: [],
+          selectedDateKey: null,
+          monthLabel: null
+        }));
         setError(loadError instanceof Error ? loadError.message : "Unable to load program data.");
       } finally {
         if (!active) {
@@ -138,7 +145,7 @@ export function ProgramProvider({ children }: { children: ReactNode }) {
       }
 
       const loaded = await loadOrCreateProgramBundle(client, currentAuth.user.id, false);
-      setBundle(loaded.source === "empty" ? createDemoBundleView() : loaded);
+      setBundle(loaded);
     };
 
     const activateProgram: ProgramStoreValue["activateProgram"] = async (proposal) => {
@@ -207,8 +214,8 @@ export function ProgramProvider({ children }: { children: ReactNode }) {
 
     const getDaySummary: ProgramStoreValue["getDaySummary"] = (dateKey) => getProgramDaySummary(bundle, dateKey);
 
-    const getCalendarDays: ProgramStoreValue["getCalendarDays"] = (monthDateKey, selectedDateKey) =>
-      buildCalendarDays(bundle, monthDateKey, selectedDateKey ?? bundle.selectedDateKey ?? monthDateKey);
+    const getCalendarDays: ProgramStoreValue["getCalendarDays"] = (monthDateKey, selectedDateKey, todayDateKey) =>
+      buildCalendarDays(bundle, monthDateKey, selectedDateKey ?? bundle.selectedDateKey ?? monthDateKey, todayDateKey);
 
     const buildWorkoutSessionForDate: ProgramStoreValue["buildWorkoutSessionForDate"] = (dateKey) => {
       const day = getProgramDaySummary(bundle, dateKey);
