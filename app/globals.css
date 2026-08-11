@@ -144,6 +144,12 @@ img {
   font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24;
 }
 
+.google-mark {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
 .content {
   padding: 24px 16px 0;
 }
@@ -280,6 +286,21 @@ img {
   width: 100%;
   background: var(--accent-primary);
   color: var(--background-deep);
+}
+
+.google-auth-button {
+  justify-content: flex-start;
+  gap: 12px;
+  padding-inline: 18px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 16px;
+}
+
+.google-auth-button__label {
+  flex: 1;
+  text-align: center;
+  margin-right: 18px;
 }
 
 .button-secondary {

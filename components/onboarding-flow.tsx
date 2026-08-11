@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, type FormEvent, type HTMLAttributes, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
+import { GoogleMark } from "@/components/google-mark";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { OnboardingStickyActions, OnboardingStepHeader, ChoiceButton, PillToggle } from "@/components/onboarding-ui";
@@ -294,8 +295,9 @@ export function EntryScreen() {
                 {status ? <p className="caption" style={{ color: "#ffd166" }}>{status}</p> : null}
               </div>
 
-              <PrimaryButton className="focus-ring" onClick={handleGoogleSignIn} disabled={googleLoading || submitting}>
-                {googleLoading ? "Connecting..." : "Continue with Google"}
+              <PrimaryButton className="focus-ring google-auth-button" onClick={handleGoogleSignIn} disabled={googleLoading || submitting}>
+                <GoogleMark className="google-mark" />
+                <span className="google-auth-button__label">{googleLoading ? "Connecting..." : "Continue with Google"}</span>
               </PrimaryButton>
 
               <div className="row" style={{ alignItems: "center", gap: 12 }}>
