@@ -115,7 +115,7 @@ export function AppMenu({ open, onClose }: { open: boolean; onClose: () => void 
               </button>
             </div>
             <div className="app-menu__profile">
-              <RemoteAvatar name={saved.profile.name} avatarPath={saved.profile.avatarPath ?? null} size={52} className="profile-avatar" />
+              <RemoteAvatar name={saved.profile.name} avatarPath={saved.profile.avatarPath ?? null} size={48} className="profile-avatar" />
               <div style={{ minWidth: 0 }}>
                 <div className="body-md" style={{ fontWeight: 700 }}>
                   {saved.profile.name}
@@ -128,39 +128,25 @@ export function AppMenu({ open, onClose }: { open: boolean; onClose: () => void 
           </div>
         </div>
 
-        <div className="app-menu__section">
-          <div className="eyebrow">Primary</div>
-          <div className="app-menu__list">
-            {primaryItems.map((item) => (
-              <Link key={item.href} className="app-menu__item focus-ring" href={item.href} onClick={onClose}>
-                <span className="icon" aria-hidden="true">
-                  {item.icon}
-                </span>
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div className="app-menu__section">
-          <div className="eyebrow">Secondary</div>
-          <div className="app-menu__list">
-            {secondaryItems.map((item) => (
-              <Link key={item.href} className="app-menu__item app-menu__item--stack focus-ring" href={item.href} onClick={onClose}>
-                <span className="body-md" style={{ fontWeight: 700 }}>
-                  {item.label}
-                </span>
-                <span className="caption">{item.detail}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {coachItems.length > 0 ? (
+        <div className="app-menu__body">
           <div className="app-menu__section">
-            <div className="eyebrow">Coach</div>
+            <div className="eyebrow">Primary</div>
             <div className="app-menu__list">
-              {coachItems.map((item) => (
+              {primaryItems.map((item) => (
+                <Link key={item.href} className="app-menu__item focus-ring" href={item.href} onClick={onClose}>
+                  <span className="icon" aria-hidden="true">
+                    {item.icon}
+                  </span>
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="app-menu__section">
+            <div className="eyebrow">Secondary</div>
+            <div className="app-menu__list">
+              {secondaryItems.map((item) => (
                 <Link key={item.href} className="app-menu__item app-menu__item--stack focus-ring" href={item.href} onClick={onClose}>
                   <span className="body-md" style={{ fontWeight: 700 }}>
                     {item.label}
@@ -170,7 +156,23 @@ export function AppMenu({ open, onClose }: { open: boolean; onClose: () => void 
               ))}
             </div>
           </div>
-        ) : null}
+
+          {coachItems.length > 0 ? (
+            <div className="app-menu__section">
+              <div className="eyebrow">Coach</div>
+              <div className="app-menu__list">
+                {coachItems.map((item) => (
+                  <Link key={item.href} className="app-menu__item app-menu__item--stack focus-ring" href={item.href} onClick={onClose}>
+                    <span className="body-md" style={{ fontWeight: 700 }}>
+                      {item.label}
+                    </span>
+                    <span className="caption">{item.detail}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
 
         <div className="app-menu__footer">
           <button
@@ -189,4 +191,3 @@ export function AppMenu({ open, onClose }: { open: boolean; onClose: () => void 
     </div>
   );
 }
-

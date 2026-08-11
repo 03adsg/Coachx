@@ -74,7 +74,7 @@ export function RemoteAvatar({
   const dimensionStyle = { width: size, height: size };
 
   return (
-    <div className={`remote-avatar ${className}`.trim()} style={dimensionStyle}>
+    <div className={`remote-avatar ${className}`.trim()} style={dimensionStyle} role={src ? undefined : "img"} aria-label={src ? undefined : alt ?? `${name} avatar`}>
       {src ? (
         <img className="remote-avatar__img" src={src} alt={alt ?? `${name} avatar`} width={size} height={size} />
       ) : (
@@ -85,4 +85,3 @@ export function RemoteAvatar({
     </div>
   );
 }
-

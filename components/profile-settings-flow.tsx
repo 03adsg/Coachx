@@ -17,6 +17,7 @@ import { type GoalPriority } from "@/lib/onboarding-data";
 import { type NotificationCategory, type NotificationSettings, type ProfileSnapshot } from "@/lib/profile-settings-data";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { uploadProfileAvatar, validateProfileAvatarFile } from "@/lib/profile-avatar";
+import { LanguageSelector } from "@/components/language-selector";
 
 function ProfileHeader({
   backHref,
@@ -524,8 +525,7 @@ export function ProfilePreferencesIndexScreen() {
 export function ProfilePersonalInfoScreen() {
   const router = useRouter();
   const auth = useAuthStore();
-  const { saved, commitProfileSnapshot, commitLocale, saveState } = useProfileSettingsStore();
-  const { t } = useTranslator();
+  const { saved, commitProfileSnapshot, saveState } = useProfileSettingsStore();
   const [draft, setDraft] = useSyncedProfileDraft(saved);
   const [lastReview, setLastReview] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState<string | null>(null);
@@ -615,31 +615,34 @@ export function ProfilePersonalInfoScreen() {
   return (
     <EditorShell backHref="/profile/preferences" title="Profile" subtitle="Question 1 of 4" brand>
       <section className="section">
-        <Card className="p-16" style={{ borderRadius: 20 }}>
-          <div className="stack" style={{ gap: 16 }}>
-            <div className="row start" style={{ alignItems: "center", gap: 16 }}>
+        <Card className="p-16 profile-photo-card" style={{ borderRadius: 20 }}>
+          <div className="profile-photo-card__layout">
+            <div className="profile-photo-card__preview">
               {avatarPreview?.startsWith("blob:") ? (
-                <div className="remote-avatar profile-avatar profile-avatar--large" style={{ width: 72, height: 72 }}>
-                  <img className="remote-avatar__img" src={avatarPreview} alt={`${draft.profile.name} preview`} width={72} height={72} />
+                <div className="remote-avatar profile-avatar profile-avatar--large" style={{ width: 88, height: 88 }}>
+                  <img className="remote-avatar__img" src={avatarPreview} alt={`${draft.profile.name} preview`} width={88} height={88} />
                 </div>
               ) : (
-                <RemoteAvatar name={draft.profile.name} avatarPath={draft.profile.avatarPath ?? null} size={72} className="profile-avatar profile-avatar--large" />
+                <RemoteAvatar name={draft.profile.name} avatarPath={draft.profile.avatarPath ?? null} size={88} className="profile-avatar profile-avatar--large" />
               )}
-              <div style={{ flex: 1 }}>
+            </div>
+            <div className="profile-photo-card__content">
                 <div className="eyebrow">Profile photo</div>
                 <div className="caption" style={{ marginTop: 6 }}>
                   JPG, PNG, or WebP. Stored remotely in a private bucket.
                 </div>
-                <div className="row" style={{ gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-                  <button className="button-secondary focus-ring" type="button" onClick={() => fileInputRef.current?.click()}>
+                <div className="profile-photo-card__actions">
+                  <button className="button-secondary focus-ring profile-utility-button" type="button" onClick={() => fileInputRef.current?.click()}>
                     Choose photo
                   </button>
-                  <button className="button-primary focus-ring" type="button" onClick={saveAvatar} disabled={!pendingAvatarFile || savingAvatar}>
-                    {savingAvatar ? "Saving..." : "Save"}
-                  </button>
+                  {pendingAvatarFile ? (
+                    <button className="button-primary focus-ring profile-utility-button" type="button" onClick={saveAvatar} disabled={savingAvatar}>
+                      {savingAvatar ? "Saving..." : "Save"}
+                    </button>
+                  ) : null}
                   {draft.profile.avatarPath ? (
                     <button
-                      className="button-secondary focus-ring"
+                      className="button-secondary focus-ring profile-utility-button profile-utility-button--secondary"
                       type="button"
                       onClick={() => {
                         if (avatarPreview?.startsWith("blob:")) {
@@ -662,39 +665,22 @@ export function ProfilePersonalInfoScreen() {
                     {avatarError}
                   </p>
                 ) : null}
-              </div>
             </div>
-            <input ref={fileInputRef} accept="image/jpeg,image/png,image/webp" hidden onChange={handleAvatarSelection} type="file" />
+          </div>
+          <input ref={fileInputRef} accept="image/jpeg,image/png,image/webp" hidden onChange={handleAvatarSelection} type="file" />
+        </Card>
+      </section>
+
+      <section className="section">
+        <Card className="p-16 profile-personal-card" style={{ borderRadius: 20 }}>
+          <div className="profile-personal-fields">
             <TextField label="Name" value={draft.profile.name} onChange={(value) => setDraft((current) => ({ ...current, profile: { ...current.profile, name: value } }))} />
-            <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
-              <div style={{ flex: "1 1 140px" }}>
-                <TextField label="Age" type="number" inputMode="numeric" value={draft.profile.age} onChange={(value) => setDraft((current) => ({ ...current, profile: { ...current.profile, age: Number(value || 0) } }))} />
-              </div>
-              <div style={{ flex: "1 1 140px" }}>
-                <div className="eyebrow" style={{ marginBottom: 8 }}>Language</div>
-                <Card className="p-16" style={{ borderRadius: 14 }}>
-                  <div className="stack" style={{ gap: 8 }}>
-                    {(["es", "ca", "en", "de"] as const).map((locale) => (
-                      <ChoiceButton
-                        key={locale}
-                        label={t(`locale.${locale}`)}
-                        selected={draft.profile.locale === locale}
-                        onClick={() => {
-                          setDraft((current) => ({ ...current, profile: { ...current.profile, locale } }));
-                          commitLocale(locale);
-                        }}
-                        compact
-                      />
-                    ))}
-                  </div>
-                </Card>
-              </div>
-            </div>
-            <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
-              <div style={{ flex: "1 1 140px" }}>
+            <div className="profile-personal-metrics">
+              <TextField label="Age" type="number" inputMode="numeric" value={draft.profile.age} onChange={(value) => setDraft((current) => ({ ...current, profile: { ...current.profile, age: Number(value || 0) } }))} />
+              <div>
                 <TextField label="Height" type="number" inputMode="decimal" suffix="cm" value={draft.profile.heightCm} onChange={(value) => setDraft((current) => ({ ...current, profile: { ...current.profile, heightCm: Number(value || 0) } }))} />
               </div>
-              <div style={{ flex: "1 1 140px" }}>
+              <div>
                 <TextField label="Weight" type="number" inputMode="decimal" suffix="kg" value={draft.profile.weightKg} onChange={(value) => setDraft((current) => ({ ...current, profile: { ...current.profile, weightKg: Number(value || 0) } }))} />
               </div>
             </div>
@@ -725,6 +711,21 @@ export function ProfilePersonalInfoScreen() {
       </section>
 
       <UnsavedChangesDialog open={guard.confirmOpen} onDiscard={guard.discard} onKeepEditing={guard.keepEditing} />
+    </EditorShell>
+  );
+}
+
+export function ProfileLanguageScreen() {
+  const { saved, commitLocale } = useProfileSettingsStore();
+
+  return (
+    <EditorShell backHref="/profile/preferences" title="Language" subtitle="App-wide language preference">
+      <section className="section">
+        <Card className="p-16 language-settings-card" style={{ borderRadius: 20 }}>
+          <p className="caption language-settings-card__copy">Choose the language used across athlete navigation and settings.</p>
+          <LanguageSelector value={saved.profile.locale} onChange={commitLocale} />
+        </Card>
+      </section>
     </EditorShell>
   );
 }

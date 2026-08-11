@@ -1222,8 +1222,45 @@ test("remote hydration preserves the current locale when the stored row has no l
   assert.equal(hydrated.progress.status, "complete");
 });
 
+test("OAuth placeholder profiles preserve the language selected before sign-in", () => {
+  const snapshot = profileSettings.createProfileSnapshot();
+  const remote = {
+    snapshot: { ...snapshot, profile: { ...snapshot.profile, locale: "es" } },
+    onboardingStatus: "not_started",
+    onboardingCompletedAt: null,
+    profilePresent: true,
+    preferencesPresent: false,
+    localePresent: true,
+    source: "remote"
+  };
+
+  assert.equal(athleteService.resolveAthleteSnapshotLocale(remote, "de"), "de");
+});
+
+test("saved profiles remain authoritative for language after sign-in", () => {
+  const snapshot = profileSettings.createProfileSnapshot();
+  const remote = {
+    snapshot: { ...snapshot, profile: { ...snapshot.profile, locale: "ca" } },
+    onboardingStatus: "completed",
+    onboardingCompletedAt: "2026-08-08T10:00:00.000Z",
+    profilePresent: true,
+    preferencesPresent: true,
+    localePresent: true,
+    source: "remote"
+  };
+
+  assert.equal(athleteService.resolveAthleteSnapshotLocale(remote, "de"), "ca");
+});
+
 test("initial locale prefers the provided server locale before persisted browser state", () => {
   assert.equal(i18n.getInitialLocale("ca"), "ca");
+});
+
+test("language is a global settings section instead of personal profile data", () => {
+  const languageSection = profileSettings.profileSectionOrder.find((section) => section.id === "language");
+
+  assert.equal(languageSection?.route, "/profile/preferences/language");
+  assert.equal(profileSettings.profileSectionOrder.find((section) => section.id === "personal")?.summary.includes("Language"), false);
 });
 
 test("feedback notices resolve consistent titles across locales", () => {

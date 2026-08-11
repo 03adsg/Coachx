@@ -11,6 +11,8 @@ import { OnboardingStickyActions, OnboardingStepHeader, ChoiceButton, PillToggle
 import { useOnboardingStore } from "@/components/onboarding-provider";
 import { useAuthStore } from "@/components/auth-provider";
 import { type OnboardingStepId, type BaselinePose } from "@/lib/onboarding-data";
+import { LanguageSelector } from "@/components/language-selector";
+import { useLocale } from "@/components/locale-provider";
 
 function FlowShell({
   step,
@@ -189,7 +191,8 @@ function ReviewLine({ label, value }: { label: string; value: string }) {
 export function EntryScreen() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { entryDestination } = useOnboardingStore();
+  const { entryDestination, setProfile } = useOnboardingStore();
+  const { locale, setLocale } = useLocale();
   const auth = useAuthStore();
   const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
   const [email, setEmail] = useState("");
@@ -314,6 +317,14 @@ export function EntryScreen() {
         </section>
 
         <section className="section stack">
+          <LanguageSelector
+            compact
+            value={locale}
+            onChange={(nextLocale) => {
+              setLocale(nextLocale);
+              setProfile({ locale: nextLocale });
+            }}
+          />
           <Card className="p-16 onboarding-callout">
             <div className="stack" style={{ gap: 16 }}>
               <div className="stack" style={{ gap: 10 }}>

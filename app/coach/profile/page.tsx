@@ -1,4 +1,5 @@
 import { CoachPanelShell } from "@/components/coach-panel-shell";
+import { RemoteAvatar } from "@/components/remote-avatar";
 import { Card, Section } from "@/components/ui";
 import { loadCoachSessionContext } from "@/lib/coach/coach-auth-service";
 
@@ -22,13 +23,19 @@ export default async function CoachProfilePage() {
   return (
     <CoachPanelShell activeTab="profile">
       <section className="section">
-        <div className="eyebrow">Coach profile</div>
-        <h1 className="headline-lg" style={{ marginTop: 8 }}>
-          {session.coachProfile?.display_name ?? "Coach"}
-        </h1>
-        <p className="caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
-          Assignment-based coach access. Athletes remain isolated unless explicitly assigned.
-        </p>
+        <div className="profile-identity">
+          <RemoteAvatar
+            name={session.coachProfile?.display_name ?? "Coach"}
+            avatarPath={session.coachProfile?.avatar_path ?? null}
+            size={56}
+            className="profile-avatar"
+          />
+          <div className="profile-identity__copy">
+            <div className="eyebrow">Coach profile</div>
+            <h1 className="headline-md">{session.coachProfile?.display_name ?? "Coach"}</h1>
+            <p className="caption profile-identity__context">Coach · {session.coachProfile?.status ?? "active"}</p>
+          </div>
+        </div>
       </section>
 
       <Section title="Access">
@@ -58,4 +65,3 @@ export default async function CoachProfilePage() {
     </CoachPanelShell>
   );
 }
-

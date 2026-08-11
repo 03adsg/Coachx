@@ -386,7 +386,7 @@ export async function saveAthleteSnapshot(
   const preferencesRow = buildAthletePreferencesRow(userId, snapshot, version);
   const databaseClient = client as SupabaseClient<any>;
 
-  const profileRow = buildAthleteProfileRow(userId, snapshot, onboardingStatus, onboardingCompletedAt, { includeLocale: false });
+  const profileRow = buildAthleteProfileRow(userId, snapshot, onboardingStatus, onboardingCompletedAt);
   const profileResult = await databaseClient.from("athlete_profiles").upsert(profileRow, { onConflict: "id" }).select("*").single();
 
   if (profileResult.error) {
@@ -435,7 +435,7 @@ export function mergeRemoteSnapshotIntoOnboardingState<T extends ReturnType<type
   state: T,
   payload: AthleteSnapshotPayload
 ): T {
-  const locale = payload.localePresent ? payload.snapshot.profile.locale : state.profile.locale;
+  const locale = resolveAthleteSnapshotLocale(payload, state.profile.locale);
 
   return {
     ...state,
@@ -472,6 +472,11 @@ export function mergeRemoteSnapshotIntoOnboardingState<T extends ReturnType<type
       resumeStep: payload.onboardingStatus === "completed" ? "program" : state.progress.resumeStep
     }
   };
+}
+
+export function resolveAthleteSnapshotLocale(payload: AthleteSnapshotPayload, localLocale: ProfileSnapshot["profile"]["locale"]) {
+  const isNewPlaceholder = payload.onboardingStatus === "not_started" && !payload.preferencesPresent;
+  return payload.localePresent && !isNewPlaceholder ? payload.snapshot.profile.locale : localLocale;
 }
 
 export function createAthleteProfileDraft(snapshot?: ProfileSnapshot) {

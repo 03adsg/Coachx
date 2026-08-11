@@ -12,6 +12,7 @@ import {
 
 export type ProfileEditSection =
   | "personal"
+  | "language"
   | "goals"
   | "training"
   | "schedule"
@@ -99,6 +100,7 @@ export interface ProfileSettingsState {
 
 export const profileSectionOrder: Array<{ id: ProfileEditSection; label: string; route: string; summary: string }> = [
   { id: "personal", label: "Personal Details", route: "/profile/preferences/personal", summary: "Name, height, weight, units, timezone" },
+  { id: "language", label: "Language", route: "/profile/preferences/language", summary: "App language across sign-in and your saved profile" },
   { id: "goals", label: "Goals & Priorities", route: "/profile/preferences/goals", summary: "Goal and ordered priorities" },
   { id: "training", label: "Training Preferences", route: "/profile/preferences/training", summary: "Days, duration, equipment, style" },
   { id: "schedule", label: "Schedule & Lifestyle", route: "/profile/preferences/schedule", summary: "Work, sleep, energy, reminders" },

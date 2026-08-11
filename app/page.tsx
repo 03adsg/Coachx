@@ -91,7 +91,7 @@ function TodayContent() {
             <IconButton icon="menu" label="Open menu" onClick={() => setMenuOpen(true)} />
             <BrandLogo variant="horizontal" width={128} alt="AthlexForce" />
             <Link href="/profile" aria-label={t("common.profile")} className="focus-ring">
-              <RemoteAvatar name={saved.profile.name} avatarPath={saved.profile.avatarPath ?? null} size={52} className="profile-avatar" />
+              <RemoteAvatar name={saved.profile.name} avatarPath={saved.profile.avatarPath ?? null} size={44} className="profile-avatar" />
             </Link>
           </header>
         }

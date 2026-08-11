@@ -11,6 +11,7 @@ import {
   buildProfileReview,
   createNotificationSettings,
   createProfileSnapshot,
+  profileSectionOrder,
   profileStorageKey,
   reviveProfileSettingsState,
   serializeProfileSettingsState,
@@ -23,7 +24,7 @@ import {
   type ProfileSnapshot,
   type ReminderIntensity
 } from "@/lib/profile-settings-data";
-import { buildProfileSnapshotFromOnboarding, loadAthleteSnapshot, mapOnboardingStatus, saveAthleteSnapshot } from "@/lib/athlete-service";
+import { buildProfileSnapshotFromOnboarding, loadAthleteSnapshot, mapOnboardingStatus, resolveAthleteSnapshotLocale, saveAthleteSnapshot } from "@/lib/athlete-service";
 import { loadNotificationPreferences, saveNotificationPreferences } from "@/lib/notification-service";
 import { publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
 
@@ -116,15 +117,13 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
         }
 
         const nextNotifications = notificationResult.settings;
-        const nextSaved = remote.localePresent
-          ? remote.snapshot
-          : {
-              ...remote.snapshot,
-              profile: {
-                ...remote.snapshot.profile,
-                locale: state.saved.profile.locale
-              }
-            };
+        const nextSaved = {
+          ...remote.snapshot,
+          profile: {
+            ...remote.snapshot.profile,
+            locale: resolveAthleteSnapshotLocale(remote, onboardingRef.current.state.profile.locale)
+          }
+        };
         setState((current) => ({
           ...current,
           saved: nextSaved,
@@ -134,9 +133,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
           saveError: null,
           lastSavedLabel: "Loaded"
         }));
-        if (remote.localePresent) {
-          setLocale(remote.snapshot.profile.locale);
-        }
+        setLocale(nextSaved.profile.locale);
         onboardingRef.current.setProfile(remote.snapshot.profile);
         onboardingRef.current.setGoals(remote.snapshot.goals);
         onboardingRef.current.setTrainingPreferences(remote.snapshot.trainingPreferences);
@@ -148,7 +145,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
           await saveAthleteSnapshot(
             client,
             currentAuth.user.id,
-            remote.snapshot,
+            nextSaved,
             mapOnboardingStatus(onboardingRef.current.state.progress.status),
             onboardingRef.current.state.progress.status === "complete" ? new Date().toISOString() : null
           );
@@ -420,15 +417,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
       applyPendingReview,
       markSaveError,
       resetProfileSettings,
-      sectionOrder: [
-        { id: "personal", label: "Personal Details", route: "/profile/preferences/personal", summary: "Name, height, weight, units, timezone" },
-        { id: "goals", label: "Goals & Priorities", route: "/profile/preferences/goals", summary: "Goal and ordered priorities" },
-        { id: "training", label: "Training Preferences", route: "/profile/preferences/training", summary: "Days, duration, equipment, style" },
-        { id: "schedule", label: "Schedule & Lifestyle", route: "/profile/preferences/schedule", summary: "Work, sleep, energy, reminders" },
-        { id: "nutrition", label: "Nutrition Preferences", route: "/profile/preferences/nutrition", summary: "Meal routine, restrictions, preferences" },
-        { id: "health", label: "Health & Limitations", route: "/profile/preferences/health", summary: "Pain, injuries, movement limits" },
-        { id: "notifications", label: "Notifications & Reminders", route: "/profile/notifications", summary: "Workout, progress and coaching reminders" }
-      ]
+      sectionOrder: profileSectionOrder
     };
   }, [state]);
 

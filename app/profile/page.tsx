@@ -31,19 +31,19 @@ export default function ProfilePage() {
     >
       <main className="content tight">
         <section className="section">
-          <div className="row start">
-            <div>
-              <h1 className="headline-lg">{saved.profile.name}</h1>
-              <p className="caption" style={{ marginTop: 8 }}>
-                {t("profile.provisionalHub")}
+          <div className="profile-identity">
+            <RemoteAvatar name={saved.profile.name} avatarPath={saved.profile.avatarPath ?? null} size={56} className="profile-avatar" />
+            <div className="profile-identity__copy">
+              <h1 className="headline-md">{saved.profile.name}</h1>
+              <p className="caption profile-identity__context">
+                Athlete · {program?.phaseLabel ?? "Phase 1"}
               </p>
               {auth.user?.email ? (
-                <p className="caption" style={{ marginTop: 4 }}>
+                <p className="caption profile-identity__email">
                   {t("profile.signedInAs")} {auth.user.email}
                 </p>
               ) : null}
             </div>
-            <RemoteAvatar name={saved.profile.name} avatarPath={saved.profile.avatarPath ?? null} size={52} className="profile-avatar" />
           </div>
         </section>
 
