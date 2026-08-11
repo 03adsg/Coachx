@@ -58,8 +58,11 @@ async function transpileLibraryChain() {
     "feedback.ts",
     "nutrition-service.ts",
     "auth/navigation.ts",
+    "auth/session-policy.ts",
+    "auth/auth-errors.ts",
     "athlete-service.ts",
-    "workout-session-service.ts"
+    "workout-session-service.ts",
+    "motivational-immersion.ts"
   ];
 
   for (const fileName of sourceFiles) {
@@ -112,6 +115,9 @@ const aiSchemas = await import(pathToFileURL(path.join(tempDir, "ai/schemas.mjs"
 const aiEngine = await import(pathToFileURL(path.join(tempDir, "ai/coach-engine.mjs")).href);
 const aiRecommendationService = await import(pathToFileURL(path.join(tempDir, "ai/recommendation-service.mjs")).href);
 const changeProposalService = await import(pathToFileURL(path.join(tempDir, "recommendations/change-proposal-service.mjs")).href);
+const immersion = await import(pathToFileURL(path.join(tempDir, "motivational-immersion.mjs")).href);
+const authSessionPolicy = await import(pathToFileURL(path.join(tempDir, "auth/session-policy.mjs")).href);
+const authErrors = await import(pathToFileURL(path.join(tempDir, "auth/auth-errors.mjs")).href);
 
 test("onboarding step ordering works", () => {
   assert.equal(onboarding.getNextOnboardingStep("goals"), "training-experience");
@@ -157,6 +163,63 @@ test("program activation is explicit", () => {
   const active = onboarding.activateProgram(proposal);
   assert.equal(active.status, "active");
   assert.equal(onboarding.finalizeOnboarding(onboarding.onboardingDemoState).progress.status, "complete");
+});
+test("progress immersion resolves calm, close, heat, and achieved states", () => {
+  assert.equal(immersion.resolveProgressIntensity(null), "calm");
+  assert.equal(immersion.resolveProgressIntensity(69), "calm");
+  assert.equal(immersion.resolveProgressIntensity(70), "active");
+  assert.equal(immersion.resolveProgressIntensity(85), "close");
+  assert.equal(immersion.resolveProgressIntensity(95), "heat");
+  assert.equal(immersion.resolveProgressIntensity(100), "achieved");
+  assert.equal(immersion.resolveProgressIntensity(112), "achieved");
+});
+
+test("progress immersion surfaces real targets and milestone states", () => {
+  const state = immersion.buildMotivationalImmersion("en", {
+    locale: "en",
+    phaseLabel: "Phase 3",
+    trainingAdherencePercent: 96,
+    nutritionAdherencePercent: 93,
+    hydrationMl: 1800,
+    hydrationTargetMl: 2500,
+    workoutSessionCount: 12,
+    latestWorkoutLoad: 100,
+    bestWorkoutLoad: 95,
+    phaseComplete: false
+  });
+
+  assert.equal(state.state, "achieved");
+  assert.ok(state.primaryTarget);
+  assert.equal(state.primaryTarget?.kind, "training_adherence");
+  assert.ok(state.targets.length >= 3);
+  assert.ok(state.milestones.some((milestone) => milestone.id === "first-workout"));
+  assert.ok(state.milestones.some((milestone) => milestone.id === "ten-workouts"));
+  assert.ok(state.milestones.some((milestone) => milestone.id === "new-best-load"));
+  assert.equal(state.showParticles, true);
+});
+
+test("phase achievement immersion keeps progress grounded in the review state", () => {
+  const state = immersion.buildPhaseAchievementImmersion("de", {
+    phaseLabel: "Phase 4",
+    phaseComplete: true,
+    reviewSummary: "Phase complete and ready for the next block.",
+    workoutSessionCount: 9
+  });
+
+  assert.equal(state.state, "achieved");
+  assert.ok(state.primaryTarget);
+  assert.equal(state.primaryTarget?.kind, "phase_completion");
+  assert.equal(state.milestones[0].achieved, true);
+  assert.equal(state.milestones[1].achieved, true);
+  assert.equal(state.showParticles, true);
+});
+
+test("empty immersion stays calm until a real target exists", () => {
+  const state = immersion.buildEmptyMotivationalImmersion("ca", "Phase 2");
+  assert.equal(state.state, "calm");
+  assert.equal(state.primaryTarget, null);
+  assert.equal(state.targets.length, 0);
+  assert.equal(state.milestones.length, 0);
 });
 
 test("profile review classifies program-impacting edits", () => {
@@ -970,6 +1033,22 @@ test("route helpers keep authenticated users out of entry", () => {
   assert.equal(authNavigation.resolveAthleteRouteForStatus("not_started"), "/entry");
   assert.equal(authNavigation.resolveAthleteRouteForStatus("in_progress"), "/onboarding");
   assert.equal(authNavigation.resolveAthleteRouteForStatus("completed"), "/");
+});
+
+test("session preference and safe redirect helpers stay narrow", () => {
+  assert.equal(authSessionPolicy.readRememberSessionPreference(false), false);
+  assert.equal(authSessionPolicy.getRememberSessionPreferenceLabel(true), "Keep me signed in");
+  assert.equal(authSessionPolicy.getRememberSessionPreferenceLabel(false), "Sign out when this browser session ends");
+  assert.equal(authSessionPolicy.resolveSafeInternalPath("/reset-password"), "/reset-password");
+  assert.equal(authSessionPolicy.resolveSafeInternalPath("https://evil.example/reset-password"), "/");
+  assert.equal(authSessionPolicy.resolveSafeInternalPath("//evil.example"), "/");
+});
+
+test("auth error mapper keeps user-facing copy plain", () => {
+  assert.equal(authErrors.mapAuthErrorMessage("Google access was denied"), "Google access was denied. Try again.");
+  assert.equal(authErrors.mapAuthErrorMessage("Invalid login"), "That email and password don't match.");
+  assert.equal(authErrors.mapAuthErrorMessage("Network error"), "Couldn't connect. Try again.");
+  assert.equal(authErrors.mapAuthErrorMessage(null), "Something went wrong. Try again.");
 });
 
 test("coach role detection and assignment checks are explicit", () => {

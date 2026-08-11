@@ -6,8 +6,11 @@ import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { useProgramStore } from "@/components/program-provider";
 import { useProgressStore } from "@/components/progress-provider";
+import { useLocale } from "@/components/locale-provider";
+import { ProgressImmersionCard } from "@/components/progress-immersion-card";
 import { ProgramChangeProposalPanel } from "@/components/program-change-proposal-panel";
 import type { AthleteFeedback } from "@/lib/progress-data";
+import { buildPhaseAchievementImmersion } from "@/lib/motivational-immersion";
 
 const feedbackOptions: AthleteFeedback[] = ["Very Good", "Good", "Mixed", "Too Hard", "Too Easy", "Not Sure"];
 
@@ -57,10 +60,17 @@ function CoachRecommendationPanel({ contextKey }: { contextKey: string }) {
 export function ProgressPhaseReviewScreen() {
   const { state, setAthleteFeedback, setGoalDecision, setPriorityDecision } = useProgressStore();
   const { activeProgram } = useProgramStore();
+  const { locale } = useLocale();
   const review = state.phaseReview;
   const baselineFront = state.photos.checkpoints[0]?.photos.front.image ?? "/progress-photo-front.svg";
   const currentFront = state.photos.checkpoints[1]?.photos.front.image ?? "/progress-photo-front.svg";
   const recommendationContextKey = activeProgram?.id ?? "phase-review";
+  const phaseImmersion = buildPhaseAchievementImmersion(locale, {
+    phaseLabel: review.recommendation.title,
+    phaseComplete: review.status === "NEXT PHASE",
+    reviewSummary: review.summary,
+    workoutSessionCount: 0
+  });
 
   return (
     <Screen shellClassName="progress-flow-shell" topbar={<PhaseTopbar />}>
@@ -74,6 +84,17 @@ export function ProgressPhaseReviewScreen() {
             <span>W4 Mid</span>
             <span className="accent">W8 Now</span>
           </div>
+        </section>
+
+        <section className="section">
+          <ProgressImmersionCard
+            immersion={phaseImmersion}
+            action={
+              <Link href="/progress/photos/compare" className="button-secondary focus-ring">
+                COMPARE PHOTOS
+              </Link>
+            }
+          />
         </section>
 
         <section className="section">

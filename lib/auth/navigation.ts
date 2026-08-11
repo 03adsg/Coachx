@@ -13,7 +13,16 @@ export const protectedAthleteRoutePrefixes = [
 
 export const protectedCoachRoutePrefixes = ["/coach"];
 
-export const publicRoutePrefixes = ["/entry", "/login", "/auth/callback", "/manifest.json", "/favicon.ico", "/apple-touch-icon.png"];
+export const publicRoutePrefixes = [
+  "/entry",
+  "/login",
+  "/forgot-password",
+  "/reset-password",
+  "/auth/callback",
+  "/manifest.json",
+  "/favicon.ico",
+  "/apple-touch-icon.png"
+];
 
 export function isPublicRoute(pathname: string) {
   return publicRoutePrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));

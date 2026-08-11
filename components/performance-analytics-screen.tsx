@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, Section, StatTile } from "@/components/ui";
 import { AnalyticsChartCard } from "@/components/analytics-chart";
+import { ProgressImmersionCard } from "@/components/progress-immersion-card";
 import type { PerformanceAnalyticsDashboard } from "@/lib/performance-analytics";
 
 interface PerformanceAnalyticsScreenProps {
@@ -123,9 +124,28 @@ export function PerformanceAnalyticsScreen({ dashboard, basePath }: PerformanceA
         </section>
 
         <section className="section">
+          <ProgressImmersionCard
+            immersion={dashboard.immersion}
+            action={
+              <div className="stack">
+                <PrimaryButton href={`${basePath}/trends?range=${dashboard.range.id}`} className="focus-ring">
+                  {dashboard.copy.insightsSection}
+                </PrimaryButton>
+                <Link href="/progress/phase-review" className="button-secondary focus-ring">
+                  {dashboard.copy.nextFocusSection}
+                </Link>
+              </div>
+            }
+          />
+        </section>
+
+        <section className="section">
           <div className="grid-2">
             {dashboard.metrics.map((metric) => (
-              <Card key={metric.id} className={`analytics-metric-card p-16 ${metric.tone === "accent" ? "accent" : ""}`.trim()}>
+              <Card
+                key={metric.id}
+                className={`analytics-metric-card p-16 ${metric.tone === "accent" ? "accent" : ""} ${metric.id === "nutrition" && dashboard.immersion.primaryTarget?.kind === "nutrition_adherence" ? "heat" : ""}`.trim()}
+              >
                 <div className="caption" style={{ textTransform: "uppercase", letterSpacing: "0.08em" }}>
                   {metric.label}
                 </div>
@@ -183,15 +203,18 @@ export function PerformanceAnalyticsScreen({ dashboard, basePath }: PerformanceA
 
         <section className="section">
           <div className="grid-2">
-            <AnalyticsChartCard
-              title={dashboard.charts.nutrition.title}
-              subtitle={dashboard.charts.nutrition.subtitle}
-              unit={dashboard.charts.nutrition.unit}
-              series={dashboard.charts.nutrition.series[0] ?? { id: "nutrition-empty", label: dashboard.charts.nutrition.title, unit: "%", accent: "#FFFFFF", points: [] }}
-              pointsLabel={dashboard.copy.dataPoints}
-              emptyTitle={dashboard.charts.nutrition.emptyTitle}
-              emptyCopy={dashboard.charts.nutrition.emptyCopy}
-            />
+          <AnalyticsChartCard
+            title={dashboard.charts.nutrition.title}
+            subtitle={dashboard.charts.nutrition.subtitle}
+            unit={dashboard.charts.nutrition.unit}
+            series={dashboard.charts.nutrition.series[0] ?? { id: "nutrition-empty", label: dashboard.charts.nutrition.title, unit: "%", accent: "#FFFFFF", points: [] }}
+            pointsLabel={dashboard.copy.dataPoints}
+            emptyTitle={dashboard.charts.nutrition.emptyTitle}
+            emptyCopy={dashboard.charts.nutrition.emptyCopy}
+            targetValue={dashboard.immersion.targets.find((target) => target.kind === "nutrition_adherence")?.target ?? null}
+            targetLabel={dashboard.immersion.targets.find((target) => target.kind === "nutrition_adherence")?.label ?? null}
+            targetState={dashboard.immersion.targets.find((target) => target.kind === "nutrition_adherence")?.state ?? null}
+          />
             <AnalyticsChartCard
               title={dashboard.charts.recovery.title}
               subtitle={dashboard.charts.recovery.subtitle}

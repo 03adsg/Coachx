@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { Card } from "@/components/ui";
 import { useReducedMotion } from "@/motion/useReducedMotion";
 import type { PerformanceAnalyticsSeries } from "@/lib/performance-analytics";
+import type { ProgressIntensityLevel } from "@/lib/motivational-immersion";
 
 interface AnalyticsChartCardProps {
   title: string;
@@ -15,6 +16,9 @@ interface AnalyticsChartCardProps {
   emptyTitle: string;
   emptyCopy: string;
   chartTone?: "primary" | "accent";
+  targetValue?: number | null;
+  targetLabel?: string | null;
+  targetState?: ProgressIntensityLevel | null;
 }
 
 function buildPath(points: PerformanceAnalyticsSeries["points"]) {
@@ -49,7 +53,19 @@ function getPointPosition(points: PerformanceAnalyticsSeries["points"], index: n
   return { x, y };
 }
 
-export function AnalyticsChartCard({ title, subtitle, unit, series, pointsLabel, emptyTitle, emptyCopy, chartTone = "primary" }: AnalyticsChartCardProps) {
+function getValuePosition(points: PerformanceAnalyticsSeries["points"], value: number) {
+  if (points.length === 0) {
+    return { x: 100, y: 50 };
+  }
+
+  const maxValue = Math.max(...points.map((point) => point.value));
+  const minValue = Math.min(...points.map((point) => point.value));
+  const range = Math.max(1, maxValue - minValue);
+  const y = 100 - ((value - minValue) / range) * 78 - 10;
+  return { x: 100, y };
+}
+
+export function AnalyticsChartCard({ title, subtitle, unit, series, pointsLabel, emptyTitle, emptyCopy, chartTone = "primary", targetValue = null, targetLabel = null, targetState = null }: AnalyticsChartCardProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const reducedMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState(() => Math.max(0, series.points.length - 1));
@@ -125,6 +141,17 @@ export function AnalyticsChartCard({ title, subtitle, unit, series, pointsLabel,
   const selectedPosition = getPointPosition(series.points, activeIndex);
   const maxValue = Math.max(...series.points.map((point) => point.value));
   const minValue = Math.min(...series.points.map((point) => point.value));
+  const targetPosition = typeof targetValue === "number" ? getValuePosition(series.points, targetValue) : null;
+  const targetStroke =
+    targetState === "achieved"
+      ? "#ff8f2f"
+      : targetState === "heat"
+        ? "#ff9b3d"
+        : targetState === "close"
+          ? "#ffd166"
+          : targetState === "active"
+            ? "#efe66f"
+            : series.accent;
 
   return (
     <div ref={rootRef}>
@@ -138,6 +165,11 @@ export function AnalyticsChartCard({ title, subtitle, unit, series, pointsLabel,
         </div>
         <span className={`analytics-chip analytics-chip--${chartTone}`}>{pointsLabel}</span>
       </div>
+      {targetLabel && targetValue != null ? (
+        <div className="caption analytics-chart__target" style={{ marginTop: -4, marginBottom: 10 }}>
+          {targetLabel}
+        </div>
+      ) : null}
 
       <div className="analytics-chart">
         <svg className="analytics-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={title}>
@@ -152,12 +184,27 @@ export function AnalyticsChartCard({ title, subtitle, unit, series, pointsLabel,
             data-analytics-line
             d={path}
             fill="none"
-            stroke={series.accent}
+            stroke={targetValue != null ? targetStroke : series.accent}
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth="2.25"
             vectorEffect="non-scaling-stroke"
           />
+          {targetPosition ? (
+            <g aria-hidden="true">
+              <line
+                x1="0"
+                x2="100"
+                y1={targetPosition.y}
+                y2={targetPosition.y}
+                stroke={targetStroke}
+                strokeDasharray="4,4"
+                strokeOpacity="0.45"
+                vectorEffect="non-scaling-stroke"
+              />
+              <circle cx="100" cy={targetPosition.y} r="2.8" fill={targetStroke} opacity="0.95" />
+            </g>
+          ) : null}
           {series.points.map((point, index) => {
             const position = getPointPosition(series.points, index);
             const isActive = index === activeIndex;
@@ -168,8 +215,8 @@ export function AnalyticsChartCard({ title, subtitle, unit, series, pointsLabel,
                   cx={position.x}
                   cy={position.y}
                   r={isActive ? 3.6 : 2.6}
-                  fill={isActive ? series.accent : "#0f0f0f"}
-                  stroke={series.accent}
+                  fill={isActive ? targetStroke : "#0f0f0f"}
+                  stroke={targetValue != null ? targetStroke : series.accent}
                   strokeWidth="1.6"
                   vectorEffect="non-scaling-stroke"
                 />

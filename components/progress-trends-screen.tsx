@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, Section } from "@/components/ui";
 import { AnalyticsChartCard } from "@/components/analytics-chart";
+import { ProgressImmersionCard } from "@/components/progress-immersion-card";
 import type { PerformanceAnalyticsDashboard } from "@/lib/performance-analytics";
 
 interface ProgressTrendsScreenProps {
@@ -71,6 +72,23 @@ export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScre
 
         <section className="section">
           <RangeSelector dashboard={dashboard} basePath={basePath} />
+        </section>
+
+        <section className="section">
+          <ProgressImmersionCard
+            immersion={dashboard.immersion}
+            compact
+            action={
+              <div className="stack">
+                <PrimaryButton href="/progress" className="focus-ring">
+                  {dashboard.copy.heroLabel}
+                </PrimaryButton>
+                <Link href="/progress/phase-review" className="button-secondary focus-ring">
+                  {dashboard.copy.nextFocusSection}
+                </Link>
+              </div>
+            }
+          />
         </section>
 
         <section className="section">
@@ -162,6 +180,9 @@ export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScre
               pointsLabel={dashboard.copy.dataPoints}
               emptyTitle={dashboard.charts.nutrition.emptyTitle}
               emptyCopy={dashboard.charts.nutrition.emptyCopy}
+              targetValue={dashboard.immersion.targets.find((target) => target.kind === "nutrition_adherence")?.target ?? null}
+              targetLabel={dashboard.immersion.targets.find((target) => target.kind === "nutrition_adherence")?.label ?? null}
+              targetState={dashboard.immersion.targets.find((target) => target.kind === "nutrition_adherence")?.state ?? null}
             />
             <AnalyticsChartCard
               title={dashboard.charts.recovery.title}

@@ -4,6 +4,7 @@ import { formatDate } from "@/lib/i18n";
 import { createProgressDemoState } from "@/lib/progress-data";
 import { buildProgressStateFromPersistedSnapshot, type ProgressPersistedSnapshot } from "@/lib/progress-service";
 import type { ProgressState } from "@/lib/progress-data";
+import { buildEmptyMotivationalImmersion, buildMotivationalImmersion, type MotivationalImmersionState } from "@/lib/motivational-immersion";
 import { getProgramDaySummary, loadProgramBundle } from "@/lib/program-service";
 import { deriveWeeklyCheckinReviewSummary, computeSignalFromScoredQuestions, resolveWeeklyCheckinWindow } from "@/lib/checkin-data";
 import { loadAthleteSnapshot } from "@/lib/athlete-service";
@@ -154,6 +155,7 @@ export interface PerformanceAnalyticsDashboard {
   recentSessions: Array<{ label: string; detail: string }>;
   latestProgressSummary: string;
   latestNutritionSummary: string;
+  immersion: MotivationalImmersionState;
 }
 
 const localeDateOptions = {
@@ -776,7 +778,8 @@ function buildEmptyDashboard(locale: Locale, range: PerformanceAnalyticsRange): 
     dataCoverage: { workouts: 0, nutritionDays: 0, progressEntries: 0, checkIns: 0 },
     recentSessions: [],
     latestProgressSummary: copy.emptyCopy,
-    latestNutritionSummary: copy.emptyCopy
+    latestNutritionSummary: copy.emptyCopy,
+    immersion: buildEmptyMotivationalImmersion(locale, range.label)
   };
 }
 
@@ -1075,6 +1078,45 @@ export function buildPerformanceAnalyticsDashboardFromSnapshot(
 
   const latestProgressEntry = snapshot.progressState.measurement.lastSavedRows.at(-1) ?? null;
   const latestNutritionDay = snapshot.nutrition.days.at(-1) ?? null;
+  const workoutVolumes = snapshot.workout.sessions
+    .slice()
+    .map((session) =>
+      snapshot.workout.exercises
+        .filter((exercise) => exercise.workout_session_id === session.id)
+        .reduce((total, exercise) => {
+          const sessionSets = snapshot.workout.sets.filter((set) => set.workout_session_exercise_id === exercise.id && set.status === "completed");
+          return total + sessionSets.reduce((setTotal, set) => setTotal + (set.weight_kg ?? 0) * (set.reps ?? 0), 0);
+        }, 0)
+    );
+  const latestSession = snapshot.workout.sessions.at(-1) ?? null;
+  const latestSessionExerciseIds = latestSession ? snapshot.workout.exercises.filter((exercise) => exercise.workout_session_id === latestSession.id).map((exercise) => exercise.id) : [];
+  const latestWorkoutLoad = latestSessionExerciseIds.length
+    ? Math.max(
+        ...snapshot.workout.sets
+          .filter((set) => latestSessionExerciseIds.includes(set.workout_session_exercise_id) && set.status === "completed" && typeof set.weight_kg === "number")
+          .map((set) => Number(set.weight_kg))
+      )
+    : null;
+  const bestWorkoutLoad = snapshot.workout.sets.some((set) => set.status === "completed" && typeof set.weight_kg === "number")
+    ? Math.max(...snapshot.workout.sets.filter((set) => set.status === "completed" && typeof set.weight_kg === "number").map((set) => Number(set.weight_kg)))
+    : null;
+  const nutritionAdherencePercent = nutrition.averageAdherence;
+  const hydrationMl = nutrition.latest?.hydrationMl ?? null;
+  const hydrationTargetMl = nutrition.latest?.targetHydration ?? null;
+  const trainingAdherencePercent = snapshot.progressState.trends.adherenceTrend.current;
+  const phaseComplete = snapshot.progressState.phaseReview.status === "NEXT PHASE";
+  const immersion = buildMotivationalImmersion(snapshot.locale, {
+    locale: snapshot.locale,
+    phaseLabel: snapshot.phaseLabel,
+    trainingAdherencePercent,
+    nutritionAdherencePercent,
+    hydrationMl,
+    hydrationTargetMl,
+    workoutSessionCount: snapshot.workout.sessions.length,
+    latestWorkoutLoad,
+    bestWorkoutLoad,
+    phaseComplete
+  });
 
   const [latestRecoveryLabel, latestRecoverySummary, latestRecoverySignals] = latestCheckInSummary
     ? [latestCheckInSummary.recommendationLabel, latestCheckInSummary.reviewReason.summary, latestCheckInSummary.reviewReason.triggerKeys]
@@ -1184,7 +1226,8 @@ export function buildPerformanceAnalyticsDashboardFromSnapshot(
     latestProgressSummary: latestProgressEntry
       ? `${latestProgressEntry.label} · ${formatNumber(snapshot.locale, latestProgressEntry.currentValue ?? latestProgressEntry.previousValue ?? 0, 1)} ${latestProgressEntry.unit}`
       : bodySummary,
-    latestNutritionSummary
+    latestNutritionSummary,
+    immersion
   };
 }
 

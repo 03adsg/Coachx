@@ -908,3 +908,14 @@
 - Began wiring the shared feedback layer into auth, onboarding, workout, progress, check-in, recommendation, profile, and coach actions.
 - Kept business logic, persistence, RLS, and RPC boundaries unchanged.
 
+
+## Slice 16 — Google Sign-In + Secure Session UX
+
+- Added Google OAuth sign-in to the athlete entry flow and kept email/password as the fallback path.
+- Added password recovery and password reset screens.
+- Added a remembered-session toggle that controls browser session persistence.
+- Hardened auth callback handling with safe internal redirects and recovery routing.
+- Added `lib/auth/session-policy.ts` and `lib/auth/auth-errors.ts` for safe session and error handling.
+- Added `docs/GOOGLE_AUTH_SETUP.md` and `docs/SESSION_POLICY.md`.
+- Added `.agents/auth-security-ux.md` and updated `AGENT_ROUTING.md` for auth/security UX routing.
+- Verified the new entry, forgot-password, and reset-password screens in the in-app browser at mobile width during local QA.

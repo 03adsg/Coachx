@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, type FormEvent, type HTMLAttributes, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
@@ -187,13 +187,33 @@ function ReviewLine({ label, value }: { label: string; value: string }) {
 
 export function EntryScreen() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { entryDestination } = useOnboardingStore();
   const auth = useAuthStore();
   const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    if (auth.user && auth.ready) {
+      router.replace(entryDestination);
+    }
+  }, [auth.ready, auth.user, entryDestination, router]);
+
+  useEffect(() => {
+    const authNotice = searchParams.get("auth");
+    if (authNotice === "password-updated") {
+      setStatus("Password updated. Sign in again with your new password.");
+    } else if (authNotice === "error") {
+      setStatus("The sign-in link could not be completed. Try again.");
+    } else if (authNotice === "cancelled") {
+      setStatus("Google sign-in was cancelled. Nothing changed.");
+    }
+  }, [searchParams]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -209,8 +229,49 @@ export function EntryScreen() {
       setStatus(error);
       return;
     }
+  }
 
-    router.push("/");
+  async function handleGoogleSignIn() {
+    setGoogleLoading(true);
+    setStatus(null);
+
+    const error = await auth.signInWithGoogle();
+    setGoogleLoading(false);
+
+    if (error) {
+      setStatus(error);
+    }
+  }
+
+  async function handleForgotPassword() {
+    router.push("/forgot-password");
+  }
+
+  if (auth.loading && auth.isConfigured) {
+    return (
+      <Screen shellClassName="onboarding-shell" topbar={<header className="topbar center"><BrandLogo variant="full" width={156} alt="AthlexForce" /></header>}>
+        <main className="content">
+          <section className="section">
+            <div className="eyebrow" style={{ color: "#b6ff00" }}>ATHLETE ENTRY</div>
+            <h1 className="headline-xl" style={{ marginTop: 12 }}>Welcome back</h1>
+            <p className="body-lg muted" style={{ marginTop: 12 }}>
+              Restoring your secure session.
+            </p>
+          </section>
+          <section className="section">
+            <Card className="p-16 onboarding-callout">
+              <div className="stack" style={{ gap: 12 }}>
+                <div className="eyebrow">Session</div>
+                <div className="body-md" style={{ fontWeight: 700 }}>
+                  Checking your saved sign-in state.
+                </div>
+                <p className="caption">You will be routed to the right place once the session is ready.</p>
+              </div>
+            </Card>
+          </section>
+        </main>
+      </Screen>
+    );
   }
 
   return (
@@ -220,114 +281,99 @@ export function EntryScreen() {
           <div className="eyebrow" style={{ color: "#b6ff00" }}>ATHLETE ENTRY</div>
           <h1 className="headline-xl" style={{ marginTop: 12 }}>Welcome back</h1>
           <p className="body-lg muted" style={{ marginTop: 12 }}>
-            {auth.isConfigured
-              ? "Sign in to restore your athlete profile and resume the correct route."
-              : "Continue where you left off or start fresh."}
+            Your plan is waiting.
           </p>
         </section>
 
-        {auth.isConfigured ? (
-          <>
-            <section className="section stack">
-              <Card className="p-16 onboarding-callout">
-                <div className="stack" style={{ gap: 12 }}>
-                  <div>
-                    <div className="eyebrow">Sign in</div>
-                    <p className="caption" style={{ marginTop: 6 }}>
-                      {auth.statusLabel}
-                    </p>
-                  </div>
+        <section className="section stack">
+          <Card className="p-16 onboarding-callout">
+            <div className="stack" style={{ gap: 16 }}>
+              <div className="stack" style={{ gap: 10 }}>
+                <div className="eyebrow">Sign in</div>
+                <p className="caption">{auth.statusLabel}</p>
+                {status ? <p className="caption" style={{ color: "#ffd166" }}>{status}</p> : null}
+              </div>
 
-                  {auth.user ? (
-                    <div className="stack" style={{ gap: 12 }}>
-                      <div className="body-md" style={{ fontWeight: 700 }}>
-                        Signed in as {auth.user.email ?? "Athlete"}
-                      </div>
-                      <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
-                        <span className="program-template-chip">Session restored</span>
-                        <span className="program-template-chip">Ready</span>
-                      </div>
-                      <PrimaryButton className="focus-ring" onClick={() => router.push("/")}>Open app</PrimaryButton>
-                      <SecondaryButton
-                        className="focus-ring"
-                        onClick={async () => {
-                          await auth.signOut();
-                          router.refresh();
-                        }}
-                      >
-                        Sign out
-                      </SecondaryButton>
-                    </div>
-                  ) : (
-                    <form className="stack" onSubmit={handleSubmit}>
-                      <div className="row" style={{ gap: 8 }}>
-                        <button type="button" className={`program-template-chip focus-ring ${mode === "sign-in" ? "selected" : ""}`.trim()} onClick={() => setMode("sign-in")}>
-                          Sign In
-                        </button>
-                        <button type="button" className={`program-template-chip focus-ring ${mode === "sign-up" ? "selected" : ""}`.trim()} onClick={() => setMode("sign-up")}>
-                          Sign Up
-                        </button>
-                      </div>
-                      <label className="stack" style={{ gap: 8 }}>
-                        <span className="eyebrow">Email</span>
-                        <input className="input-field focus-ring" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-                      </label>
-                      <label className="stack" style={{ gap: 8 }}>
-                        <span className="eyebrow">Password</span>
-                        <input className="input-field focus-ring" type="password" autoComplete={mode === "sign-in" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} />
-                      </label>
-                      <PrimaryButton className="focus-ring" type="submit" disabled={submitting}>
-                        {submitting ? "Signing in..." : mode === "sign-in" ? "Sign in" : "Create account"}
-                      </PrimaryButton>
-                      <p className="caption" style={{ marginTop: 4 }}>
-                        {mode === "sign-in" ? "Use your existing athlete account." : "Create a new athlete account with email confirmation if enabled."}
-                      </p>
-                      {status ? (
-                        <p className="caption" style={{ color: "#ff9b9b" }}>
-                          {status}
-                        </p>
-                      ) : null}
-                    </form>
-                  )}
-                </div>
-              </Card>
-            </section>
+              <PrimaryButton className="focus-ring" onClick={handleGoogleSignIn} disabled={googleLoading || submitting}>
+                {googleLoading ? "Connecting..." : "Continue with Google"}
+              </PrimaryButton>
 
-            {auth.isDemoMode ? (
-              <OnboardingStickyActions
-                secondary={<SecondaryButton className="focus-ring" onClick={() => router.push(entryDestination === "/" ? "/" : entryDestination)}>Continue saved flow</SecondaryButton>}
-                primary={<PrimaryButton className="focus-ring" onClick={() => router.push(entryDestination)}>Open flow</PrimaryButton>}
-              />
-            ) : null}
-          </>
-        ) : (
-          <>
-            <section className="section stack">
-              <Card className="p-16 onboarding-callout">
-                <div className="stack" style={{ gap: 12 }}>
-                  <div>
-                    <div className="eyebrow">Entry routing</div>
-                    <p className="caption" style={{ marginTop: 6 }}>
-                      New users start onboarding. Incomplete onboarding resumes at the saved step. Completed onboarding returns to Today.
-                    </p>
-                  </div>
-                  <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
-                    <span className="program-template-chip">Apple</span>
-                    <span className="program-template-chip">Email</span>
-                    <span className="program-template-chip">Sign In</span>
-                  </div>
-                </div>
-              </Card>
-            </section>
+              <div className="row" style={{ alignItems: "center", gap: 12 }}>
+                <div className="auth-divider" aria-hidden="true" />
+                <span className="caption" style={{ whiteSpace: "nowrap" }}>or</span>
+                <div className="auth-divider" aria-hidden="true" />
+              </div>
 
-            {auth.isDemoMode ? (
-              <OnboardingStickyActions
-                secondary={<SecondaryButton className="focus-ring" onClick={() => router.push(entryDestination === "/" ? "/" : entryDestination)}>Continue saved flow</SecondaryButton>}
-                primary={<PrimaryButton className="focus-ring" onClick={() => router.push(entryDestination)}>Continue</PrimaryButton>}
-              />
-            ) : null}
-          </>
-        )}
+              <form className="stack" onSubmit={handleSubmit}>
+                <label className="stack" style={{ gap: 8 }}>
+                  <span className="eyebrow">Email</span>
+                  <input className="input-field focus-ring" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+                </label>
+
+                <label className="stack" style={{ gap: 8 }}>
+                  <span className="eyebrow">Password</span>
+                  <div className="row" style={{ alignItems: "stretch", gap: 8 }}>
+                    <input
+                      className="input-field focus-ring"
+                      style={{ flex: 1 }}
+                      type={showPassword ? "text" : "password"}
+                      autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      required
+                      minLength={8}
+                    />
+                    <SecondaryButton
+                      className="focus-ring"
+                      type="button"
+                      style={{ minWidth: 92 }}
+                      onClick={() => setShowPassword((current) => !current)}
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </SecondaryButton>
+                  </div>
+                </label>
+
+                <label className="row" style={{ alignItems: "center", gap: 10 }}>
+                  <input
+                    type="checkbox"
+                    checked={auth.rememberSession}
+                    onChange={(event) => auth.setRememberSessionPreference(event.target.checked)}
+                    style={{ width: 18, height: 18 }}
+                  />
+                  <span className="body-md" style={{ fontWeight: 600 }}>
+                    Keep me signed in
+                  </span>
+                </label>
+
+                <PrimaryButton className="focus-ring" type="submit" disabled={submitting}>
+                  {submitting ? "Signing in..." : mode === "sign-in" ? "Sign in" : "Create account"}
+                </PrimaryButton>
+              </form>
+
+              <div className="row" style={{ flexWrap: "wrap", justifyContent: "space-between", gap: 12 }}>
+                <button type="button" className="text-button focus-ring" onClick={handleForgotPassword}>
+                  Forgot password?
+                </button>
+                {mode === "sign-in" ? (
+                  <button type="button" className="text-button focus-ring" onClick={() => setMode("sign-up")}>
+                    No account yet? Create account
+                  </button>
+                ) : (
+                  <button type="button" className="text-button focus-ring" onClick={() => setMode("sign-in")}>
+                    Already have an account? Sign in
+                  </button>
+                )}
+              </div>
+
+              {mode === "sign-up" ? (
+                <p className="caption">Create an account with the same secure Google or email sign-in path.</p>
+              ) : (
+                <p className="caption">Email sign-in uses the same secure session route as Google.</p>
+              )}
+            </div>
+          </Card>
+        </section>
       </main>
     </Screen>
   );
