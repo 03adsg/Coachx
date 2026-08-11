@@ -17,6 +17,7 @@ interface AuthStoreValue {
   isDemoMode: boolean;
   ready: boolean;
   loading: boolean;
+  bootError: string | null;
   rememberSession: boolean;
   session: Session | null;
   user: User | null;
@@ -28,6 +29,7 @@ interface AuthStoreValue {
   updatePassword: (password: string) => Promise<string | null>;
   signOut: () => Promise<string | null>;
   refreshSession: () => Promise<void>;
+  retrySessionRestore: () => void;
   setRememberSessionPreference: (rememberSession: boolean) => void;
 }
 
@@ -38,6 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(!isSupabaseConfigured());
   const [loading, setLoading] = useState(isSupabaseConfigured());
+  const [bootError, setBootError] = useState<string | null>(null);
+  const [restoreAttempt, setRestoreAttempt] = useState(0);
   const setRememberSessionPreference = useCallback((nextRememberSession: boolean) => {
     setRememberSession(nextRememberSession);
   }, []);
@@ -52,21 +56,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!client) {
       setReady(true);
       setLoading(false);
+      setBootError(null);
       return;
     }
 
     const activeClient = client;
     let active = true;
+    const restoreTimeout = window.setTimeout(() => {
+      if (!active) {
+        return;
+      }
+
+      setBootError("We couldn't restore your session.");
+      setReady(true);
+      setLoading(false);
+    }, 8000);
 
     async function hydrate() {
       setLoading(true);
+      setBootError(null);
       const { data, error } = await activeClient.auth.getSession();
       if (!active) {
         return;
       }
 
+      window.clearTimeout(restoreTimeout);
+
       if (!error) {
         setSession(data.session);
+        setBootError(null);
+      } else {
+        setBootError("We couldn't restore your session.");
       }
 
       setReady(true);
@@ -77,41 +97,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data } = activeClient.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
+      setBootError(null);
       setReady(true);
       setLoading(false);
     });
 
     return () => {
       active = false;
+      window.clearTimeout(restoreTimeout);
       data.subscription.unsubscribe();
     };
-  }, [rememberSession]);
+  }, [rememberSession, restoreAttempt]);
 
   const value = useMemo<AuthStoreValue>(() => {
     const client = getSupabaseBrowserClient(rememberSession);
 
-    if (!client) {
-      const notConfigured = "Sign-in is not available right now.";
+      if (!client) {
+        const notConfigured = "Sign-in is not available right now.";
 
-      return {
-        isConfigured: false,
-        isDemoMode: true,
-        ready,
-        loading,
-        rememberSession,
-        session,
-        user: null,
-        statusLabel: getSupabaseConfigSummary(),
-        signInWithEmail: async () => notConfigured,
+        return {
+          isConfigured: false,
+          isDemoMode: true,
+          ready,
+          loading,
+          bootError,
+          rememberSession,
+          session,
+          user: null,
+          statusLabel: getSupabaseConfigSummary(),
+          signInWithEmail: async () => notConfigured,
         signUpWithEmail: async () => notConfigured,
         signInWithGoogle: async () => notConfigured,
-        requestPasswordReset: async () => notConfigured,
-        updatePassword: async () => notConfigured,
-        signOut: async () => notConfigured,
-        refreshSession: async () => {},
-        setRememberSessionPreference
-      };
-    }
+          requestPasswordReset: async () => notConfigured,
+          updatePassword: async () => notConfigured,
+          signOut: async () => notConfigured,
+          refreshSession: async () => {},
+          retrySessionRestore: () => {},
+          setRememberSessionPreference
+        };
+      }
 
     const currentRedirect = (pathname: string) => {
       if (typeof window === "undefined") {
@@ -229,25 +253,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(data.session);
     };
 
-    return {
-      isConfigured: isSupabaseConfigured(),
-      isDemoMode: isCoachxDemoMode(),
-      ready,
-      loading,
-      rememberSession,
-      session,
-      user: session?.user ?? null,
-      statusLabel: getSupabaseConfigSummary(),
-      signInWithEmail,
+      return {
+        isConfigured: isSupabaseConfigured(),
+        isDemoMode: isCoachxDemoMode(),
+        ready,
+        loading,
+        bootError,
+        rememberSession,
+        session,
+        user: session?.user ?? null,
+        statusLabel: getSupabaseConfigSummary(),
+        signInWithEmail,
       signUpWithEmail,
       signInWithGoogle,
-      requestPasswordReset,
-      updatePassword,
-      signOut,
-      refreshSession,
-      setRememberSessionPreference
-    };
-  }, [loading, ready, rememberSession, session, setRememberSessionPreference]);
+        requestPasswordReset,
+        updatePassword,
+        signOut,
+        refreshSession,
+        retrySessionRestore: () => setRestoreAttempt((current) => current + 1),
+        setRememberSessionPreference
+      };
+  }, [bootError, loading, ready, rememberSession, session, setRememberSessionPreference]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -8,18 +8,23 @@ import { Card } from "@/components/ui";
 import { useProgramStore } from "@/components/program-provider";
 import { useWorkoutStore } from "@/components/workout-provider";
 
-function getNextTuesday(dateKey: string) {
-  const date = new Date(`${dateKey}T00:00:00Z`);
+function parseWorkoutDate(dateLabel: string) {
+  const parsed = new Date(dateLabel);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function getNextTuesday(date: Date) {
+  const nextDate = new Date(date);
   const targetDay = 2;
-  const currentDay = date.getUTCDay();
+  const currentDay = nextDate.getUTCDay();
   let daysUntilTuesday = (targetDay - currentDay + 7) % 7;
 
   if (daysUntilTuesday === 0) {
     daysUntilTuesday = 7;
   }
 
-  date.setUTCDate(date.getUTCDate() + daysUntilTuesday);
-  return date.toISOString().slice(0, 10);
+  nextDate.setUTCDate(nextDate.getUTCDate() + daysUntilTuesday);
+  return nextDate.toISOString().slice(0, 10);
 }
 
 export default function ReorganizeWeekPage() {
@@ -27,7 +32,9 @@ export default function ReorganizeWeekPage() {
   const { session } = useWorkoutStore();
   const { rescheduleWorkoutDay } = useProgramStore();
   const [saving, setSaving] = useState(false);
-  const nextDate = getNextTuesday("2026-08-08");
+  const scheduledWorkoutId = session.scheduledWorkoutId ?? session.id;
+  const parsedWorkoutDate = parseWorkoutDate(session.dateLabel);
+  const nextDate = getNextTuesday(parsedWorkoutDate ?? new Date());
 
   return (
     <Screen
@@ -130,8 +137,8 @@ export default function ReorganizeWeekPage() {
             onClick={async () => {
               setSaving(true);
               try {
-                await rescheduleWorkoutDay(session.id, nextDate);
-                router.push(`/workout/${session.id}/adjust/updated`);
+                await rescheduleWorkoutDay(scheduledWorkoutId, nextDate);
+                router.push(`/workout/${session.id}/adjust/updated?date=${encodeURIComponent(nextDate)}`);
               } finally {
                 setSaving(false);
               }

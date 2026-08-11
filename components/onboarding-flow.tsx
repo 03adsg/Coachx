@@ -278,6 +278,33 @@ export function EntryScreen() {
   return (
     <Screen shellClassName="onboarding-shell" topbar={<header className="topbar center"><BrandLogo variant="full" width={156} alt="AthlexForce" /></header>}>
       <main className="content">
+        {auth.bootError ? (
+          <section className="section">
+            <Card className="p-16 onboarding-callout">
+              <div className="stack" style={{ gap: 12 }}>
+                <div className="eyebrow" style={{ color: "#ffd166" }}>SESSION</div>
+                <h2 className="headline-md" style={{ margin: 0 }}>We couldn't restore your session.</h2>
+                <p className="caption">Try again, or continue with a fresh sign-in.</p>
+                <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
+                  <button type="button" className="button-secondary focus-ring" onClick={auth.retrySessionRestore}>
+                    Try again
+                  </button>
+                  <button
+                    type="button"
+                    className="button-secondary focus-ring"
+                    onClick={() => {
+                      setMode("sign-in");
+                      setStatus(null);
+                    }}
+                  >
+                    Sign in
+                  </button>
+                </div>
+              </div>
+            </Card>
+          </section>
+        ) : null}
+
         <section className="section">
           <div className="eyebrow" style={{ color: "#b6ff00" }}>ATHLETE ENTRY</div>
           <h1 className="headline-xl" style={{ marginTop: 12 }}>Welcome back</h1>
@@ -358,8 +385,9 @@ export function EntryScreen() {
                   Forgot password?
                 </button>
                 {mode === "sign-in" ? (
-                  <button type="button" className="text-button focus-ring" onClick={() => setMode("sign-up")}>
-                    No account yet? Create account
+                  <button type="button" className="auth-inline-action focus-ring" onClick={() => setMode("sign-up")}>
+                    <span className="auth-inline-action__lead">No account yet?</span>
+                    <span className="auth-inline-action__cta">Create account</span>
                   </button>
                 ) : (
                   <button type="button" className="text-button focus-ring" onClick={() => setMode("sign-in")}>

@@ -1,14 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Screen } from "@/components/screen";
 import { Card } from "@/components/ui";
 import { useWorkoutStore } from "@/components/workout-provider";
 
+function formatMoveDate(dateKey: string | null) {
+  if (!dateKey) {
+    return null;
+  }
+
+  const parsed = new Date(`${dateKey}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC"
+  }).format(parsed);
+}
+
 export default function ScheduleUpdatedPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { session } = useWorkoutStore();
+  const movedDate = formatMoveDate(searchParams.get("date"));
 
   return (
     <Screen
@@ -38,7 +59,7 @@ export default function ScheduleUpdatedPage() {
             Schedule Updated
           </h1>
           <p className="body-lg" style={{ color: "var(--text-secondary)", marginTop: 8 }}>
-            Glutes + Hamstrings moved to Tuesday at 19:00.
+            Glutes + Hamstrings moved to {movedDate ?? "the selected day"}.
           </p>
         </section>
 
@@ -65,7 +86,7 @@ export default function ScheduleUpdatedPage() {
               <div>
                 <div className="headline-md">{session.workoutType}</div>
                 <div className="caption" style={{ color: "#b6ff00", marginTop: 6 }}>
-                  Tuesday, 19:00
+                  {movedDate ?? "Scheduled move confirmed"}
                 </div>
               </div>
               <span className="icon" aria-hidden="true">
@@ -82,7 +103,7 @@ export default function ScheduleUpdatedPage() {
                 restaurant
               </span>
               <div className="body-lg" style={{ color: "var(--text-secondary)" }}>
-                Nutrition updated: Tuesday training day target
+                Nutrition updated: moved training-day target
               </div>
             </div>
           </Card>
