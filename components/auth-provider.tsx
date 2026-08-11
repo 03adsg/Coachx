@@ -4,7 +4,7 @@ import { createContext, useCallback, useEffect, useMemo, useState, useContext, t
 import type { Session, User } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getSupabaseConfigSummary, isCoachxDemoMode, isSupabaseConfigured } from "@/lib/supabase/env";
-import { publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
+import { publishFeedbackClear, publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
 import {
   buildTrustedAppUrl,
   readRememberSessionPreference,
@@ -85,6 +85,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!error) {
         setSession(data.session);
         setBootError(null);
+        if (data.session?.user) {
+          publishFeedbackClear("auth.sign-in");
+        }
       } else {
         setBootError("We couldn't restore your session.");
       }
@@ -100,6 +103,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setBootError(null);
       setReady(true);
       setLoading(false);
+      if (nextSession?.user) {
+        publishFeedbackClear("auth.sign-in");
+      }
     });
 
     return () => {

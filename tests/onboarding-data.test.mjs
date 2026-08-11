@@ -118,6 +118,7 @@ const changeProposalService = await import(pathToFileURL(path.join(tempDir, "rec
 const immersion = await import(pathToFileURL(path.join(tempDir, "motivational-immersion.mjs")).href);
 const authSessionPolicy = await import(pathToFileURL(path.join(tempDir, "auth/session-policy.mjs")).href);
 const authErrors = await import(pathToFileURL(path.join(tempDir, "auth/auth-errors.mjs")).href);
+const feedbackLibrary = await import(pathToFileURL(path.join(tempDir, "feedback.mjs")).href);
 
 test("trusted app origins are explicit and keep open-redirect protection intact", () => {
   assert.equal(authSessionPolicy.isTrustedAppOrigin("http://localhost:3000"), true);
@@ -138,6 +139,37 @@ test("trusted app origins are explicit and keep open-redirect protection intact"
   assert.equal(authSessionPolicy.resolveSafeInternalPath("//evil.example", "/"), "/");
   assert.equal(authSessionPolicy.resolveSafeInternalPath("https://evil.example", "/"), "/");
   assert.equal(authSessionPolicy.resolveSafeInternalPath("/calendar", "/"), "/calendar");
+});
+
+test("feedback memory can clear stale auth sign-in notices without affecting other actions", () => {
+  const staleAuthNotice = feedbackLibrary.buildFeedbackNotice("en", {
+    actionId: "auth.sign-in",
+    kind: "error",
+    title: "Google sign-in could not be completed",
+    detail: "Google sign-in is only available from a trusted AthlexForce origin."
+  });
+  const workoutNotice = feedbackLibrary.buildFeedbackNotice("en", {
+    actionId: "workout.set",
+    kind: "success",
+    title: "Set completed",
+    detail: "Your reps and load are saved."
+  });
+
+  const nextMemory = feedbackLibrary.clearFeedbackMemoryForAction(
+    {
+      recent: [staleAuthNotice, workoutNotice],
+      lastByAction: {
+        "auth.sign-in": staleAuthNotice,
+        "workout.set": workoutNotice
+      }
+    },
+    "auth.sign-in"
+  );
+
+  assert.equal(nextMemory.recent.some((notice) => notice.actionId === "auth.sign-in"), false);
+  assert.equal(nextMemory.recent.some((notice) => notice.actionId === "workout.set"), true);
+  assert.equal(Object.hasOwn(nextMemory.lastByAction, "auth.sign-in"), false);
+  assert.equal(Object.hasOwn(nextMemory.lastByAction, "workout.set"), true);
 });
 
 test("onboarding step ordering works", () => {

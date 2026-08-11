@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { useReducedMotion } from "@/motion/useReducedMotion";
 import { useLocale } from "@/components/locale-provider";
 import {
+  clearFeedbackMemoryForAction,
   buildFeedbackNotice,
   createInitialFeedbackMemory,
   feedbackMemoryStorageKey,
@@ -24,11 +25,13 @@ interface FeedbackStoreValue {
   emitSuccess: (actionId: FeedbackActionId, title: string, detail?: string | null) => string;
   emitError: (actionId: FeedbackActionId, title: string, detail?: string | null) => string;
   clearFeedback: () => void;
+  clearFeedbackForAction: (actionId: FeedbackActionId) => void;
   dismissFeedback: (id: string) => void;
 }
 
 const FeedbackContext = createContext<FeedbackStoreValue | null>(null);
 const FEEDBACK_EVENT_NAME = "athlexforce-feedback";
+const FEEDBACK_CLEAR_EVENT_NAME = "athlexforce-feedback-clear";
 const DEFAULT_DISPLAY_MS = 4200;
 const HERO_DISPLAY_MS = 6200;
 
@@ -102,6 +105,26 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(FEEDBACK_EVENT_NAME, handleFeedback as EventListener);
   }, [enqueueNotice, locale]);
 
+  useEffect(() => {
+    if (!hasWindow()) {
+      return;
+    }
+
+    const handleClearFeedback = (event: Event) => {
+      const customEvent = event as CustomEvent<Pick<FeedbackIntent, "actionId">>;
+      if (!customEvent.detail?.actionId) {
+        return;
+      }
+
+      const actionId = customEvent.detail.actionId;
+      setMemory((current) => clearFeedbackMemoryForAction(current, actionId));
+      setQueue((current) => current.filter((entry) => entry.actionId !== actionId));
+    };
+
+    window.addEventListener(FEEDBACK_CLEAR_EVENT_NAME, handleClearFeedback as EventListener);
+    return () => window.removeEventListener(FEEDBACK_CLEAR_EVENT_NAME, handleClearFeedback as EventListener);
+  }, []);
+
   const emitFeedback = useCallback(
     (intent: FeedbackIntent) => {
       const notice = buildFeedbackNotice(locale, intent);
@@ -129,6 +152,11 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     setQueue((current) => current.filter((entry) => entry.id !== id));
   }, []);
 
+  const clearFeedbackForAction = useCallback((actionId: FeedbackActionId) => {
+    setMemory((current) => clearFeedbackMemoryForAction(current, actionId));
+    setQueue((current) => current.filter((entry) => entry.actionId !== actionId));
+  }, []);
+
   const clearFeedback = useCallback(() => {
     setQueue([]);
   }, []);
@@ -141,9 +169,10 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
       emitSuccess,
       emitError,
       clearFeedback,
+      clearFeedbackForAction,
       dismissFeedback
     }),
-    [clearFeedback, dismissFeedback, emitError, emitFeedback, emitSuccess, memory, queue]
+    [clearFeedback, clearFeedbackForAction, dismissFeedback, emitError, emitFeedback, emitSuccess, memory, queue]
   );
 
   return (
@@ -205,6 +234,14 @@ export function publishFeedback(intent: FeedbackIntent) {
   }
 
   window.dispatchEvent(new CustomEvent<FeedbackIntent>(FEEDBACK_EVENT_NAME, { detail: intent }));
+}
+
+export function publishFeedbackClear(actionId: FeedbackActionId) {
+  if (!hasWindow()) {
+    return;
+  }
+
+  window.dispatchEvent(new CustomEvent<Pick<FeedbackIntent, "actionId">>(FEEDBACK_CLEAR_EVENT_NAME, { detail: { actionId } }));
 }
 
 export function publishFeedbackError(actionId: FeedbackActionId, title: string, detail?: string | null) {

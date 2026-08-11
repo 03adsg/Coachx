@@ -257,6 +257,17 @@ export function createInitialFeedbackMemory(): FeedbackMemoryState {
   return { recent: [], lastByAction: {} };
 }
 
+export function clearFeedbackMemoryForAction(state: FeedbackMemoryState, actionId: FeedbackActionId): FeedbackMemoryState {
+  const recent = state.recent.filter((notice) => notice.actionId !== actionId);
+  const lastByAction = { ...state.lastByAction };
+  delete lastByAction[actionId];
+
+  return {
+    recent,
+    lastByAction
+  };
+}
+
 export function feedbackMemoryStorageKey() {
   return "athlexforce-feedback-memory-v1";
 }
