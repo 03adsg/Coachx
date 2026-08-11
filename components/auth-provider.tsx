@@ -5,7 +5,11 @@ import type { Session, User } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getSupabaseConfigSummary, isCoachxDemoMode, isSupabaseConfigured } from "@/lib/supabase/env";
 import { publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
-import { readRememberSessionPreference, resolveSafeInternalPath, writeRememberSessionPreference } from "@/lib/auth/session-policy";
+import {
+  buildTrustedAppUrl,
+  readRememberSessionPreference,
+  writeRememberSessionPreference
+} from "@/lib/auth/session-policy";
 import { mapAuthErrorMessage } from "@/lib/auth/auth-errors";
 
 interface AuthStoreValue {
@@ -111,10 +115,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const currentRedirect = (pathname: string) => {
       if (typeof window === "undefined") {
-        return pathname;
+        return null;
       }
 
-      return `${window.location.origin}${resolveSafeInternalPath(pathname)}`;
+      return buildTrustedAppUrl(window.location.origin, pathname);
     };
 
     const signInWithEmail: AuthStoreValue["signInWithEmail"] = async (email, password) => {
@@ -133,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const signUpWithEmail: AuthStoreValue["signUpWithEmail"] = async (email, password) => {
-      const redirectTo = typeof window === "undefined" ? undefined : currentRedirect("/auth/callback?next=/");
+      const redirectTo = currentRedirect("/auth/callback?next=/");
       const { error } = await client.auth.signUp({
         email,
         password,
@@ -155,6 +159,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const redirectTo = currentRedirect("/auth/callback?next=/");
+      if (!redirectTo) {
+        const message = "Google sign-in is only available from a trusted AthlexForce origin.";
+        publishFeedbackError("auth.sign-in", "Google sign-in could not be completed", message);
+        return message;
+      }
       const { data, error } = await client.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -179,9 +188,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const requestPasswordReset: AuthStoreValue["requestPasswordReset"] = async (email) => {
-      const redirectTo = typeof window === "undefined" ? undefined : currentRedirect("/auth/callback?next=/reset-password");
+      const redirectTo = currentRedirect("/auth/callback?next=/reset-password");
       const { error } = await client.auth.resetPasswordForEmail(email, {
-        redirectTo
+        redirectTo: redirectTo ?? undefined
       });
 
       if (error) {

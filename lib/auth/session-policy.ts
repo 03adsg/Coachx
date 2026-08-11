@@ -1,4 +1,5 @@
 const rememberSessionStorageKey = "athlexforce-remember-session";
+const trustedAppOrigins = ["http://localhost:3000", "https://coachxsync1.vercel.app"] as const;
 
 export function readRememberSessionPreference(defaultValue = true) {
   if (typeof window === "undefined") {
@@ -39,5 +40,22 @@ export function resolveSafeInternalPath(nextPath: string | null | undefined, fal
   }
 
   return nextPath;
+}
+
+export function isTrustedAppOrigin(origin: string | null | undefined) {
+  return typeof origin === "string" && trustedAppOrigins.includes(origin as (typeof trustedAppOrigins)[number]);
+}
+
+export function resolveTrustedAppOrigin(origin: string | null | undefined) {
+  return isTrustedAppOrigin(origin) ? origin : null;
+}
+
+export function buildTrustedAppUrl(origin: string | null | undefined, pathname: string, fallback = "/") {
+  const trustedOrigin = resolveTrustedAppOrigin(origin);
+  if (!trustedOrigin) {
+    return null;
+  }
+
+  return `${trustedOrigin}${resolveSafeInternalPath(pathname, fallback)}`;
 }
 
