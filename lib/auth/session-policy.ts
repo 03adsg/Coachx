@@ -1,5 +1,9 @@
 const rememberSessionStorageKey = "athlexforce-remember-session";
-const trustedAppOrigins = ["http://localhost:3000", "https://coachxsync1.vercel.app"] as const;
+const trustedAppOrigins = [
+  "http://localhost:3000",
+  "https://coachxsync1.vercel.app",
+  "https://coachxsync1-zeta.vercel.app"
+] as const;
 
 export function readRememberSessionPreference(defaultValue = true) {
   if (typeof window === "undefined") {

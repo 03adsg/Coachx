@@ -119,6 +119,27 @@ const immersion = await import(pathToFileURL(path.join(tempDir, "motivational-im
 const authSessionPolicy = await import(pathToFileURL(path.join(tempDir, "auth/session-policy.mjs")).href);
 const authErrors = await import(pathToFileURL(path.join(tempDir, "auth/auth-errors.mjs")).href);
 
+test("trusted app origins are explicit and keep open-redirect protection intact", () => {
+  assert.equal(authSessionPolicy.isTrustedAppOrigin("http://localhost:3000"), true);
+  assert.equal(authSessionPolicy.isTrustedAppOrigin("https://coachxsync1.vercel.app"), true);
+  assert.equal(authSessionPolicy.isTrustedAppOrigin("https://coachxsync1-zeta.vercel.app"), true);
+  assert.equal(authSessionPolicy.isTrustedAppOrigin("https://evil.example"), false);
+  assert.equal(authSessionPolicy.isTrustedAppOrigin("https://coachxsync1-zeta.vercel.app.evil.example"), false);
+
+  assert.equal(
+    authSessionPolicy.buildTrustedAppUrl("https://coachxsync1-zeta.vercel.app", "/auth/callback?next=/"),
+    "https://coachxsync1-zeta.vercel.app/auth/callback?next=/"
+  );
+  assert.equal(
+    authSessionPolicy.buildTrustedAppUrl("http://localhost:3000", "/auth/callback?next=/reset-password"),
+    "http://localhost:3000/auth/callback?next=/reset-password"
+  );
+  assert.equal(authSessionPolicy.buildTrustedAppUrl("https://evil.example", "/auth/callback?next=/"), null);
+  assert.equal(authSessionPolicy.resolveSafeInternalPath("//evil.example", "/"), "/");
+  assert.equal(authSessionPolicy.resolveSafeInternalPath("https://evil.example", "/"), "/");
+  assert.equal(authSessionPolicy.resolveSafeInternalPath("/calendar", "/"), "/calendar");
+});
+
 test("onboarding step ordering works", () => {
   assert.equal(onboarding.getNextOnboardingStep("goals"), "training-experience");
   assert.equal(onboarding.getPreviousOnboardingStep("goals"), "profile");
