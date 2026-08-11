@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type InputHTMLAttributes, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
+import { useAuthStore } from "@/components/auth-provider";
+import { RemoteAvatar } from "@/components/remote-avatar";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { ChoiceButton, PillToggle } from "@/components/onboarding-ui";
@@ -13,6 +15,8 @@ import { useProgramStore } from "@/components/program-provider";
 import { useTranslator } from "@/components/locale-provider";
 import { type GoalPriority } from "@/lib/onboarding-data";
 import { type NotificationCategory, type NotificationSettings, type ProfileSnapshot } from "@/lib/profile-settings-data";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { uploadProfileAvatar, validateProfileAvatarFile } from "@/lib/profile-avatar";
 
 function ProfileHeader({
   backHref,
@@ -519,11 +523,25 @@ export function ProfilePreferencesIndexScreen() {
 
 export function ProfilePersonalInfoScreen() {
   const router = useRouter();
+  const auth = useAuthStore();
   const { saved, commitProfileSnapshot, commitLocale, saveState } = useProfileSettingsStore();
   const { t } = useTranslator();
   const [draft, setDraft] = useSyncedProfileDraft(saved);
   const [lastReview, setLastReview] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
+  const [savingAvatar, setSavingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const guard = useUnsavedGuard(dirtyFromState(saved, draft), "/profile/preferences");
+
+  useEffect(() => {
+    return () => {
+      if (avatarPreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+    };
+  }, [avatarPreview]);
 
   const save = () => {
     const review = commitProfileSnapshot(draft);
@@ -531,11 +549,122 @@ export function ProfilePersonalInfoScreen() {
     router.push("/profile/program-impact-review");
   };
 
+  const handleAvatarSelection = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    event.target.value = "";
+    setAvatarError(null);
+
+    if (!file) {
+      return;
+    }
+
+    const validationError = validateProfileAvatarFile(file);
+    if (validationError) {
+      setAvatarError(validationError);
+      return;
+    }
+
+    if (avatarPreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(avatarPreview);
+    }
+
+    setPendingAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  const saveAvatar = async () => {
+    if (!pendingAvatarFile) {
+      return;
+    }
+
+    const client = getSupabaseBrowserClient();
+    if (!client || !saved.profile) {
+      setAvatarError("Avatar upload is unavailable right now.");
+      return;
+    }
+
+    setSavingAvatar(true);
+    setAvatarError(null);
+
+    try {
+      if (!auth.user?.id) {
+        setAvatarError("Avatar upload is unavailable right now.");
+        return;
+      }
+
+      const result = await uploadProfileAvatar(client, auth.user?.id ?? "", pendingAvatarFile);
+      const nextDraft = {
+        ...draft,
+        profile: {
+          ...draft.profile,
+          avatarPath: result.storagePath
+        }
+      };
+      setDraft(nextDraft);
+      commitProfileSnapshot(nextDraft);
+      setPendingAvatarFile(null);
+      setAvatarPreview(null);
+      setLastReview("Profile photo updated.");
+    } catch (error) {
+      setAvatarError(error instanceof Error ? error.message : "Avatar upload failed.");
+    } finally {
+      setSavingAvatar(false);
+    }
+  };
+
   return (
     <EditorShell backHref="/profile/preferences" title="Profile" subtitle="Question 1 of 4" brand>
       <section className="section">
         <Card className="p-16" style={{ borderRadius: 20 }}>
           <div className="stack" style={{ gap: 16 }}>
+            <div className="row start" style={{ alignItems: "center", gap: 16 }}>
+              {avatarPreview?.startsWith("blob:") ? (
+                <div className="remote-avatar profile-avatar profile-avatar--large" style={{ width: 72, height: 72 }}>
+                  <img className="remote-avatar__img" src={avatarPreview} alt={`${draft.profile.name} preview`} width={72} height={72} />
+                </div>
+              ) : (
+                <RemoteAvatar name={draft.profile.name} avatarPath={draft.profile.avatarPath ?? null} size={72} className="profile-avatar profile-avatar--large" />
+              )}
+              <div style={{ flex: 1 }}>
+                <div className="eyebrow">Profile photo</div>
+                <div className="caption" style={{ marginTop: 6 }}>
+                  JPG, PNG, or WebP. Stored remotely in a private bucket.
+                </div>
+                <div className="row" style={{ gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+                  <button className="button-secondary focus-ring" type="button" onClick={() => fileInputRef.current?.click()}>
+                    Choose photo
+                  </button>
+                  <button className="button-primary focus-ring" type="button" onClick={saveAvatar} disabled={!pendingAvatarFile || savingAvatar}>
+                    {savingAvatar ? "Saving..." : "Save"}
+                  </button>
+                  {draft.profile.avatarPath ? (
+                    <button
+                      className="button-secondary focus-ring"
+                      type="button"
+                      onClick={() => {
+                        if (avatarPreview?.startsWith("blob:")) {
+                          URL.revokeObjectURL(avatarPreview);
+                        }
+                        setPendingAvatarFile(null);
+                        setAvatarPreview(null);
+                        const nextDraft = { ...draft, profile: { ...draft.profile, avatarPath: null } };
+                        setDraft(nextDraft);
+                        commitProfileSnapshot(nextDraft);
+                        setLastReview("Profile photo removed.");
+                      }}
+                    >
+                      Remove
+                    </button>
+                  ) : null}
+                </div>
+                {avatarError ? (
+                  <p className="caption" style={{ marginTop: 10, color: "#ff8f8f" }}>
+                    {avatarError}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+            <input ref={fileInputRef} accept="image/jpeg,image/png,image/webp" hidden onChange={handleAvatarSelection} type="file" />
             <TextField label="Name" value={draft.profile.name} onChange={(value) => setDraft((current) => ({ ...current, profile: { ...current.profile, name: value } }))} />
             <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
               <div style={{ flex: "1 1 140px" }}>

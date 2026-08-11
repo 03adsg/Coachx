@@ -11,6 +11,7 @@ import {
   createProgramBundleFromRows,
   getProgramDaySummary,
   loadOrCreateProgramBundle,
+  scheduleWorkoutOnDate as createScheduledWorkoutOnDate,
   rescheduleWorkout,
   type ProgramBundleView,
   type ProgramCalendarDay,
@@ -36,6 +37,7 @@ interface ProgramStoreValue {
   weekdays: string[];
   reloadProgram: () => Promise<void>;
   activateProgram: (proposal: ProgramState) => Promise<void>;
+  scheduleWorkoutOnDate: (payload: { scheduledDate: string; workoutTemplateId: string; plannedDurationMinutes: number; programPhaseId?: string | null; origin?: "ad-hoc" | "program" }) => Promise<void>;
   rescheduleWorkoutDay: (workoutId: string, nextDate: string) => Promise<void>;
   getDaySummary: (dateKey: string) => ProgramDaySummary | null;
   getCalendarDays: (monthDateKey: string, selectedDateKey?: string | null) => ProgramCalendarDay[];
@@ -159,6 +161,25 @@ export function ProgramProvider({ children }: { children: ReactNode }) {
       setBundle(activated);
     };
 
+    const scheduleWorkoutOnDate: ProgramStoreValue["scheduleWorkoutOnDate"] = async (payload) => {
+      const currentAuth = authRef.current;
+      const client = getSupabaseBrowserClient();
+
+      if (!currentAuth.isConfigured || !currentAuth.user || !client || !bundle.activePhase) {
+        return;
+      }
+
+      await createScheduledWorkoutOnDate(client, {
+        userId: currentAuth.user.id,
+        programPhaseId: payload.programPhaseId ?? bundle.activePhase.id,
+        workoutTemplateId: payload.workoutTemplateId,
+        scheduledDate: payload.scheduledDate,
+        plannedDurationMinutes: payload.plannedDurationMinutes,
+        origin: payload.origin ?? "ad-hoc"
+      });
+      await reloadProgram();
+    };
+
     const rescheduleWorkoutDay: ProgramStoreValue["rescheduleWorkoutDay"] = async (workoutId, nextDate) => {
       const currentAuth = authRef.current;
       const client = getSupabaseBrowserClient();
@@ -252,6 +273,7 @@ export function ProgramProvider({ children }: { children: ReactNode }) {
       weekdays: bundle.weekdays,
       reloadProgram,
       activateProgram,
+      scheduleWorkoutOnDate,
       rescheduleWorkoutDay,
       getDaySummary,
       getCalendarDays,

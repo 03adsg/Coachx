@@ -31,6 +31,7 @@ export interface AthleteProfile {
   weightKg: number;
   unitSystem: UnitSystem;
   locale: Locale;
+  avatarPath?: string | null;
 }
 
 export interface GoalProfile {
@@ -253,7 +254,8 @@ export function createOnboardingDemoState(locale: Locale = getCurrentLocale()): 
       heightCm: 171,
       weightKg: 62.8,
       unitSystem: "metric",
-      locale
+      locale,
+      avatarPath: null
     },
     goals: {
       mainGoal: "Body Recomposition",

@@ -1703,7 +1703,172 @@ img {
   border-radius: 9999px;
   overflow: hidden;
   border: 1px solid var(--border-quiet);
+  background: var(--surface-elevated);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.profile-avatar--large {
+  width: 72px;
+  height: 72px;
+}
+
+.profile-avatar--small {
+  width: 32px;
+  height: 32px;
+}
+
+.remote-avatar {
+  position: relative;
+  border-radius: inherit;
+  overflow: hidden;
+  border: 1px solid var(--border-quiet);
+  background: var(--surface-elevated);
+  display: inline-flex;
+  align-items: stretch;
+  justify-content: stretch;
+  flex: 0 0 auto;
+}
+
+.remote-avatar__img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+}
+
+.remote-avatar__fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  background:
+    radial-gradient(circle at top, rgba(182, 255, 0, 0.12), transparent 72%),
+    var(--surface-elevated);
+}
+
+.app-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(5, 5, 5, 0.62);
+  backdrop-filter: blur(10px);
+}
+
+.app-menu__backdrop {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+
+.app-menu__sheet {
+  position: relative;
+  width: min(100%, 390px);
+  height: 100%;
+  margin-left: auto;
+  padding: calc(16px + var(--safe-top)) 16px calc(20px + var(--safe-bottom));
+  background: linear-gradient(180deg, rgba(18, 18, 18, 0.98) 0%, rgba(9, 9, 9, 0.98) 100%);
+  border-left: 1px solid var(--border-quiet);
+  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.app-menu__header {
+  display: grid;
+  gap: 12px;
+}
+
+.app-menu__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.app-menu__close {
+  flex: 0 0 auto;
+}
+
+.app-menu__brand {
+  display: grid;
+  gap: 12px;
+}
+
+.app-menu__profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-menu__section {
+  display: grid;
+  gap: 10px;
+}
+
+.app-menu__list {
+  display: grid;
+  gap: 10px;
+}
+
+.app-menu__item {
+  min-height: 56px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-quiet);
+  background: var(--surface-default);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-menu__item--stack {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.app-menu__footer {
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.day-marker {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--background-deep);
+}
+
+.day-marker--completed {
+  background: var(--accent-primary);
+}
+
+.day-marker--adhoc {
+  background: var(--heat-orange);
+  color: #fff7ef;
 }
 
 .anatomy-preview {

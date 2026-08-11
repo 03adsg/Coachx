@@ -394,6 +394,7 @@ export interface AthleteProfilesRow {
   weight_kg: number | null;
   unit_system: "metric" | "imperial";
   locale: "es" | "ca" | "en" | "de";
+  avatar_path: string | null;
   onboarding_status: AthleteOnboardingStatus;
   onboarding_completed_at: string | null;
   created_at: string;
@@ -409,6 +410,7 @@ export interface AthleteProfilesInsert {
   weight_kg?: number | null;
   unit_system?: "metric" | "imperial";
   locale?: "es" | "ca" | "en" | "de";
+  avatar_path?: string | null;
   onboarding_status?: AthleteOnboardingStatus;
   onboarding_completed_at?: string | null;
   created_at?: string;
@@ -423,6 +425,7 @@ export interface AthleteProfilesUpdate {
   weight_kg?: number | null;
   unit_system?: "metric" | "imperial";
   locale?: "es" | "ca" | "en" | "de";
+  avatar_path?: string | null;
   onboarding_status?: AthleteOnboardingStatus;
   onboarding_completed_at?: string | null;
   updated_at?: string;

@@ -99,6 +99,7 @@ export interface ProgramDaySummary {
   movements: Array<{ name: string; prescription: string; icon: string; thumbnail?: string }>;
   scheduledWorkoutId: string;
   templateCode: string;
+  isAdHoc: boolean;
   isRestDay: boolean;
 }
 
@@ -112,6 +113,7 @@ export interface ProgramCalendarDay {
   isToday: boolean;
   hasActivity: boolean;
   completed: boolean;
+  isAdHoc: boolean;
   label: string;
 }
 
@@ -292,6 +294,11 @@ function addDays(dateKey: string, days: number) {
   const date = new Date(`${dateKey}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
+}
+
+function isAdHocScheduledWorkout(row: ScheduledWorkoutsRow) {
+  const metadata = row.adjustment_metadata;
+  return Boolean(metadata && typeof metadata === "object" && !Array.isArray(metadata) && (metadata as Record<string, unknown>).origin === "ad-hoc");
 }
 
 function buildTemplateSeedRows(phaseId: string): Array<WorkoutTemplatesInsert & { exercises: Array<WorkoutTemplateExercisesInsert> }> {
@@ -729,6 +736,7 @@ export function getProgramDaySummary(bundle: ProgramBundleView, dateKey: string)
       movements: [],
       scheduledWorkoutId: "",
       templateCode: "REST",
+      isAdHoc: false,
       isRestDay: true
     };
   }
@@ -739,6 +747,7 @@ export function getProgramDaySummary(bundle: ProgramBundleView, dateKey: string)
     .sort((left, right) => left.sort_order - right.sort_order);
   const focus = buildMuscleFocus(templateExerciseRows);
   const anatomy = resolveAnatomyVisual(focus);
+  const isAdHoc = isAdHocScheduledWorkout(scheduledWorkout);
   const primaryMuscle = focus[0] ?? "core";
   const secondaryMuscle = focus[1] ?? focus[0] ?? "core";
 
@@ -748,7 +757,7 @@ export function getProgramDaySummary(bundle: ProgramBundleView, dateKey: string)
     calendarLabel: formatCalendarLabel(scheduledWorkout.scheduled_date),
     phase: bundle.program?.phaseLabel ?? "Phase 1",
     workoutTitle: template?.name ?? "Workout",
-    workoutBadge: buildWorkoutBadge(template?.code ?? "WORKOUT_A"),
+    workoutBadge: isAdHoc ? "Ad-hoc" : buildWorkoutBadge(template?.code ?? "WORKOUT_A"),
     workoutType: template?.focus ?? "Posterior chain emphasis",
     duration: `${scheduledWorkout.planned_duration_minutes} min`,
     volume: buildVolumeLabel(template?.code ?? "WORKOUT_A"),
@@ -775,6 +784,7 @@ export function getProgramDaySummary(bundle: ProgramBundleView, dateKey: string)
     }),
     scheduledWorkoutId: scheduledWorkout.id,
     templateCode: template?.code ?? "WORKOUT_A",
+    isAdHoc,
     isRestDay: false
   };
 }
@@ -788,6 +798,7 @@ export function buildCalendarDays(bundle: ProgramBundleView, monthDateKey: strin
   const visibleStart = new Date(Date.UTC(year, monthIndex, 1 - startWeekday));
   const scheduledDates = new Set(bundle.scheduledWorkouts.map((row) => row.scheduled_date));
   const completedDates = new Set(bundle.scheduledWorkouts.filter((row) => row.status === "completed").map((row) => row.scheduled_date));
+  const adHocDates = new Set(bundle.scheduledWorkouts.filter((row) => isAdHocScheduledWorkout(row)).map((row) => row.scheduled_date));
 
   return Array.from({ length: 42 }, (_, index) => {
     const current = new Date(visibleStart);
@@ -806,6 +817,7 @@ export function buildCalendarDays(bundle: ProgramBundleView, monthDateKey: strin
       isToday: dateKey === selectedDateKey,
       hasActivity: scheduledDates.has(dateKey),
       completed: completedDates.has(dateKey),
+      isAdHoc: adHocDates.has(dateKey),
       label: weekdayLabelsFor(getCurrentLocale())[weekdayIndex].toUpperCase()
     } satisfies ProgramCalendarDay;
   });
@@ -931,6 +943,47 @@ export async function rescheduleWorkout(client: SupabaseClient<Database>, workou
       reason: "manual reschedule"
     } satisfies ScheduledWorkoutsUpdate["adjustment_metadata"]
   } as never).eq("id", workoutId).select("*").single();
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  return scheduledWorkoutRowSchema.parse(result.data);
+}
+
+export async function scheduleWorkoutOnDate(
+  client: SupabaseClient<Database>,
+  payload: {
+    userId: string;
+    programPhaseId: string;
+    workoutTemplateId: string;
+    scheduledDate: string;
+    plannedDurationMinutes: number;
+    origin?: "ad-hoc" | "program";
+  }
+) {
+  const result = await client
+    .from("scheduled_workouts")
+    .upsert(
+      [
+        {
+          id: createId(),
+          user_id: payload.userId,
+          program_phase_id: payload.programPhaseId,
+          workout_template_id: payload.workoutTemplateId,
+          scheduled_date: payload.scheduledDate,
+          status: "scheduled",
+          planned_duration_minutes: payload.plannedDurationMinutes,
+          adjustment_metadata: {
+            origin: payload.origin ?? "ad-hoc",
+            created_by: "athlete"
+          } satisfies ScheduledWorkoutsInsert["adjustment_metadata"]
+        } as ScheduledWorkoutsInsert
+      ] as never[],
+      { onConflict: "user_id,scheduled_date" }
+    )
+    .select("*")
+    .single();
 
   if (result.error) {
     throw result.error;

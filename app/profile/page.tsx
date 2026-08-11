@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Screen } from "@/components/screen";
 import { Card } from "@/components/ui";
 import { useAuthStore } from "@/components/auth-provider";
+import { RemoteAvatar } from "@/components/remote-avatar";
 import { useTranslator } from "@/components/locale-provider";
 import { useProfileSettingsStore } from "@/components/profile-settings-provider";
 import { useProgramStore } from "@/components/program-provider";
@@ -42,7 +43,7 @@ export default function ProfilePage() {
                 </p>
               ) : null}
             </div>
-            <img className="profile-avatar" src="/coachx-avatar.svg" alt="Athlete profile" width={52} height={52} />
+            <RemoteAvatar name={saved.profile.name} avatarPath={saved.profile.avatarPath ?? null} size={52} className="profile-avatar" />
           </div>
         </section>
 
@@ -151,6 +152,9 @@ export default function ProfilePage() {
         <div className="stack">
           <Link href="/profile/preferences" className="button-secondary focus-ring" style={{ width: "100%" }}>
             Open Settings
+          </Link>
+          <Link href="/profile/security" className="button-secondary focus-ring" style={{ width: "100%" }}>
+            Account / Security
           </Link>
           {auth.isConfigured ? (
             <button

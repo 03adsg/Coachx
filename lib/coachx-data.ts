@@ -1,7 +1,7 @@
 import { createDemoWorkoutSession, getExerciseDefinition } from "@/lib/workout-data";
 import { createNutritionSession, type NutritionDay } from "@/lib/nutrition-data";
 
-export type BottomTab = "today" | "calendar" | "progress" | "profile";
+export type BottomTab = "today" | "calendar" | "nutrition" | "progress" | "profile";
 
 export type MuscleGroup =
   | "glutes"

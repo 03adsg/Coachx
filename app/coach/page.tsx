@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { RemoteAvatar } from "@/components/remote-avatar";
 import { CoachPanelShell } from "@/components/coach-panel-shell";
 import { Card, PrimaryButton, Section, StatTile } from "@/components/ui";
 import { loadCoachDashboard } from "@/lib/coach/coach-dashboard-service";
@@ -57,16 +58,23 @@ export default async function CoachDashboardPage() {
     );
   }
 
+  const coachAvatarPath = session.coachProfile?.avatar_path ?? null;
+
   return (
     <CoachPanelShell activeTab="dashboard">
       <section className="section">
-        <div className="eyebrow">{t("coach.dashboardTitle")}</div>
-        <h1 className="headline-lg" style={{ marginTop: 8 }}>
-          {dashboard.coachName}
-        </h1>
-        <p className="caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
-          {t("coach.assignedAthletesOnly")}
-        </p>
+        <div className="row start">
+          <div style={{ minWidth: 0 }}>
+            <div className="eyebrow">{t("coach.dashboardTitle")}</div>
+            <h1 className="headline-lg" style={{ marginTop: 8 }}>
+              {dashboard.coachName}
+            </h1>
+            <p className="caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
+              {t("coach.assignedAthletesOnly")}
+            </p>
+          </div>
+          <RemoteAvatar name={dashboard.coachName} avatarPath={coachAvatarPath} size={52} className="profile-avatar" />
+        </div>
       </section>
 
       <Section title={t("coach.needsAttention")} meta={`${dashboard.attentionQueue.length} needing attention`}>

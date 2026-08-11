@@ -99,9 +99,19 @@ export function StatTile({ label, value, meta }: { label: string; value: string;
   );
 }
 
-export function IconButton({ icon, label }: { icon: string; label: string }) {
+export function IconButton({
+  icon,
+  label,
+  onClick,
+  type = "button"
+}: {
+  icon: string;
+  label: string;
+  onClick?: () => void;
+  type?: "button" | "submit";
+}) {
   return (
-    <button aria-label={label} className="tap-target focus-ring" type="button">
+    <button aria-label={label} className="tap-target focus-ring" type={type} onClick={onClick}>
       <span className="icon" aria-hidden="true">{icon}</span>
     </button>
   );

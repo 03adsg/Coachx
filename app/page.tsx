@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnatomyPreview } from "@/components/anatomy-preview";
 import { BrandLogo } from "@/components/brand-logo";
+import { AppMenu } from "@/components/app-menu";
+import { RemoteAvatar } from "@/components/remote-avatar";
 import { useTranslator } from "@/components/locale-provider";
 import { useProfileSettingsStore } from "@/components/profile-settings-provider";
 import { useProgramStore } from "@/components/program-provider";
@@ -61,6 +63,7 @@ function TodayContent() {
   const { saved } = useProfileSettingsStore();
   const { getDaySummary, selectedDateKey } = useProgramStore();
   const { t } = useTranslator();
+  const [menuOpen, setMenuOpen] = useState(false);
   const isRestDay = searchParams.get("state") === "rest-day";
   const athleteName = saved.profile.name;
   const activeDateKey = selectedDateKey ?? "2026-08-08";
@@ -71,19 +74,20 @@ function TodayContent() {
   }
 
   return (
-    <Screen
-      activeTab="today"
-      topbar={
-        <header className="topbar">
-          <IconButton icon="menu" label="Open menu" />
-          <BrandLogo variant="horizontal" width={128} alt="AthlexForce" />
-          <Link href="/profile" aria-label={t("common.profile")} className="profile-avatar focus-ring">
-            <img src="/coachx-avatar.svg" alt="Athlete profile" width={52} height={52} />
-          </Link>
-        </header>
-      }
-    >
-      <main className="content">
+    <>
+      <Screen
+        activeTab="today"
+        topbar={
+          <header className="topbar">
+            <IconButton icon="menu" label="Open menu" onClick={() => setMenuOpen(true)} />
+            <BrandLogo variant="horizontal" width={128} alt="AthlexForce" />
+            <Link href="/profile" aria-label={t("common.profile")} className="focus-ring">
+              <RemoteAvatar name={saved.profile.name} avatarPath={saved.profile.avatarPath ?? null} size={52} className="profile-avatar" />
+            </Link>
+          </header>
+        }
+      >
+        <main className="content">
         {isRestDay ? (
           <RestDayHero athleteName={athleteName} day={day} />
         ) : (
@@ -176,8 +180,10 @@ function TodayContent() {
             {isRestDay ? t("common.viewWorkout") : t("common.startWorkout")}
           </PrimaryButton>
         </div>
-      </main>
-    </Screen>
+        </main>
+      </Screen>
+      <AppMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+    </>
   );
 }
 

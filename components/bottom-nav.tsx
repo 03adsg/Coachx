@@ -4,6 +4,7 @@ import type { BottomTab } from "@/lib/coachx-data";
 const tabs: Array<{ href: string; label: string; icon: string; id: BottomTab }> = [
   { href: "/", label: "Today", icon: "today", id: "today" },
   { href: "/calendar", label: "Calendar", icon: "calendar_today", id: "calendar" },
+  { href: "/nutrition", label: "Nutrition", icon: "restaurant", id: "nutrition" },
   { href: "/progress", label: "Progress", icon: "insights", id: "progress" },
   { href: "/profile", label: "Profile", icon: "person", id: "profile" }
 ];

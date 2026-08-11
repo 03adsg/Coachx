@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RemoteAvatar } from "@/components/remote-avatar";
 import { CoachPanelShell } from "@/components/coach-panel-shell";
 import { Card, PrimaryButton, Section } from "@/components/ui";
 import { loadCoachAthleteDetail } from "@/lib/coach/coach-dashboard-service";
@@ -46,13 +47,23 @@ export default async function CoachAthleteDetailPage({ params }: { params: Promi
   return (
     <CoachPanelShell activeTab="athletes">
       <section className="section">
-        <div className="eyebrow">Athlete review</div>
-        <h1 className="headline-lg" style={{ marginTop: 8 }}>
-          {detail.summary.displayName}
-        </h1>
-        <p className="caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
-          {detail.summary.phaseLabel} · {detail.summary.goal}
-        </p>
+        <div className="row start">
+          <div style={{ minWidth: 0 }}>
+            <div className="eyebrow">Athlete review</div>
+            <h1 className="headline-lg" style={{ marginTop: 8 }}>
+              {detail.summary.displayName}
+            </h1>
+            <p className="caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
+              {detail.summary.phaseLabel} · {detail.summary.goal}
+            </p>
+          </div>
+          <RemoteAvatar
+            name={detail.summary.displayName}
+            avatarPath={detail.athleteProfile?.avatar_path ?? detail.profileSnapshot.profile.avatarPath ?? null}
+            size={52}
+            className="profile-avatar"
+          />
+        </div>
       </section>
 
       <Section title="Profile">

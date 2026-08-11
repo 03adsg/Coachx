@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { AnatomyPreview } from "@/components/anatomy-preview";
+import { RemoteAvatar } from "@/components/remote-avatar";
 import { useProfileSettingsStore } from "@/components/profile-settings-provider";
 import { useProgramStore } from "@/components/program-provider";
 import { Screen } from "@/components/screen";
@@ -27,14 +28,29 @@ export default function DayDetailPage() {
     return null;
   }
 
+  const monthDateKey = `${day.dateKey.slice(0, 7)}-01`;
+
   return (
     <Screen
       activeTab="today"
       shellClassName="screen-shell"
       topbar={
         <header className="topbar center">
-          <div className="eyebrow" style={{ margin: 0, color: "#c6c6c7" }}>
-            Day Detail
+          <div className="row" style={{ justifyContent: "center", gap: 10 }}>
+            <RemoteAvatar
+              name={saved.profile.name}
+              avatarPath={saved.profile.avatarPath ?? null}
+              size={32}
+              className="profile-avatar profile-avatar--small"
+            />
+            <div style={{ textAlign: "left" }}>
+              <div className="eyebrow" style={{ margin: 0, color: "#c6c6c7" }}>
+                Day Detail
+              </div>
+              <div className="caption" style={{ marginTop: 2 }}>
+                {saved.profile.name}
+              </div>
+            </div>
           </div>
         </header>
       }
@@ -134,7 +150,7 @@ export default function DayDetailPage() {
               </div>
             </div>
             <div style={{ marginTop: 16 }}>
-              <Link href={`/day/${day.dateKey}/nutrition`} className="workout-secondary-button focus-ring">
+              <Link href={`/nutrition?date=${day.dateKey}`} className="workout-secondary-button focus-ring">
                 Open Nutrition
               </Link>
             </div>
@@ -151,14 +167,19 @@ export default function DayDetailPage() {
 
         <div className="stack">
           {day.isRestDay ? (
-            <PrimaryButton href="/calendar" className="focus-ring">
-              Back to Calendar
+            <PrimaryButton href={`/calendar?date=${day.dateKey}&month=${monthDateKey}`} className="focus-ring">
+              Add Workout
             </PrimaryButton>
           ) : (
             <PrimaryButton href={`/workout/${day.scheduledWorkoutId}`} className="focus-ring">
               Start Workout
             </PrimaryButton>
           )}
+          {!day.isRestDay ? (
+            <Link href={`/calendar?date=${day.dateKey}&month=${monthDateKey}`} className="workout-secondary-button focus-ring">
+              Move Workout
+            </Link>
+          ) : null}
           <Link href="/calendar" className="workout-secondary-button focus-ring">
             Back to Calendar
           </Link>
