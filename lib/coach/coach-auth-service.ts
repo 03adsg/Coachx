@@ -39,11 +39,13 @@ export async function loadCoachSessionContext(): Promise<CoachSessionContext | n
     throw coachResult.error;
   }
 
+  const coachProfile = coachResult.data as CoachProfilesRow | null;
+
   return {
     client,
     userId: user.id,
-    coachProfile: coachResult.data ?? null,
-    isCoach: Boolean(coachResult.data)
+    coachProfile,
+    isCoach: Boolean(coachProfile && coachProfile.status === "active")
   };
 }
 

@@ -27,7 +27,7 @@ export type CoachRecommendationSource = "openai" | "fallback";
 export type CoachRecommendationGenerationStatus = "generated" | "fallback" | "failed";
 export type CoachRecommendationApplicationStatus = "recommended" | "reviewing" | "applied" | "rejected";
 export type CoachProfileStatus = "active" | "paused" | "archived";
-export type CoachAssignmentStatus = "active" | "paused" | "ended";
+export type CoachAssignmentStatus = "invited" | "pending" | "active" | "paused" | "ended" | "revoked";
 export type CoachActionType =
   | "checkin_reviewed"
   | "checkin_acknowledged"
@@ -1113,6 +1113,12 @@ export interface CoachAthleteAssignmentsRow {
   status: CoachAssignmentStatus;
   assigned_at: string;
   ended_at: string | null;
+  invitation_token_hash: string | null;
+  invitation_expires_at: string | null;
+  invitation_created_at: string | null;
+  invitation_accepted_at: string | null;
+  invitation_revoked_at: string | null;
+  invitation_note: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -1124,6 +1130,12 @@ export interface CoachAthleteAssignmentsInsert {
   status?: CoachAssignmentStatus;
   assigned_at?: string;
   ended_at?: string | null;
+  invitation_token_hash?: string | null;
+  invitation_expires_at?: string | null;
+  invitation_created_at?: string | null;
+  invitation_accepted_at?: string | null;
+  invitation_revoked_at?: string | null;
+  invitation_note?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -1132,6 +1144,12 @@ export interface CoachAthleteAssignmentsUpdate {
   status?: CoachAssignmentStatus;
   assigned_at?: string;
   ended_at?: string | null;
+  invitation_token_hash?: string | null;
+  invitation_expires_at?: string | null;
+  invitation_created_at?: string | null;
+  invitation_accepted_at?: string | null;
+  invitation_revoked_at?: string | null;
+  invitation_note?: string | null;
   updated_at?: string;
 }
 
@@ -1565,6 +1583,24 @@ export interface Database {
           target_athlete_id: string;
         };
         Returns: boolean;
+      };
+      coach_create_assignment_invitation: {
+        Args: {
+          p_athlete_user_id: string;
+          p_expires_at?: string | null;
+          p_note?: string | null;
+        };
+        Returns: string;
+      };
+      coach_accept_assignment_invitation: {
+        Args: {
+          p_token: string;
+        };
+        Returns: CoachAthleteAssignmentsRow;
+      };
+      get_my_coach_relationship: {
+        Args: Record<string, never>;
+        Returns: Json;
       };
       coach_mark_checkin_reviewed: {
         Args: {

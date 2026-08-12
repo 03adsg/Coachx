@@ -13,6 +13,10 @@ import { useAuthStore } from "@/components/auth-provider";
 import { type OnboardingStepId, type BaselinePose } from "@/lib/onboarding-data";
 import { LanguageSelector } from "@/components/language-selector";
 import { useLocale, useTranslator } from "@/components/locale-provider";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { acceptCoachInvitation, loadMyCoachRelationship, type CoachRelationshipSummary } from "@/lib/coach/coach-relationship-service";
+import { readIdentityIntent, writeIdentityIntent, writeWorkspacePreference, type IdentityIntent } from "@/lib/auth/session-policy";
+import type { CoachProfilesRow } from "@/lib/supabase/database.types";
 
 function FlowShell({
   step,
@@ -426,6 +430,208 @@ export function EntryScreen() {
       </main>
     </Screen>
   );
+}
+
+export function IdentityGatewayScreen() {
+  const router = useRouter();
+  const auth = useAuthStore();
+  const { t } = useTranslator();
+  const [identityIntent, setIdentityIntent] = useState<IdentityIntent | null>(() => readIdentityIntent());
+  const [coachRelationship, setCoachRelationship] = useState<CoachRelationshipSummary | null>(null);
+  const [isActiveCoach, setIsActiveCoach] = useState(false);
+  const [inviteCode, setInviteCode] = useState("");
+  const [inviteStatus, setInviteStatus] = useState<string | null>(null);
+  const [inviteLoading, setInviteLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function hydrateRelationship() {
+      if (!auth.ready || !auth.user) {
+        setCoachRelationship(null);
+        setIsActiveCoach(false);
+        return;
+      }
+
+      const client = getSupabaseBrowserClient();
+      if (!client) {
+        setCoachRelationship(null);
+        setIsActiveCoach(false);
+        return;
+      }
+
+      const [relationshipResult, coachResult] = await Promise.all([
+        loadMyCoachRelationship(client).catch(() => null),
+        client.from("coach_profiles").select("id,status").eq("user_id", auth.user.id).maybeSingle()
+      ]);
+
+      if (!active) {
+        return;
+      }
+
+      setCoachRelationship(relationshipResult);
+      const coachProfile = coachResult.data as CoachProfilesRow | null;
+      setIsActiveCoach(Boolean(coachProfile && coachProfile.status === "active"));
+    }
+
+    void hydrateRelationship();
+
+    return () => {
+      active = false;
+    };
+  }, [auth.ready, auth.user?.id]);
+
+  useEffect(() => {
+    if (identityIntent === "coach" && isActiveCoach) {
+      router.replace("/coach");
+    }
+  }, [identityIntent, isActiveCoach, router]);
+
+  async function acceptInvite() {
+    setInviteLoading(true);
+    setInviteStatus(null);
+
+    const token = inviteCode.trim();
+    if (!token) {
+      setInviteLoading(false);
+      setInviteStatus(t("onboarding.identityGatewayInviteError"));
+      return;
+    }
+
+    const client = getSupabaseBrowserClient();
+    if (!client) {
+      setInviteLoading(false);
+      setInviteStatus(t("onboarding.identityGatewayInviteError"));
+      return;
+    }
+
+    try {
+      await acceptCoachInvitation(client, token);
+      const updatedRelationship = await loadMyCoachRelationship(client);
+      setCoachRelationship(updatedRelationship);
+      setIdentityIntent("coach_managed");
+      writeIdentityIntent("coach_managed");
+      writeWorkspacePreference("athlete");
+      setInviteStatus(t("onboarding.identityGatewayInviteSuccess"));
+    } catch {
+      setInviteStatus(t("onboarding.identityGatewayInviteError"));
+    } finally {
+      setInviteLoading(false);
+    }
+  }
+
+  function chooseIdentity(nextIntent: IdentityIntent) {
+    setIdentityIntent(nextIntent);
+    writeIdentityIntent(nextIntent);
+    writeWorkspacePreference(nextIntent === "coach" ? "coach" : "athlete");
+    setInviteStatus(null);
+
+    if (nextIntent === "coach" && isActiveCoach) {
+      router.push("/coach");
+    }
+  }
+
+  if (identityIntent === null) {
+    return (
+      <FlowShell step="intro" title={t("onboarding.identityGatewayTitle")} subtitle={t("onboarding.identityGatewaySubtitle")} backHref="/entry" rightLabel={t("common.skip")} rightHref="/entry">
+        <section className="section">
+          <SectionTitle title={t("onboarding.identityGatewayTitle")} caption={t("onboarding.identityGatewaySubtitle")} />
+        </section>
+
+        <section className="section stack">
+          <div className="onboarding-choice-grid one-column">
+            <ChoiceButton
+              label={t("onboarding.identityGatewayIndependentTitle")}
+              description={t("onboarding.identityGatewayIndependentCopy")}
+              selected={false}
+              onClick={() => chooseIdentity("self_managed")}
+            />
+            <ChoiceButton
+              label={t("onboarding.identityGatewayCoachManagedTitle")}
+              description={t("onboarding.identityGatewayCoachManagedCopy")}
+              selected={false}
+              onClick={() => chooseIdentity("coach_managed")}
+            />
+            <ChoiceButton
+              label={t("onboarding.identityGatewayCoachTitle")}
+              description={t("onboarding.identityGatewayCoachCopy")}
+              selected={false}
+              onClick={() => chooseIdentity("coach")}
+            />
+          </div>
+        </section>
+      </FlowShell>
+    );
+  }
+
+  if (identityIntent === "coach" && !isActiveCoach) {
+    return (
+      <FlowShell step="intro" title={t("onboarding.identityGatewayTitle")} subtitle={t("onboarding.identityGatewaySubtitle")} backHref="/entry" rightLabel={t("common.skip")} rightHref="/entry">
+        <section className="section">
+          <SectionTitle title={t("onboarding.identityGatewayPendingTitle")} caption={t("onboarding.identityGatewayPendingCopy")} />
+        </section>
+
+        <section className="section stack">
+          <Card className="program-hero-card p-16">
+            <div className="stack" style={{ gap: 12 }}>
+              <div className="eyebrow">{t("coach.pendingRequestReceived")}</div>
+              <p className="caption">{t("coach.pendingRequestDetail")}</p>
+              <SecondaryButton
+                className="focus-ring"
+                onClick={() => {
+                  chooseIdentity("self_managed");
+                  router.replace("/onboarding");
+                }}
+              >
+                {t("common.athleteWorkspace")}
+              </SecondaryButton>
+            </div>
+          </Card>
+        </section>
+      </FlowShell>
+    );
+  }
+
+  if (identityIntent === "coach_managed" && !coachRelationship) {
+    return (
+      <FlowShell step="intro" title={t("onboarding.identityGatewayTitle")} subtitle={t("onboarding.identityGatewaySubtitle")} backHref="/entry" rightLabel={t("common.skip")} rightHref="/entry">
+        <section className="section">
+          <SectionTitle title={t("onboarding.identityGatewayInviteTitle")} caption={t("onboarding.identityGatewayInviteCopy")} />
+        </section>
+
+        <section className="section stack">
+          <Card className="program-hero-card p-16">
+            <div className="stack" style={{ gap: 12 }}>
+              <div className="eyebrow">{t("onboarding.identityGatewayInviteTitle")}</div>
+              <input
+                className="input-field focus-ring"
+                value={inviteCode}
+                onChange={(event) => setInviteCode(event.target.value)}
+                placeholder={t("onboarding.identityGatewayInvitePlaceholder")}
+                autoComplete="one-time-code"
+                inputMode="text"
+              />
+              {inviteStatus ? <p className="caption">{inviteStatus}</p> : null}
+              <PrimaryButton className="focus-ring" onClick={acceptInvite} disabled={inviteLoading}>
+                {inviteLoading ? t("common.loading") : t("onboarding.identityGatewayInviteButton")}
+              </PrimaryButton>
+              <SecondaryButton
+                className="focus-ring"
+                onClick={() => {
+                  chooseIdentity("self_managed");
+                  router.replace("/onboarding");
+                }}
+              >
+                {t("onboarding.identityGatewayIndependentTitle")}
+              </SecondaryButton>
+            </div>
+          </Card>
+        </section>
+      </FlowShell>
+    );
+  }
+
+  return <OnboardingIntroScreen />;
 }
 
 export function OnboardingIntroScreen() {

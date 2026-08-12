@@ -9,6 +9,7 @@
 - `Add or adjust screen transitions` -> `frontend-stitch` + `visual-qa`
 - `Design feedback / confirmations / undo` -> `feedback-interaction-ux` + `frontend-stitch`
 - `Auth / session / recovery UX` -> `auth-security-ux` + `architecture-typescript` + `frontend-stitch` + `qa-testing`
+- `Identity / role / relationship gateway` -> `identity-role-security-architect` + `architecture-typescript` + `qa-testing`
 - `Performance analytics / motion visualization` -> `data-visualization-motion` + `frontend-stitch` + `visual-qa` + `qa-testing`
 - `Immersive progress / achievements` -> `motivational-immersion-ux` + `frontend-stitch` + `visual-qa` + `qa-testing`
 

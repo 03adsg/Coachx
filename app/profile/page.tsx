@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Screen } from "@/components/screen";
 import { Card } from "@/components/ui";
@@ -9,6 +10,10 @@ import { RemoteAvatar } from "@/components/remote-avatar";
 import { useTranslator } from "@/components/locale-provider";
 import { useProfileSettingsStore } from "@/components/profile-settings-provider";
 import { useProgramStore } from "@/components/program-provider";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { loadMyCoachRelationship, type CoachRelationshipSummary } from "@/lib/coach/coach-relationship-service";
+import { readIdentityIntent, writeWorkspacePreference } from "@/lib/auth/session-policy";
+import type { CoachProfilesRow } from "@/lib/supabase/database.types";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -16,6 +21,48 @@ export default function ProfilePage() {
   const { saved, pendingReview } = useProfileSettingsStore();
   const { program } = useProgramStore();
   const { t } = useTranslator();
+  const [relationship, setRelationship] = useState<CoachRelationshipSummary | null>(null);
+  const [isActiveCoach, setIsActiveCoach] = useState(false);
+  const identityIntent = readIdentityIntent();
+
+  useEffect(() => {
+    let active = true;
+
+    async function hydrateRelationship() {
+      if (!auth.ready || !auth.user) {
+        setRelationship(null);
+        setIsActiveCoach(false);
+        return;
+      }
+
+      const client = getSupabaseBrowserClient();
+      if (!client) {
+        setRelationship(null);
+        setIsActiveCoach(false);
+        return;
+      }
+
+      const [relationshipResult, coachResult] = await Promise.all([
+        loadMyCoachRelationship(client).catch(() => null),
+        client.from("coach_profiles").select("id,status").eq("user_id", auth.user.id).maybeSingle()
+      ]);
+
+      if (!active) {
+        return;
+      }
+
+      const coachProfile = coachResult.data as CoachProfilesRow | null;
+      setIsActiveCoach(Boolean(coachProfile && coachProfile.status === "active"));
+
+      setRelationship(relationshipResult);
+    }
+
+    void hydrateRelationship();
+
+    return () => {
+      active = false;
+    };
+  }, [auth.ready, auth.user?.id]);
 
   return (
     <Screen
@@ -77,6 +124,68 @@ export default function ProfilePage() {
                   {t("profile.location")}
                 </div>
               </div>
+            </div>
+          </Card>
+        </section>
+
+        <section className="section">
+          <Card className="p-16">
+            <div className="stack" style={{ gap: 12 }}>
+              <div className="eyebrow">{t("profile.workspaceMode")}</div>
+              {relationship ? (
+                <div className="stack" style={{ gap: 10 }}>
+                  <div>
+                    <div className="body-md" style={{ fontWeight: 700 }}>
+                      {t("profile.coachManaged")}
+                    </div>
+                    <p className="caption" style={{ marginTop: 6 }}>
+                      {t("profile.coachConnected")}
+                    </p>
+                  </div>
+                  <div className="row start">
+                    <RemoteAvatar
+                      name={relationship.coachDisplayName}
+                      avatarPath={relationship.coachAvatarPath}
+                      size={44}
+                      className="profile-avatar"
+                    />
+                    <div style={{ minWidth: 0 }}>
+                      <div className="body-md" style={{ fontWeight: 700 }}>
+                        {relationship.coachDisplayName}
+                      </div>
+                      <p className="caption">{t("profile.yourCoach")}</p>
+                    </div>
+                  </div>
+                  <p className="caption">{t("profile.planSupervised")}</p>
+                  {isActiveCoach ? (
+                    <button
+                      type="button"
+                      className="button-secondary focus-ring"
+                      onClick={() => {
+                        writeWorkspacePreference("coach");
+                        router.push("/coach");
+                      }}
+                    >
+                      {t("profile.openCoachWorkspace")}
+                    </button>
+                  ) : null}
+                </div>
+              ) : identityIntent === "coach_managed" ? (
+                <div className="stack" style={{ gap: 10 }}>
+                  <div className="body-md" style={{ fontWeight: 700 }}>
+                    {t("profile.coachManaged")}
+                  </div>
+                  <p className="caption">{t("profile.coachPending")}</p>
+                  <p className="caption">{t("profile.planSupervised")}</p>
+                </div>
+              ) : (
+                <div className="stack" style={{ gap: 10 }}>
+                  <div className="body-md" style={{ fontWeight: 700 }}>
+                    {t("profile.selfManaged")}
+                  </div>
+                  <p className="caption">{t("profile.hubDetail")}</p>
+                </div>
+              )}
             </div>
           </Card>
         </section>
@@ -156,6 +265,19 @@ export default function ProfilePage() {
           <Link href="/profile/security" className="button-secondary focus-ring" style={{ width: "100%" }}>
             {t("profile.security")}
           </Link>
+          {isActiveCoach ? (
+            <button
+              type="button"
+              className="button-secondary focus-ring"
+              style={{ width: "100%" }}
+              onClick={() => {
+                writeWorkspacePreference("coach");
+                router.push("/coach");
+              }}
+            >
+              {t("profile.openCoachWorkspace")}
+            </button>
+          ) : null}
           {auth.isConfigured ? (
             <button
               className="button-secondary focus-ring"

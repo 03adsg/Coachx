@@ -46,6 +46,7 @@ async function transpileLibraryChain() {
     "recommendations/change-proposal-service.ts",
     "notification-service.ts",
     "coach/coach-policy.ts",
+    "coach/coach-relationship-service.ts",
     "i18n.ts",
     "nutrition-data.ts",
     "workout-data.ts",
@@ -59,6 +60,7 @@ async function transpileLibraryChain() {
     "nutrition-service.ts",
     "auth/navigation.ts",
     "auth/session-policy.ts",
+    "auth/identity-resolver.ts",
     "auth/auth-errors.ts",
     "athlete-service.ts",
     "workout-session-service.ts",
@@ -117,7 +119,9 @@ const aiRecommendationService = await import(pathToFileURL(path.join(tempDir, "a
 const changeProposalService = await import(pathToFileURL(path.join(tempDir, "recommendations/change-proposal-service.mjs")).href);
 const immersion = await import(pathToFileURL(path.join(tempDir, "motivational-immersion.mjs")).href);
 const authSessionPolicy = await import(pathToFileURL(path.join(tempDir, "auth/session-policy.mjs")).href);
+const identityResolver = await import(pathToFileURL(path.join(tempDir, "auth/identity-resolver.mjs")).href);
 const authErrors = await import(pathToFileURL(path.join(tempDir, "auth/auth-errors.mjs")).href);
+const coachRelationshipService = await import(pathToFileURL(path.join(tempDir, "coach/coach-relationship-service.mjs")).href);
 const feedbackLibrary = await import(pathToFileURL(path.join(tempDir, "feedback.mjs")).href);
 
 function flattenMessagePaths(tree, prefix = "") {
@@ -1134,6 +1138,62 @@ test("auth error mapper keeps user-facing copy plain", () => {
   assert.equal(authErrors.mapAuthErrorMessage(null), "Something went wrong. Try again.");
 });
 
+test("identity workspace resolution stays backend-bound", () => {
+  assert.equal(
+    identityResolver.resolveIdentityWorkspace({
+      athleteCapability: true,
+      coachCapability: false,
+      coachManaged: false,
+      preferredWorkspace: "coach"
+    }),
+    "athlete"
+  );
+  assert.equal(
+    identityResolver.resolveIdentityWorkspace({
+      athleteCapability: true,
+      coachCapability: true,
+      coachManaged: false,
+      preferredWorkspace: "coach"
+    }),
+    "coach"
+  );
+  assert.equal(
+    identityResolver.resolveIdentityWorkspace({
+      athleteCapability: true,
+      coachCapability: true,
+      coachManaged: true,
+      preferredWorkspace: null
+    }),
+    "athlete"
+  );
+});
+
+test("coach relationship summary parser only exposes safe fields", () => {
+  assert.equal(coachRelationshipService.parseCoachRelationshipSummary(null), null);
+  assert.deepEqual(
+    coachRelationshipService.parseCoachRelationshipSummary({
+      coachUserId: "00000000-0000-0000-0000-000000000001",
+      coachDisplayName: "Coach Test",
+      coachAvatarPath: null,
+      assignmentStatus: "active",
+      managementMode: "coach_managed",
+      assignedAt: "2026-08-12T10:00:00.000Z",
+      acceptedAt: "2026-08-12T10:10:00.000Z",
+      endedAt: null
+    }),
+    {
+      coachUserId: "00000000-0000-0000-0000-000000000001",
+      coachDisplayName: "Coach Test",
+      coachAvatarPath: null,
+      assignmentStatus: "active",
+      managementMode: "coach_managed",
+      assignedAt: "2026-08-12T10:00:00.000Z",
+      acceptedAt: "2026-08-12T10:10:00.000Z",
+      endedAt: null
+    }
+  );
+});
+
 test("coach role detection and assignment checks are explicit", () => {
   assert.deepEqual(coachPolicy.resolveCoachAccess(false, false), {
     allowed: false,
@@ -1210,6 +1270,17 @@ test("athlete profile avatar migration adds the nullable path idempotently", asy
   const migration = await readFile(path.join(repoRoot, "supabase", "migrations", "20260811_athlete_profile_avatar_path.sql"), "utf8");
 
   assert.match(migration, /alter table public\.athlete_profiles\s+add column if not exists avatar_path text null/i);
+});
+
+test("identity relationship migration adds secure invitation and relationship RPCs", async () => {
+  const migration = await readFile(path.join(repoRoot, "supabase", "migrations", "20260812_identity_relationship_gateway.sql"), "utf8");
+
+  assert.match(migration, /coach_athlete_assignments_status_check/i);
+  assert.match(migration, /status in \('invited', 'pending', 'active', 'paused', 'ended', 'revoked'\)/i);
+  assert.match(migration, /create or replace function public\.coach_create_assignment_invitation/i);
+  assert.match(migration, /create or replace function public\.coach_accept_assignment_invitation/i);
+  assert.match(migration, /create or replace function public\.get_my_coach_relationship/i);
+  assert.match(migration, /grant execute on function public\.coach_accept_assignment_invitation/i);
 });
 
 test("remote snapshots hydrate onboarding state without changing the active program", () => {

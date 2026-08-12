@@ -6,6 +6,7 @@
 - `visual-qa.md` - compares implementation against Stitch screenshots and motion rules.
 - `architecture-typescript.md` - maintains Next.js/TypeScript structure, models, and boundaries.
 - `qa-testing.md` - runs lint, typecheck, build, and route-level regression checks.
+- `identity-role-security-architect.md` - secures multi-role identity, workspace routing, and coach-athlete relationships.
 
 ## Coordination
 

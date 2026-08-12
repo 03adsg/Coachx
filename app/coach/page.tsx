@@ -7,23 +7,41 @@ import { loadCoachDashboard } from "@/lib/coach/coach-dashboard-service";
 import { loadCoachSessionContext } from "@/lib/coach/coach-auth-service";
 import { getInitialLocale, getTranslation, localeCookieName, type Locale } from "@/lib/i18n";
 
-function AccessDenied({ locale }: { locale: Locale }) {
+function AccessDenied({ locale, pending }: { locale: Locale; pending: boolean }) {
   const t = (path: string) => getTranslation(locale, path);
 
   return (
     <CoachPanelShell activeTab="dashboard">
       <section className="section">
         <Card className="p-16">
-          <div className="eyebrow">{t("coach.accessDeniedTitle")}</div>
-          <h1 className="headline-lg" style={{ marginTop: 8 }}>
-            {t("coach.dashboardTitle")}
-          </h1>
-          <p className="caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
-            {t("coach.accessDeniedCopy")}
-          </p>
-          <div style={{ marginTop: 16 }}>
-            <PrimaryButton href="/entry">{t("common.close")}</PrimaryButton>
-          </div>
+          {pending ? (
+            <div className="stack" style={{ gap: 12 }}>
+              <div className="eyebrow">{t("coach.pendingRequestReceived")}</div>
+              <h1 className="headline-lg" style={{ marginTop: 8 }}>
+                {t("coach.pendingTitle")}
+              </h1>
+              <p className="caption" style={{ lineHeight: 1.6 }}>
+                {t("coach.pendingCopy")}
+              </p>
+              <p className="caption">{t("coach.pendingRequestDetail")}</p>
+              <div style={{ marginTop: 8 }}>
+                <PrimaryButton href="/">{t("coach.pendingBackToAthlete")}</PrimaryButton>
+              </div>
+            </div>
+          ) : (
+            <div className="stack" style={{ gap: 12 }}>
+              <div className="eyebrow">{t("coach.accessDeniedTitle")}</div>
+              <h1 className="headline-lg" style={{ marginTop: 8 }}>
+                {t("coach.dashboardTitle")}
+              </h1>
+              <p className="caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
+                {t("coach.accessDeniedCopy")}
+              </p>
+              <div style={{ marginTop: 16 }}>
+                <PrimaryButton href="/entry">{t("common.close")}</PrimaryButton>
+              </div>
+            </div>
+          )}
         </Card>
       </section>
     </CoachPanelShell>
@@ -34,9 +52,10 @@ export default async function CoachDashboardPage() {
   const cookieStore = await cookies();
   const locale = getInitialLocale(cookieStore.get(localeCookieName)?.value);
   const t = (path: string) => getTranslation(locale, path);
+  const pendingCoachIntent = cookieStore.get("athlexforce-identity-intent")?.value === "coach";
   const session = await loadCoachSessionContext();
   if (!session?.isCoach) {
-    return <AccessDenied locale={locale} />;
+    return <AccessDenied locale={locale} pending={pendingCoachIntent} />;
   }
 
   const dashboard = await loadCoachDashboard(session.client, session.userId).catch(() => null);

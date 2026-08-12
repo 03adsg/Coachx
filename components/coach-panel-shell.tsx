@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
 import { Screen } from "@/components/screen";
 import { useTranslator } from "@/components/locale-provider";
+import { writeWorkspacePreference } from "@/lib/auth/session-policy";
 
 export function CoachPanelShell({
   activeTab,
@@ -15,6 +17,7 @@ export function CoachPanelShell({
   children: ReactNode;
   topLabel?: string;
 }) {
+  const router = useRouter();
   const { t } = useTranslator();
   const tabs = [
     { href: "/coach", label: t("coach.dashboard"), key: "dashboard" as const },
@@ -29,7 +32,19 @@ export function CoachPanelShell({
       topbar={
         <header className="topbar coach-topbar">
           <BrandLogo variant="horizontal" width={124} alt="AthlexForce" />
-          <span className="progress-chip progress-chip--accent">{topLabel.toUpperCase()}</span>
+          <div className="row" style={{ gap: 8 }}>
+            <button
+              type="button"
+              className="button-secondary focus-ring"
+              onClick={() => {
+                writeWorkspacePreference("athlete");
+                router.push("/");
+              }}
+            >
+              {t("common.athleteWorkspace")}
+            </button>
+            <span className="progress-chip progress-chip--accent">{topLabel.toUpperCase()}</span>
+          </div>
         </header>
       }
     >

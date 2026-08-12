@@ -3,6 +3,18 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseRouteClient } from "@/lib/supabase/server";
 import { isCoachxDemoMode, isSupabaseConfigured } from "@/lib/supabase/env";
 import { isProtectedAthleteRoute, isProtectedCoachRoute } from "@/lib/auth/navigation";
+import { loadIdentityResolution, resolveAuthenticatedLandingRoute } from "@/lib/auth/identity-resolver";
+import type { IdentityIntent, WorkspacePreference } from "@/lib/auth/session-policy";
+
+function readWorkspacePreferenceFromRequest(request: NextRequest): WorkspacePreference | null {
+  const value = request.cookies.get("athlexforce-workspace")?.value;
+  return value === "coach" || value === "athlete" ? value : null;
+}
+
+function readIdentityIntentFromRequest(request: NextRequest): IdentityIntent | null {
+  const value = request.cookies.get("athlexforce-identity-intent")?.value;
+  return value === "self_managed" || value === "coach_managed" || value === "coach" ? value : null;
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -34,21 +46,23 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const [athleteResult, coachResult] = await Promise.all([
-    athleteClient.from("athlete_profiles").select("onboarding_status").eq("id", user.id).maybeSingle(),
-    athleteClient.from("coach_profiles").select("id").eq("user_id", user.id).maybeSingle()
-  ]);
+  const identity = await loadIdentityResolution(athleteClient, user.id, {
+    preferredWorkspace: readWorkspacePreferenceFromRequest(request),
+    identityIntent: readIdentityIntentFromRequest(request)
+  }).catch(() => null);
 
-  if (athleteResult.error || coachResult.error) {
+  if (!identity) {
     return response;
   }
 
-  const isCoach = Boolean(coachResult.data);
-  const onboardingStatus = athleteResult.data?.onboarding_status ?? "not_started";
-  const routeForStatus = isCoach && !athleteResult.data ? "/coach" : onboardingStatus === "completed" ? "/" : "/onboarding";
+  const landingRoute = resolveAuthenticatedLandingRoute(identity);
 
   if (isProtectedCoachRoute(pathname)) {
-    if (!isCoach) {
+    if (!identity.coachCapability) {
+      if (identity.identityIntent === "coach") {
+        return response;
+      }
+
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/entry";
       redirectUrl.search = "";
@@ -62,41 +76,32 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  if (isCoach && !athleteResult.data && (pathname === "/" || pathname === "/entry" || pathname === "/login")) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/coach";
-    redirectUrl.search = "";
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  if (!athleteResult.data) {
-    if (isProtectedAthleteRoute(pathname)) {
+  if (pathname === "/" || pathname === "/entry" || pathname === "/login") {
+    if (landingRoute !== pathname) {
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = "/entry";
+      redirectUrl.pathname = landingRoute;
       redirectUrl.search = "";
       return NextResponse.redirect(redirectUrl);
     }
-
-    return response;
   }
 
-  if (pathname === "/entry" || pathname === "/login") {
+  if (pathname.startsWith("/onboarding") && identity.athleteProfile?.onboarding_status === "completed" && landingRoute !== "/onboarding") {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = routeForStatus;
+    redirectUrl.pathname = landingRoute;
     redirectUrl.search = "";
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (pathname === "/" && routeForStatus !== "/") {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = routeForStatus;
-    redirectUrl.search = "";
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  if (onboardingStatus !== "completed" && isProtectedAthleteRoute(pathname) && !pathname.startsWith("/onboarding") && !pathname.startsWith("/entry")) {
+  if (identity.athleteProfile?.onboarding_status !== "completed" && isProtectedAthleteRoute(pathname) && !pathname.startsWith("/onboarding")) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/onboarding";
+    redirectUrl.search = "";
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (pathname.startsWith("/onboarding") && landingRoute === "/coach") {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/coach";
     redirectUrl.search = "";
     return NextResponse.redirect(redirectUrl);
   }

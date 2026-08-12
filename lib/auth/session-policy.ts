@@ -1,4 +1,9 @@
 const rememberSessionStorageKey = "athlexforce-remember-session";
+export type WorkspacePreference = "athlete" | "coach";
+export type IdentityIntent = "self_managed" | "coach_managed" | "coach";
+
+const workspacePreferenceStorageKey = "athlexforce-workspace";
+const identityIntentStorageKey = "athlexforce-identity-intent";
 const trustedAppOrigins = [
   "http://localhost:3000",
   "https://coachxsync1.vercel.app",
@@ -24,6 +29,42 @@ export function writeRememberSessionPreference(rememberSession: boolean) {
   }
 
   window.localStorage.setItem(rememberSessionStorageKey, rememberSession ? "true" : "false");
+}
+
+function readCookieValue(name: string) {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match?.[1] ? decodeURIComponent(match[1]) : null;
+}
+
+function writeCookieValue(name: string, value: string) {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  const secureAttribute = typeof window !== "undefined" && window.location.protocol === "https:" ? "; secure" : "";
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000; samesite=lax${secureAttribute}`;
+}
+
+export function readWorkspacePreference(defaultValue: WorkspacePreference = "athlete"): WorkspacePreference {
+  const stored = readCookieValue(workspacePreferenceStorageKey);
+  return stored === "coach" ? "coach" : defaultValue;
+}
+
+export function writeWorkspacePreference(workspace: WorkspacePreference) {
+  writeCookieValue(workspacePreferenceStorageKey, workspace);
+}
+
+export function readIdentityIntent(defaultValue: IdentityIntent | null = null): IdentityIntent | null {
+  const stored = readCookieValue(identityIntentStorageKey);
+  return stored === "self_managed" || stored === "coach_managed" || stored === "coach" ? stored : defaultValue;
+}
+
+export function writeIdentityIntent(identityIntent: IdentityIntent) {
+  writeCookieValue(identityIntentStorageKey, identityIntent);
 }
 
 export function getRememberSessionPreferenceLabel(rememberSession: boolean) {

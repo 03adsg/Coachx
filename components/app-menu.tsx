@@ -2,15 +2,18 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/components/auth-provider";
 import { RemoteAvatar } from "@/components/remote-avatar";
 import { useTranslator } from "@/components/locale-provider";
 import { useProfileSettingsStore } from "@/components/profile-settings-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { writeWorkspacePreference } from "@/lib/auth/session-policy";
+import type { CoachProfilesRow } from "@/lib/supabase/database.types";
 
 export function AppMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
+  const pathname = usePathname();
   const auth = useAuthStore();
   const { saved } = useProfileSettingsStore();
   const { t } = useTranslator();
@@ -55,12 +58,13 @@ export function AppMenu({ open, onClose }: { open: boolean; onClose: () => void 
         return;
       }
 
-      const { data } = await client.from("coach_profiles").select("id").eq("user_id", auth.user.id).maybeSingle();
+      const { data } = await client.from("coach_profiles").select("id,status").eq("user_id", auth.user.id).maybeSingle();
       if (!active) {
         return;
       }
 
-      setIsCoach(Boolean(data));
+      const coachProfile = data as CoachProfilesRow | null;
+      setIsCoach(Boolean(coachProfile && coachProfile.status === "active"));
     }
 
     void hydrateCoachState();
@@ -156,6 +160,42 @@ export function AppMenu({ open, onClose }: { open: boolean; onClose: () => void 
                   <span className="caption">{item.detail}</span>
                 </Link>
               ))}
+            </div>
+          </div>
+
+          <div className="app-menu__section">
+            <div className="eyebrow">{t("common.switchWorkspace")}</div>
+            <div className="app-menu__list">
+              <button
+                type="button"
+                className={`app-menu__item focus-ring ${!pathname.startsWith("/coach") ? "is-current" : ""}`.trim()}
+                onClick={() => {
+                  writeWorkspacePreference("athlete");
+                  onClose();
+                  router.push("/");
+                }}
+              >
+                <span className="icon" aria-hidden="true">
+                  fitness_center
+                </span>
+                <span>{t("common.athleteWorkspace")}</span>
+              </button>
+              {isCoach ? (
+                <button
+                  type="button"
+                  className={`app-menu__item focus-ring ${pathname.startsWith("/coach") ? "is-current" : ""}`.trim()}
+                  onClick={() => {
+                    writeWorkspacePreference("coach");
+                    onClose();
+                    router.push("/coach");
+                  }}
+                >
+                  <span className="icon" aria-hidden="true">
+                    admin_panel_settings
+                  </span>
+                  <span>{t("common.coachWorkspace")}</span>
+                </button>
+              ) : null}
             </div>
           </div>
 

@@ -34,6 +34,9 @@ type MessageTree = {
     nutrition: string;
     progress: string;
     coachPanel: string;
+    athleteWorkspace: string;
+    coachWorkspace: string;
+    switchWorkspace: string;
     dashboard: string;
     athletes: string;
     reviews: string;
@@ -136,6 +139,24 @@ type MessageTree = {
     planReadySubtitle: string;
     programTitle: string;
     programSubtitle: string;
+    identityGatewayTitle: string;
+    identityGatewaySubtitle: string;
+    identityGatewayIndependentTitle: string;
+    identityGatewayIndependentCopy: string;
+    identityGatewayCoachManagedTitle: string;
+    identityGatewayCoachManagedCopy: string;
+    identityGatewayCoachTitle: string;
+    identityGatewayCoachCopy: string;
+    identityGatewayInviteTitle: string;
+    identityGatewayInviteCopy: string;
+    identityGatewayInvitePlaceholder: string;
+    identityGatewayInviteButton: string;
+    identityGatewayInviteSuccess: string;
+    identityGatewayInviteError: string;
+    identityGatewayContinue: string;
+    identityGatewayPendingTitle: string;
+    identityGatewayPendingCopy: string;
+    identityGatewayCoachConnected: string;
   };
   profile: {
     hubTitle: string;
@@ -156,6 +177,15 @@ type MessageTree = {
     settingsDetail: string;
     security: string;
     securityDetail: string;
+    workspaceMode: string;
+    selfManaged: string;
+    coachManaged: string;
+    yourCoach: string;
+    planSupervised: string;
+    coachConnected: string;
+    coachPending: string;
+    openCoachWorkspace: string;
+    switchToAthleteWorkspace: string;
     profileSaved: string;
     programUpdatePending: string;
     noPendingProgramUpdates: string;
@@ -173,6 +203,11 @@ type MessageTree = {
     reviews: string;
     profile: string;
     profileDetail: string;
+    pendingTitle: string;
+    pendingCopy: string;
+    pendingBackToAthlete: string;
+    pendingRequestReceived: string;
+    pendingRequestDetail: string;
   };
   calendar: {
     title: string;
@@ -247,6 +282,9 @@ const messages: Record<Locale, MessageTree> = {
       nutrition: "Nutrition",
       progress: "Progress",
       coachPanel: "Coach Panel",
+      athleteWorkspace: "Athlete workspace",
+      coachWorkspace: "Coach workspace",
+      switchWorkspace: "Switch workspace",
       dashboard: "Dashboard",
       athletes: "Athletes",
       reviews: "Reviews",
@@ -337,7 +375,25 @@ const messages: Record<Locale, MessageTree> = {
       planReadyTitle: "Your Plan is Ready",
       planReadySubtitle: "Phase 1 is ready to review until you begin.",
       programTitle: "Program Overview",
-      programSubtitle: "Phase 1, progress, and current structure."
+      programSubtitle: "Phase 1, progress, and current structure.",
+      identityGatewayTitle: "How will you use AthlexForce?",
+      identityGatewaySubtitle: "Pick the path that matches how you train. You can switch later if your access changes.",
+      identityGatewayIndependentTitle: "I train on my own",
+      identityGatewayIndependentCopy: "I manage my training and nutrition.",
+      identityGatewayCoachManagedTitle: "I train with a coach",
+      identityGatewayCoachManagedCopy: "My coach manages or supervises my plan.",
+      identityGatewayCoachTitle: "I am a coach",
+      identityGatewayCoachCopy: "I manage athletes with AthlexForce.",
+      identityGatewayInviteTitle: "Have an invite code?",
+      identityGatewayInviteCopy: "Paste a secure invitation token to connect a coach relationship.",
+      identityGatewayInvitePlaceholder: "Paste invite code",
+      identityGatewayInviteButton: "Connect coach",
+      identityGatewayInviteSuccess: "Coach connected.",
+      identityGatewayInviteError: "That invite code could not be verified.",
+      identityGatewayContinue: "Continue",
+      identityGatewayPendingTitle: "Coach request received",
+      identityGatewayPendingCopy: "Your coach access request is waiting on trusted verification.",
+      identityGatewayCoachConnected: "Coach connected."
     },
     profile: {
       hubTitle: "Profile",
@@ -358,6 +414,15 @@ const messages: Record<Locale, MessageTree> = {
       settingsDetail: "Language, training, and account preferences",
       security: "Security",
       securityDetail: "Password, sessions, and account access",
+      workspaceMode: "Workspace mode",
+      selfManaged: "Self-managed",
+      coachManaged: "Coach-managed",
+      yourCoach: "Your coach",
+      planSupervised: "Plan supervised",
+      coachConnected: "Coach connected.",
+      coachPending: "Coach connection pending",
+      openCoachWorkspace: "Open coach workspace",
+      switchToAthleteWorkspace: "Open athlete workspace",
       profileSaved: "profile saved",
       programUpdatePending: "Program update pending",
       noPendingProgramUpdates: "No pending program updates"
@@ -374,7 +439,12 @@ const messages: Record<Locale, MessageTree> = {
       athletes: "Athletes",
       reviews: "Reviews",
       profile: "Profile",
-      profileDetail: "Identity and current plan"
+      profileDetail: "Identity and current plan",
+      pendingTitle: "Coach access pending",
+      pendingCopy: "This account has a coach request pending trusted verification.",
+      pendingBackToAthlete: "Back to athlete workspace",
+      pendingRequestReceived: "REQUEST RECEIVED",
+      pendingRequestDetail: "We will unlock the coach workspace after verification."
     },
     calendar: {
       title: "Calendar",
@@ -447,6 +517,9 @@ const messages: Record<Locale, MessageTree> = {
       nutrition: "Nutrición",
       progress: "Progreso",
       coachPanel: "Panel de coach",
+      athleteWorkspace: "Espacio de atleta",
+      coachWorkspace: "Espacio de coach",
+      switchWorkspace: "Cambiar espacio",
       dashboard: "Panel",
       athletes: "Atletas",
       reviews: "Revisiones",
@@ -498,7 +571,25 @@ const messages: Record<Locale, MessageTree> = {
       planReadyTitle: "Tu plan está listo",
       planReadySubtitle: "La Fase 1 está lista para revisar hasta que empieces.",
       programTitle: "Resumen del programa",
-      programSubtitle: "Fase 1, progreso y estructura actual."
+      programSubtitle: "Fase 1, progreso y estructura actual.",
+      identityGatewayTitle: "¿Cómo vas a usar AthlexForce?",
+      identityGatewaySubtitle: "Elige la ruta que encaje con tu forma de entrenar. Podrás cambiarla más tarde si tu acceso cambia.",
+      identityGatewayIndependentTitle: "Entreno por mi cuenta",
+      identityGatewayIndependentCopy: "Gestiono yo mismo mi entrenamiento y nutrición.",
+      identityGatewayCoachManagedTitle: "Entreno con un coach",
+      identityGatewayCoachManagedCopy: "Mi coach supervisa o gestiona mi plan.",
+      identityGatewayCoachTitle: "Soy coach",
+      identityGatewayCoachCopy: "Gestiono atletas con AthlexForce.",
+      identityGatewayInviteTitle: "¿Tienes un código de invitación?",
+      identityGatewayInviteCopy: "Pega un token seguro para conectar una relación con coach.",
+      identityGatewayInvitePlaceholder: "Pega el código",
+      identityGatewayInviteButton: "Conectar coach",
+      identityGatewayInviteSuccess: "Coach conectado.",
+      identityGatewayInviteError: "No se ha podido verificar ese código de invitación.",
+      identityGatewayContinue: "Continuar",
+      identityGatewayPendingTitle: "Solicitud de coach recibida",
+      identityGatewayPendingCopy: "Tu solicitud de acceso de coach está pendiente de verificación confiable.",
+      identityGatewayCoachConnected: "Coach conectado."
     },
     profile: {
       hubTitle: "Perfil",
@@ -519,6 +610,15 @@ const messages: Record<Locale, MessageTree> = {
       settingsDetail: "Idioma, entrenamiento y preferencias de cuenta",
       security: "Seguridad",
       securityDetail: "Contraseña, sesiones y acceso a la cuenta",
+      workspaceMode: "Modo de espacio",
+      selfManaged: "Autogestionado",
+      coachManaged: "Con coach",
+      yourCoach: "Tu coach",
+      planSupervised: "Plan supervisado",
+      coachConnected: "Coach conectado.",
+      coachPending: "Conexión con coach pendiente",
+      openCoachWorkspace: "Abrir espacio de coach",
+      switchToAthleteWorkspace: "Abrir espacio de atleta",
       profileSaved: "perfil guardado",
       programUpdatePending: "Actualización del programa pendiente",
       noPendingProgramUpdates: "Sin actualizaciones pendientes"
@@ -535,7 +635,12 @@ const messages: Record<Locale, MessageTree> = {
       athletes: "Atletas",
       reviews: "Revisiones",
       profile: "Perfil",
-      profileDetail: "Identidad y plan actual"
+      profileDetail: "Identidad y plan actual",
+      pendingTitle: "Acceso de coach pendiente",
+      pendingCopy: "Esta cuenta tiene una solicitud de coach pendiente de verificación confiable.",
+      pendingBackToAthlete: "Volver al espacio de atleta",
+      pendingRequestReceived: "SOLICITUD RECIBIDA",
+      pendingRequestDetail: "Desbloquearemos el espacio de coach después de la verificación."
     },
     calendar: {
       title: "Calendario",
@@ -608,6 +713,9 @@ const messages: Record<Locale, MessageTree> = {
       nutrition: "Nutrició",
       progress: "Progrés",
       coachPanel: "Panell de coach",
+      athleteWorkspace: "Espai d'atleta",
+      coachWorkspace: "Espai de coach",
+      switchWorkspace: "Canviar espai",
       dashboard: "Tauler",
       athletes: "Atletes",
       reviews: "Revisions",
@@ -659,7 +767,25 @@ const messages: Record<Locale, MessageTree> = {
       planReadyTitle: "El teu pla està llest",
       planReadySubtitle: "La Fase 1 està llesta per revisar fins que comencis.",
       programTitle: "Resum del programa",
-      programSubtitle: "Fase 1, progrés i estructura actual."
+      programSubtitle: "Fase 1, progrés i estructura actual.",
+      identityGatewayTitle: "Com faràs servir AthlexForce?",
+      identityGatewaySubtitle: "Tria la via que encaixi amb la teva manera d'entrenar. Podràs canviar-la més tard si l'accés canvia.",
+      identityGatewayIndependentTitle: "Entreno pel meu compte",
+      identityGatewayIndependentCopy: "Gestiono jo mateix l'entrenament i la nutrició.",
+      identityGatewayCoachManagedTitle: "Entreno amb un coach",
+      identityGatewayCoachManagedCopy: "El meu coach supervisa o gestiona el meu pla.",
+      identityGatewayCoachTitle: "Sóc coach",
+      identityGatewayCoachCopy: "Gestiono atletes amb AthlexForce.",
+      identityGatewayInviteTitle: "Tens un codi d'invitació?",
+      identityGatewayInviteCopy: "Enganxa un token segur per connectar una relació amb coach.",
+      identityGatewayInvitePlaceholder: "Enganxa el codi",
+      identityGatewayInviteButton: "Connecta el coach",
+      identityGatewayInviteSuccess: "Coach connectat.",
+      identityGatewayInviteError: "No s'ha pogut verificar aquest codi d'invitació.",
+      identityGatewayContinue: "Continua",
+      identityGatewayPendingTitle: "Sol·licitud de coach rebuda",
+      identityGatewayPendingCopy: "La teva sol·licitud d'accés de coach està pendent de verificació fiable.",
+      identityGatewayCoachConnected: "Coach connectat."
     },
     profile: {
       hubTitle: "Perfil",
@@ -680,6 +806,15 @@ const messages: Record<Locale, MessageTree> = {
       settingsDetail: "Idioma, entrenament i preferències del compte",
       security: "Seguretat",
       securityDetail: "Contrasenya, sessions i accés al compte",
+      workspaceMode: "Mode d'espai",
+      selfManaged: "Autogestionat",
+      coachManaged: "Amb coach",
+      yourCoach: "El teu coach",
+      planSupervised: "Pla supervisat",
+      coachConnected: "Coach connectat.",
+      coachPending: "Connexió amb coach pendent",
+      openCoachWorkspace: "Obre l'espai de coach",
+      switchToAthleteWorkspace: "Obre l'espai d'atleta",
       profileSaved: "perfil desat",
       programUpdatePending: "Actualització del programa pendent",
       noPendingProgramUpdates: "Sense actualitzacions pendents"
@@ -696,7 +831,12 @@ const messages: Record<Locale, MessageTree> = {
       athletes: "Atletes",
       reviews: "Revisions",
       profile: "Perfil",
-      profileDetail: "Identitat i pla actual"
+      profileDetail: "Identitat i pla actual",
+      pendingTitle: "Accés de coach pendent",
+      pendingCopy: "Aquest compte té una sol·licitud de coach pendent de verificació fiable.",
+      pendingBackToAthlete: "Torna a l'espai d'atleta",
+      pendingRequestReceived: "SOL·LICITUD REBUDA",
+      pendingRequestDetail: "Desbloquejarem l'espai de coach després de la verificació."
     },
     calendar: {
       title: "Calendari",
@@ -769,6 +909,9 @@ const messages: Record<Locale, MessageTree> = {
       nutrition: "Ernährung",
       progress: "Fortschritt",
       coachPanel: "Coach-Panel",
+      athleteWorkspace: "Athletenbereich",
+      coachWorkspace: "Coach-Bereich",
+      switchWorkspace: "Bereich wechseln",
       dashboard: "Übersicht",
       athletes: "Athleten",
       reviews: "Reviews",
@@ -820,7 +963,25 @@ const messages: Record<Locale, MessageTree> = {
       planReadyTitle: "Dein Plan ist bereit",
       planReadySubtitle: "Phase 1 ist bereit zur Prüfung, bis du startest.",
       programTitle: "Programmübersicht",
-      programSubtitle: "Phase 1, Fortschritt und aktuelle Struktur."
+      programSubtitle: "Phase 1, Fortschritt und aktuelle Struktur.",
+      identityGatewayTitle: "Wie wirst du AthlexForce nutzen?",
+      identityGatewaySubtitle: "Wähle den Weg, der zu deinem Training passt. Du kannst später wechseln, wenn sich dein Zugriff ändert.",
+      identityGatewayIndependentTitle: "Ich trainiere selbst",
+      identityGatewayIndependentCopy: "Ich verwalte Training und Ernährung selbst.",
+      identityGatewayCoachManagedTitle: "Ich trainiere mit Coach",
+      identityGatewayCoachManagedCopy: "Mein Coach steuert oder überwacht meinen Plan.",
+      identityGatewayCoachTitle: "Ich bin Coach",
+      identityGatewayCoachCopy: "Ich verwalte Athleten mit AthlexForce.",
+      identityGatewayInviteTitle: "Hast du einen Einladungs-Code?",
+      identityGatewayInviteCopy: "Füge ein sicheres Token ein, um eine Coach-Verbindung herzustellen.",
+      identityGatewayInvitePlaceholder: "Code einfügen",
+      identityGatewayInviteButton: "Coach verbinden",
+      identityGatewayInviteSuccess: "Coach verbunden.",
+      identityGatewayInviteError: "Dieser Einladungs-Code konnte nicht verifiziert werden.",
+      identityGatewayContinue: "Weiter",
+      identityGatewayPendingTitle: "Coach-Anfrage erhalten",
+      identityGatewayPendingCopy: "Deine Coach-Zugriffsanfrage wartet auf vertrauenswürdige Prüfung.",
+      identityGatewayCoachConnected: "Coach verbunden."
     },
     profile: {
       hubTitle: "Profil",
@@ -841,6 +1002,15 @@ const messages: Record<Locale, MessageTree> = {
       settingsDetail: "Sprache, Training und Kontoeinstellungen",
       security: "Sicherheit",
       securityDetail: "Passwort, Sitzungen und Kontozugriff",
+      workspaceMode: "Bereichsmodus",
+      selfManaged: "Selbst verwaltet",
+      coachManaged: "Mit Coach",
+      yourCoach: "Dein Coach",
+      planSupervised: "Plan betreut",
+      coachConnected: "Coach verbunden.",
+      coachPending: "Coach-Verbindung ausstehend",
+      openCoachWorkspace: "Coach-Bereich öffnen",
+      switchToAthleteWorkspace: "Athletenbereich öffnen",
       profileSaved: "Profil gespeichert",
       programUpdatePending: "Programmaktualisierung ausstehend",
       noPendingProgramUpdates: "Keine ausstehenden Programmaktualisierungen"
@@ -857,7 +1027,12 @@ const messages: Record<Locale, MessageTree> = {
       athletes: "Athleten",
       reviews: "Reviews",
       profile: "Profil",
-      profileDetail: "Identität und aktueller Plan"
+      profileDetail: "Identität und aktueller Plan",
+      pendingTitle: "Coach-Zugriff ausstehend",
+      pendingCopy: "Dieses Konto hat eine Coach-Anfrage, die auf vertrauenswürdige Prüfung wartet.",
+      pendingBackToAthlete: "Zurück zum Athletenbereich",
+      pendingRequestReceived: "ANFRAGE ERHALTEN",
+      pendingRequestDetail: "Wir schalten den Coach-Bereich nach der Prüfung frei."
     },
     calendar: {
       title: "Kalender",

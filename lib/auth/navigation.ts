@@ -4,6 +4,7 @@ export const protectedAthleteRoutePrefixes = [
   "/",
   "/calendar",
   "/day",
+  "/onboarding",
   "/progress",
   "/profile",
   "/program",

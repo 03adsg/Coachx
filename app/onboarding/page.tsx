@@ -1,5 +1,5 @@
-import { OnboardingIntroScreen } from "@/components/onboarding-flow";
+import { IdentityGatewayScreen } from "@/components/onboarding-flow";
 
 export default function OnboardingIntroPage() {
-  return <OnboardingIntroScreen />;
+  return <IdentityGatewayScreen />;
 }
