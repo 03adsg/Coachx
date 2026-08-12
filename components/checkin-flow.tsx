@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/brand-logo";
+import { useTranslator } from "@/components/locale-provider";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { useCheckInStore } from "@/components/checkin-provider";
@@ -97,6 +98,7 @@ function SingleChoiceRow({
 
 export function WeeklyCheckInScreen() {
   const router = useRouter();
+  const { t } = useTranslator();
   const store = useCheckInStore();
   const [activeIndex, setActiveIndex] = useState(0);
   const [noteDraft, setNoteDraft] = useState("");
@@ -204,11 +206,11 @@ export function WeeklyCheckInScreen() {
 
   if (store.loading) {
     return (
-      <Screen shellClassName="progress-flow-shell" topbar={<CheckInTopbar title="WEEKLY CHECK-IN" />}>
+      <Screen shellClassName="progress-flow-shell" topbar={<CheckInTopbar title={t("common.review").toUpperCase()} />}>
         <main className="content tight">
           <section className="section">
             <Card className="p-16 elevated">
-              <div className="eyebrow">Loading check-in</div>
+              <div className="eyebrow">{t("common.loading")} {t("common.review").toLowerCase()}</div>
               <div className="headline-md" style={{ marginTop: 10 }}>
                 Restoring your answers
               </div>
@@ -234,7 +236,7 @@ export function WeeklyCheckInScreen() {
                   Try again
                 </PrimaryButton>
                 <SecondaryButton className="focus-ring" onClick={() => router.push("/progress")}>
-                  Back to progress
+                {t("common.back")} {t("common.progress").toLowerCase()}
                 </SecondaryButton>
               </div>
             </Card>
@@ -245,11 +247,11 @@ export function WeeklyCheckInScreen() {
   }
 
   return (
-    <Screen shellClassName="progress-flow-shell" topbar={<CheckInTopbar title="WEEKLY CHECK-IN" />}>
+    <Screen shellClassName="progress-flow-shell" topbar={<CheckInTopbar title={t("common.review").toUpperCase()} />}>
       <main className="content tight">
         <section className="section progress-hero">
           <h1 className="headline-lg" style={{ textTransform: "uppercase" }}>
-            Weekly check-in
+            {t("common.review")}
           </h1>
           <p className="caption" style={{ marginTop: 8 }}>
             Week of {store.weekStartDate} to {store.weekEndDate}
@@ -265,7 +267,7 @@ export function WeeklyCheckInScreen() {
           <Card className="p-16">
             <div className="row start">
               <div>
-                <div className="eyebrow">Adherence context</div>
+              <div className="eyebrow">{t("common.review")}</div>
                 <div className="headline-md" style={{ marginTop: 6 }}>
                   {store.summary?.adherencePercent.training ?? 0}% training · {store.summary?.adherencePercent.nutrition ?? 0}% nutrition
                 </div>
@@ -335,7 +337,7 @@ export function WeeklyCheckInScreen() {
         {actionError ? (
           <section className="section">
             <Card className="p-16">
-              <div className="eyebrow">Save failed</div>
+              <div className="eyebrow">{t("common.error")}</div>
               <p className="caption" style={{ marginTop: 8, lineHeight: 1.6 }}>
                 {actionError}
               </p>
@@ -370,7 +372,7 @@ export function WeeklyCheckInScreen() {
                         className="progress-mini-action focus-ring"
                         onClick={() => setActiveIndex(store.questions.findIndex((item) => item.key === question.key))}
                       >
-                        Edit
+                  {t("common.edit")}
                       </button>
                     </div>
                   );
@@ -386,9 +388,9 @@ export function WeeklyCheckInScreen() {
                 Submit check-in
               </PrimaryButton>
             ) : null}
-            <SecondaryButton className="focus-ring" onClick={() => router.push("/progress")}>
-              Back to progress
-            </SecondaryButton>
+              <SecondaryButton className="focus-ring" onClick={() => router.push("/progress")}>
+              {t("common.back")} {t("common.progress").toLowerCase()}
+              </SecondaryButton>
           </div>
         </section>
       </main>
@@ -398,6 +400,7 @@ export function WeeklyCheckInScreen() {
 
 export function WeeklyCheckInCompletionScreen() {
   const router = useRouter();
+  const { t } = useTranslator();
   const store = useCheckInStore();
   const review = store.review
     ? {
@@ -421,16 +424,16 @@ export function WeeklyCheckInCompletionScreen() {
   const painResponse = store.responses.find((response) => response.question_key === "pain_discomfort");
 
   return (
-    <Screen shellClassName="progress-flow-shell" topbar={<CheckInTopbar title="CHECK-IN COMPLETE" />}>
+    <Screen shellClassName="progress-flow-shell" topbar={<CheckInTopbar title={t("common.review").toUpperCase()} />}>
       <main className="content tight">
         <section className="section">
           <Card className="p-16 elevated" style={{ background: "var(--background-charcoal)" }}>
-            <div className="eyebrow">Completed</div>
+            <div className="eyebrow">{t("common.success")}</div>
             <h1 className="headline-lg" style={{ marginTop: 8, textTransform: "uppercase" }}>
-              Weekly check-in submitted
+              {t("common.review")}
             </h1>
             <p className="caption" style={{ marginTop: 8, lineHeight: 1.6 }}>
-              {store.checkin?.submitted_at ? `Submitted at ${new Date(store.checkin.submitted_at).toLocaleString()}.` : "Your answers are stored remotely."}
+              {store.checkin?.submitted_at ? `Submitted at ${new Date(store.checkin.submitted_at).toLocaleString()}.` : t("common.success")}
             </p>
           </Card>
         </section>
@@ -450,7 +453,7 @@ export function WeeklyCheckInCompletionScreen() {
 
         <section className="section">
           <Card className="p-16">
-            <div className="eyebrow">Review state</div>
+            <div className="eyebrow">{t("common.review")}</div>
             <div className="headline-md" style={{ marginTop: 8 }}>
               {review.recommendationLabel}
             </div>
@@ -459,12 +462,12 @@ export function WeeklyCheckInCompletionScreen() {
             </p>
             {painResponse?.choice_value ? (
               <div className="caption" style={{ marginTop: 10 }}>
-                Pain or discomfort: {painResponse.choice_value}
+                {t("common.progress")}: {painResponse.choice_value}
               </div>
             ) : null}
             {noteResponse?.text_value ? (
               <div className="caption" style={{ marginTop: 6 }}>
-                Notes: {noteResponse.text_value}
+                {t("common.review")}: {noteResponse.text_value}
               </div>
             ) : null}
           </Card>
@@ -472,7 +475,7 @@ export function WeeklyCheckInCompletionScreen() {
 
         <section className="section">
           <Card className="p-16">
-            <div className="eyebrow">Responses saved</div>
+            <div className="eyebrow">{t("common.save")}</div>
             <div className="stack" style={{ gap: 10, marginTop: 12 }}>
               {store.questions.map((question) => {
                 const response = store.responses.find((item) => item.question_key === question.key);
@@ -491,7 +494,7 @@ export function WeeklyCheckInCompletionScreen() {
                         {value}
                       </div>
                     </div>
-                    <span className="caption">{response?.answered_at ? "Saved" : "Pending"}</span>
+                    <span className="caption">{response?.answered_at ? t("common.save") : t("common.loading")}</span>
                   </div>
                 );
               })}
@@ -503,19 +506,19 @@ export function WeeklyCheckInCompletionScreen() {
           <div className="stack" style={{ gap: 12 }}>
             {store.review?.status === "acknowledged" ? (
               <Card className="p-16">
-                <div className="eyebrow">Review acknowledged</div>
+                <div className="eyebrow">{t("common.approve")}</div>
                 <p className="caption" style={{ marginTop: 8 }}>
                   The review state is stored remotely and can later be consumed by the coach workflow.
                 </p>
               </Card>
             ) : (
               <PrimaryButton className="focus-ring" onClick={() => void store.acknowledgeReview()}>
-                Acknowledge review
-              </PrimaryButton>
-            )}
-            <SecondaryButton className="focus-ring" onClick={() => router.push("/progress")}>
-              Back to progress
-            </SecondaryButton>
+              {t("common.approve")}
+            </PrimaryButton>
+          )}
+          <SecondaryButton className="focus-ring" onClick={() => router.push("/progress")}>
+              {t("common.back")} {t("common.progress").toLowerCase()}
+          </SecondaryButton>
           </div>
         </section>
       </main>

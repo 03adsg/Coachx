@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton } from "@/components/ui";
+import { useTranslator } from "@/components/locale-provider";
 import { NutritionMealSheet } from "@/components/nutrition-meal-sheet";
 import { NutritionProvider, useNutritionSession } from "@/components/nutrition-provider";
 import {
@@ -62,16 +63,31 @@ function MealCard({
   const selectedOption = slot.selectedOptionId ? slot.options.find((option) => option.id === slot.selectedOptionId) ?? null : null;
   const safeOptions = getSafeMealOptions(slot, safetyProfile);
   const canChoose = safeOptions.length > 0;
+  const copy = {
+    viewOptions: "VIEW OPTIONS",
+    markEaten: "MARK EATEN",
+    markComplete: "MARK COMPLETE",
+    chooseMeal: "CHOOSE MEAL",
+    completed: "COMPLETED",
+    next: "NEXT",
+    noSafeOptions: "No safe options available",
+    target: "TARGET",
+    dailyProgress: "PROGRESS",
+    today: "TODAY",
+    hydration: "HYDRATION",
+    supplements: "SUPPLEMENTS",
+    coachNote: "COACH NOTE"
+  };
   const actionLabel =
     slot.state === "completed"
-      ? "VIEW OPTIONS"
+      ? copy.viewOptions
       : slot.state === "selected"
-        ? "MARK EATEN"
+        ? copy.markEaten
         : slot.state === "eaten"
-          ? "MARK COMPLETE"
+          ? copy.markComplete
           : slot.isNext
-            ? "CHOOSE OPTION"
-            : "VIEW OPTIONS";
+            ? copy.chooseMeal
+            : copy.viewOptions;
 
   const handleAction = () => {
     if (slot.state === "selected") {
@@ -95,7 +111,7 @@ function MealCard({
         <div className="nutrition-meal-card__copy">
           <div className="nutrition-meal-card__label-row">
             <span className={`pill nutrition-meal-card__pill ${slot.state === "completed" ? "nutrition-meal-card__pill--complete" : ""}`}>
-              {slot.state === "completed" ? "COMPLETED" : slot.isNext ? `NEXT: ${slot.label.toUpperCase()}` : slot.label.toUpperCase()}
+              {slot.state === "completed" ? copy.completed : slot.isNext ? `${copy.next}: ${slot.label.toUpperCase()}` : slot.label.toUpperCase()}
             </span>
             <span className="caption nutrition-meal-card__status">{getMealSlotStatusLabel(slot)}</span>
           </div>
@@ -103,7 +119,7 @@ function MealCard({
             {slot.state === "completed" && selectedOption
               ? selectedOption.name
               : slot.isNext
-                ? "Choose your meal"
+                ? copy.chooseMeal
                 : slot.label === "Breakfast" && selectedOption
                   ? selectedOption.name
                   : slot.label}
@@ -137,7 +153,7 @@ function MealCard({
             <span className="caption nutrition-meal-card__macro-summary">{formatMacro(slot.target)}</span>
           )}
           {!canChoose && slot.state !== "selected" && slot.state !== "eaten" ? (
-            <span className="caption nutrition-meal-card__macro-summary">No safe options available</span>
+            <span className="caption nutrition-meal-card__macro-summary">{copy.noSafeOptions}</span>
           ) : null}
         </div>
       </div>
@@ -146,9 +162,18 @@ function MealCard({
 }
 
 function NutritionDayContent({ dateKey }: { dateKey: string }) {
+  const { t, locale } = useTranslator();
   const { day, selectMealOption, markMealEaten, markMealCompleted, addHydration, toggleSupplement } = useNutritionSession();
   const [openSlotId, setOpenSlotId] = useState<string | null>(null);
   const [draftOptionId, setDraftOptionId] = useState<string | null>(null);
+  const copy = {
+    target: "TARGET",
+    dailyProgress: "PROGRESS",
+    today: "TODAY",
+    hydration: "HYDRATION",
+    supplements: "SUPPLEMENTS",
+    coachNote: "COACH NOTE"
+  };
 
   const activeSlot = day.mealSlots.find((slot) => slot.id === openSlotId) ?? null;
   const safeOptions = activeSlot ? getSafeMealOptions(activeSlot, day.safetyProfile) : [];
@@ -183,13 +208,13 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
       shellClassName="nutrition-shell"
       topbar={
         <header className="topbar nutrition-topbar">
-          <Link aria-label="Back to day detail" className="tap-target focus-ring" href={`/day/${dateKey}`}>
+          <Link aria-label={t("common.back")} className="tap-target focus-ring" href={`/day/${dateKey}`}>
             <span className="icon" aria-hidden="true">
               arrow_back
             </span>
           </Link>
           <div className="nutrition-topbar__copy">
-            <h1 className="headline-md nutrition-topbar__title">NUTRITION</h1>
+            <h1 className="headline-md nutrition-topbar__title">{t("common.nutrition").toUpperCase()}</h1>
             <p className="caption">{day.calendarLabel}</p>
           </div>
           <span className="nutrition-topbar__spacer" aria-hidden="true" />
@@ -206,7 +231,7 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
             <div className="nutrition-hero-card__target">
               <span className="metric nutrition-hero-card__calories">{day.target.calories.toLocaleString()}</span>
               <span className="eyebrow" style={{ margin: 0 }}>
-                KCAL TARGET
+                {copy.target}
               </span>
             </div>
             <div className="nutrition-hero-card__macros">
@@ -227,7 +252,7 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
         </section>
 
         <section className="section">
-          <div className="nutrition-section-label">DAILY PROGRESS</div>
+          <div className="nutrition-section-label">{copy.dailyProgress}</div>
           <Card className="nutrition-progress-card p-16">
             <MetricBar label="Calories" current={day.progress.calories} target={day.target.calories} />
             <div className="nutrition-progress-grid">
@@ -239,7 +264,7 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
         </section>
 
         <section className="section">
-          <div className="nutrition-section-label">TODAY&apos;S MEALS</div>
+          <div className="nutrition-section-label">{copy.today}</div>
           <div className="stack">
             {day.mealSlots.map((slot) => (
               <MealCard
@@ -260,7 +285,7 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
               <span className="nutrition-support-card__icon" aria-hidden="true">
                 water_drop
               </span>
-              HYDRATION
+              {copy.hydration}
             </div>
             <div className="nutrition-support-card__value">
               <span className="headline-md">{(day.hydration.currentMl / 1000).toFixed(1)}</span>
@@ -280,7 +305,7 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
                   onClick={() => addHydration(amountMl)}
                   type="button"
                 >
-                  +{amountMl} ML
+                  +{amountMl} ml
                 </button>
               ))}
             </div>
@@ -291,7 +316,7 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
               <span className="nutrition-support-card__icon nutrition-support-card__icon--purple" aria-hidden="true">
                 medication
               </span>
-              SUPPLEMENTS
+              {copy.supplements}
             </div>
             <div className="nutrition-supplement-list">
               {day.supplements.map((supplement) => (
@@ -327,7 +352,7 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
             </div>
             <div>
               <div className="eyebrow" style={{ marginBottom: 6, color: "var(--accent-primary)" }}>
-                COACH NOTE
+                {copy.coachNote}
               </div>
               <p className="caption nutrition-note-card__copy">{day.coachNote}</p>
             </div>
@@ -356,6 +381,7 @@ function NutritionStateScreen({
   dateKey: string;
   mode: Exclude<NutritionScreenMode, "ready">;
 }) {
+  const { t } = useTranslator();
   const day = getNutritionDay(dateKey);
 
   return (
@@ -364,13 +390,13 @@ function NutritionStateScreen({
       shellClassName="nutrition-shell"
       topbar={
         <header className="topbar nutrition-topbar">
-          <Link aria-label="Back to day detail" className="tap-target focus-ring" href={`/day/${dateKey}`}>
+          <Link aria-label={t("common.back")} className="tap-target focus-ring" href={`/day/${dateKey}`}>
             <span className="icon" aria-hidden="true">
               arrow_back
             </span>
           </Link>
           <div className="nutrition-topbar__copy">
-            <h1 className="headline-md nutrition-topbar__title">NUTRITION</h1>
+            <h1 className="headline-md nutrition-topbar__title">{t("common.nutrition").toUpperCase()}</h1>
             <p className="caption">{day.calendarLabel}</p>
           </div>
           <span className="nutrition-topbar__spacer" aria-hidden="true" />
@@ -380,21 +406,21 @@ function NutritionStateScreen({
       <main className="content tight">
         <section className="section">
           <Card className="nutrition-state-card p-16 elevated">
-            <div className="nutrition-state-card__eyebrow">{mode.toUpperCase()}</div>
+            <div className="nutrition-state-card__eyebrow">{t("common.loading")}</div>
             <h1 className="headline-md" style={{ marginTop: 10 }}>
-              {mode === "loading" ? "Nutrition plan loading" : mode === "empty" ? "No nutrition plan" : "Nutrition data unavailable"}
+              {mode === "loading" ? t("common.loading") : mode === "empty" ? t("common.noData") : t("common.error")}
             </h1>
             <p className="caption" style={{ marginTop: 8 }}>
               {mode === "loading"
-                ? "The nutrition view is preparing your day."
+                ? t("common.loading")
                 : mode === "empty"
-                  ? "There is no nutrition plan for this day yet."
-                  : "The nutrition view could not be shown. Try again from the current day."}
+                  ? t("common.noData")
+                  : t("common.retry")}
             </p>
             {mode === "error" ? (
               <div style={{ marginTop: 16 }}>
                 <PrimaryButton href={`/day/${dateKey}/nutrition`} className="focus-ring">
-                  Retry
+                  {t("common.retry")}
                 </PrimaryButton>
               </div>
             ) : null}

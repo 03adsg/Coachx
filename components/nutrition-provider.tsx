@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAuthStore } from "@/components/auth-provider";
+import { useLocale } from "@/components/locale-provider";
 import { useProgramStore } from "@/components/program-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
@@ -35,6 +36,7 @@ const NutritionStoreContext = createContext<NutritionStoreValue | null>(null);
 
 export function NutritionProvider({ children, dateKey }: { children: ReactNode; dateKey: string }) {
   const auth = useAuthStore();
+  const { locale } = useLocale();
   const programStore = useProgramStore();
   const authRef = useRef(auth);
   const programStoreRef = useRef(programStore);
@@ -162,7 +164,7 @@ export function NutritionProvider({ children, dateKey }: { children: ReactNode; 
     });
   }, [snapshot, dateKey]);
 
-  const day = useMemo(() => buildNutritionDayView(snapshot), [snapshot]);
+  const day = useMemo(() => buildNutritionDayView(snapshot), [snapshot, locale]);
 
   const value = useMemo<NutritionStoreValue>(() => {
     const selectMealOption: NutritionStoreValue["selectMealOption"] = (slotId, optionId) => {
@@ -212,7 +214,7 @@ export function NutritionProvider({ children, dateKey }: { children: ReactNode; 
       toggleSupplement: toggleSupplementAction,
       resetNutritionDemo
     };
-  }, [day, dateKey]);
+  }, [day, dateKey, locale]);
 
   return <NutritionStoreContext.Provider value={value}>{children}</NutritionStoreContext.Provider>;
 }

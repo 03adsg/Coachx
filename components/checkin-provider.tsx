@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAuthStore } from "@/components/auth-provider";
+import { useLocale } from "@/components/locale-provider";
 import { useProgramStore } from "@/components/program-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
@@ -19,8 +20,8 @@ import {
   computeSignalFromScoredQuestions,
   createEmptyWeeklyCheckinResponses,
   deriveWeeklyCheckinReviewSummary,
+  getWeeklyCheckinQuestions,
   resolveWeeklyCheckinWindow,
-  weeklyCheckinQuestions,
   type WeeklyCheckinQuestionDefinition
 } from "@/lib/checkin-data";
 import type { WeeklyCheckinResponsesRow, WeeklyCheckinsRow, WeeklyCheckinReviewsRow } from "@/lib/supabase/database.types";
@@ -140,6 +141,7 @@ interface CheckInProviderProps {
 
 export function CheckInProvider({ children, dateKey = new Date().toISOString().slice(0, 10) }: CheckInProviderProps) {
   const auth = useAuthStore();
+  const { locale } = useLocale();
   const program = useProgramStore();
   const authRef = useRef(auth);
   const programRef = useRef(program);
@@ -147,6 +149,7 @@ export function CheckInProvider({ children, dateKey = new Date().toISOString().s
   const [loading, setLoading] = useState(true);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const questions = useMemo(() => getWeeklyCheckinQuestions(locale), [locale]);
 
   useEffect(() => {
     authRef.current = auth;
@@ -212,12 +215,12 @@ export function CheckInProvider({ children, dateKey = new Date().toISOString().s
     return () => {
       active = false;
     };
-  }, [auth.ready, auth.isConfigured, auth.user?.id, dateKey, program.ready, program.activeProgram?.id, program.activePhase?.id]);
+  }, [auth.ready, auth.isConfigured, auth.user?.id, dateKey, program.ready, program.activeProgram?.id, program.activePhase?.id, locale]);
 
   const value = useMemo<CheckInStoreValue>(() => {
     const currentQuestionKey = getCurrentQuestionKey(snapshot.responses);
-    const currentQuestionIndex = weeklyCheckinQuestions.findIndex((question) => question.key === currentQuestionKey);
-    const currentQuestion = weeklyCheckinQuestions[currentQuestionIndex >= 0 ? currentQuestionIndex : weeklyCheckinQuestions.length - 1];
+    const currentQuestionIndex = questions.findIndex((question) => question.key === currentQuestionKey);
+    const currentQuestion = questions[currentQuestionIndex >= 0 ? currentQuestionIndex : questions.length - 1];
     const { weekStartDate, weekEndDate } = resolveWeeklyCheckinWindow(dateKey);
 
     const reloadCheckIn: CheckInStoreValue["reloadCheckIn"] = async () => {
@@ -305,13 +308,13 @@ export function CheckInProvider({ children, dateKey = new Date().toISOString().s
       currentQuestionIndex,
       currentQuestion,
       source: snapshot.source,
-      questions: weeklyCheckinQuestions,
+      questions,
       reloadCheckIn,
       saveResponse,
       submitCheckIn,
       acknowledgeReview
     };
-  }, [dateKey, loading, ready, error, snapshot]);
+  }, [dateKey, loading, ready, error, snapshot, locale, questions]);
 
   return <CheckInContext.Provider value={value}>{children}</CheckInContext.Provider>;
 }

@@ -5,6 +5,7 @@ import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, Section } from "@/components/ui";
 import { AnalyticsChartCard } from "@/components/analytics-chart";
 import { ProgressImmersionCard } from "@/components/progress-immersion-card";
+import { useTranslator } from "@/components/locale-provider";
 import type { PerformanceAnalyticsDashboard } from "@/lib/performance-analytics";
 
 interface ProgressTrendsScreenProps {
@@ -33,6 +34,7 @@ function RangeSelector({ dashboard, basePath }: ProgressTrendsScreenProps) {
 }
 
 export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScreenProps) {
+  const { t } = useTranslator();
   const hasData = dashboard.dataCoverage.workouts + dashboard.dataCoverage.progressEntries + dashboard.dataCoverage.nutritionDays + dashboard.dataCoverage.checkIns > 0;
 
   return (
@@ -41,7 +43,7 @@ export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScre
       shellClassName="progress-analytics-shell"
       topbar={
         <header className="progress-trend-topbar analytics-topbar">
-          <Link href="/progress" className="progress-trend-topbar__back focus-ring" aria-label="Back">
+          <Link href="/progress" className="progress-trend-topbar__back focus-ring" aria-label={t("common.back")}>
             <span className="icon" aria-hidden="true">
               arrow_back
             </span>

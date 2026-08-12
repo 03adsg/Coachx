@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAuthStore } from "@/components/auth-provider";
+import { useLocale } from "@/components/locale-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   activateProgramFromProposal,
@@ -58,6 +59,7 @@ function createDemoBundleView() {
 
 export function ProgramProvider({ children }: { children: ReactNode }) {
   const auth = useAuthStore();
+  const { locale } = useLocale();
   const authRef = useRef(auth);
   const [bundle, setBundle] = useState<ProgramBundleView>(() => createDemoBundleView());
   const [loading, setLoading] = useState(true);
@@ -287,7 +289,7 @@ export function ProgramProvider({ children }: { children: ReactNode }) {
       buildWorkoutSessionForDate,
       buildWorkoutSessionForScheduledWorkout
     };
-  }, [bundle, error, loading, ready]);
+  }, [bundle, error, loading, ready, locale]);
 
   return <ProgramContext.Provider value={value}>{children}</ProgramContext.Provider>;
 }

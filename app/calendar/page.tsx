@@ -27,24 +27,32 @@ function formatMonthLabel(dateKey: string, locale: string) {
   return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${dateKey}T00:00:00Z`));
 }
 
-function dayMarkerLabel(day: { completed: boolean; isAdHoc: boolean; hasActivity: boolean }) {
+function dayMarkerLabel(locale: string, day: { completed: boolean; isAdHoc: boolean; hasActivity: boolean }) {
+  const copy = {
+    en: { completed: "Completed", adhoc: "Ad-hoc", scheduled: "Scheduled", empty: "Empty" },
+    es: { completed: "Completado", adhoc: "Extra", scheduled: "Programado", empty: "Vacío" },
+    ca: { completed: "Completat", adhoc: "Extra", scheduled: "Programat", empty: "Buit" },
+    de: { completed: "Abgeschlossen", adhoc: "Ad-hoc", scheduled: "Geplant", empty: "Leer" }
+  }[locale as "en" | "es" | "ca" | "de"] ?? { completed: "Completed", adhoc: "Ad-hoc", scheduled: "Scheduled", empty: "Empty" };
+
   if (day.completed) {
-    return "Completed";
+    return copy.completed;
   }
 
   if (day.isAdHoc) {
-    return "Ad-hoc";
+    return copy.adhoc;
   }
 
   if (day.hasActivity) {
-    return "Scheduled";
+    return copy.scheduled;
   }
 
-  return "Empty";
+  return copy.empty;
 }
 
 function CalendarActionSheet({
   mode,
+  locale,
   dateKey,
   onClose,
   onConfirm,
@@ -56,6 +64,7 @@ function CalendarActionSheet({
   saving
 }: {
   mode: "add" | "move";
+  locale: string;
   dateKey: string;
   onClose: () => void;
   onConfirm: () => void;
@@ -66,8 +75,15 @@ function CalendarActionSheet({
   setTargetDate: (value: string) => void;
   saving: boolean;
 }) {
-  const title = mode === "add" ? "Add Workout" : "Move Workout";
-  const subtitle = mode === "add" ? "Choose an existing workout for this day." : "Pick a new date for the current workout.";
+  const copy = {
+    en: { addTitle: "Add workout", moveTitle: "Move workout", addSubtitle: "Choose an existing workout for this day.", moveSubtitle: "Pick a new date for the current workout.", date: "Date", currentTarget: "Current target:", chooseWorkout: "Choose workout", cancel: "Cancel", saving: "Saving...", save: "Save workout", move: "Move workout" },
+    es: { addTitle: "Añadir entrenamiento", moveTitle: "Mover entrenamiento", addSubtitle: "Elige un entrenamiento existente para este día.", moveSubtitle: "Elige una nueva fecha para el entrenamiento actual.", date: "Fecha", currentTarget: "Objetivo actual:", chooseWorkout: "Elegir entrenamiento", cancel: "Cancelar", saving: "Guardando...", save: "Guardar entrenamiento", move: "Mover entrenamiento" },
+    ca: { addTitle: "Afegeix entrenament", moveTitle: "Mou entrenament", addSubtitle: "Tria un entrenament existent per a aquest dia.", moveSubtitle: "Tria una nova data per a l'entrenament actual.", date: "Data", currentTarget: "Objectiu actual:", chooseWorkout: "Tria entrenament", cancel: "Cancel·la", saving: "Desant...", save: "Desa entrenament", move: "Mou entrenament" },
+    de: { addTitle: "Training hinzufügen", moveTitle: "Training verschieben", addSubtitle: "Wähle ein vorhandenes Training für diesen Tag.", moveSubtitle: "Wähle ein neues Datum für das aktuelle Training.", date: "Datum", currentTarget: "Aktuelles Ziel:", chooseWorkout: "Training wählen", cancel: "Abbrechen", saving: "Speichern...", save: "Training speichern", move: "Training verschieben" }
+  }[locale as "en" | "es" | "ca" | "de"] ?? { addTitle: "Add workout", moveTitle: "Move workout", addSubtitle: "Choose an existing workout for this day.", moveSubtitle: "Pick a new date for the current workout.", date: "Date", currentTarget: "Current target:", chooseWorkout: "Choose workout", cancel: "Cancel", saving: "Saving...", save: "Save workout", move: "Move workout" };
+
+  const title = mode === "add" ? copy.addTitle : copy.moveTitle;
+  const subtitle = mode === "add" ? copy.addSubtitle : copy.moveSubtitle;
 
   return (
     <div className="app-menu" role="presentation">
@@ -92,16 +108,16 @@ function CalendarActionSheet({
         </div>
 
         <div className="app-menu__section">
-          <div className="eyebrow">Date</div>
+          <div className="eyebrow">{copy.date}</div>
           <input className="input-field" type="date" value={targetDate} onChange={(event) => setTargetDate(event.target.value)} min="2026-01-01" />
           <div className="caption" style={{ marginTop: 8 }}>
-            Current target: {dateKey}
+            {copy.currentTarget} {dateKey}
           </div>
         </div>
 
         {mode === "add" ? (
           <div className="app-menu__section">
-            <div className="eyebrow">Choose workout</div>
+            <div className="eyebrow">{copy.chooseWorkout}</div>
             <div className="stack" style={{ marginTop: 12 }}>
               {templates.map((template) => (
                 <button
@@ -128,10 +144,10 @@ function CalendarActionSheet({
 
         <div className="app-menu__footer">
           <button className="button-secondary focus-ring" type="button" onClick={onClose}>
-            Cancel
+            {copy.cancel}
           </button>
           <button className="button-primary focus-ring" type="button" onClick={onConfirm} disabled={saving || (mode === "add" && !selectedTemplateId)}>
-            {saving ? "Saving..." : mode === "add" ? "Save workout" : "Move workout"}
+            {saving ? copy.saving : mode === "add" ? copy.save : copy.move}
           </button>
         </div>
       </aside>
@@ -238,7 +254,7 @@ function CalendarContent({ todayKey }: { todayKey: string }) {
               </h1>
               <IconButton icon="chevron_right" label={t("calendar.nextMonth")} onClick={() => updateCalendarQuery(addMonths(viewMonthKey, 1), summaryDateKey)} />
               <button className="button-secondary focus-ring" type="button" onClick={openToday} style={{ minHeight: 36, padding: "0 12px", whiteSpace: "nowrap" }}>
-                Today
+                {t("common.today")}
               </button>
             </div>
 
@@ -258,7 +274,7 @@ function CalendarContent({ todayKey }: { todayKey: string }) {
                   key={dayCell.key}
                   href={`/day/${dayCell.key}`}
                   className={`day-cell focus-ring ${dayCell.isSelected ? "selected" : ""} ${dayCell.isDimmed ? "dimmed" : ""}`.trim()}
-                  aria-label={`${dayCell.label} ${dayCell.day} ${dayMarkerLabel(dayCell)}`}
+                  aria-label={`${dayCell.label} ${dayCell.day} ${dayMarkerLabel(locale, dayCell)}`}
                 >
                   <span className="body-md" style={{ color: dayCell.isToday ? "var(--text-primary)" : "inherit" }}>
                     {dayCell.day}
@@ -338,11 +354,11 @@ function CalendarContent({ todayKey }: { todayKey: string }) {
 
               <div className="row" style={{ gap: 8, marginTop: 16, flexWrap: "wrap" }}>
                 <button className="button-secondary focus-ring" type="button" onClick={openAddSheet}>
-                  Add workout
+                  {locale === "es" ? "Añadir entrenamiento" : locale === "ca" ? "Afegeix entrenament" : locale === "de" ? "Training hinzufügen" : "Add workout"}
                 </button>
                 {!day.isRestDay ? (
                   <button className="button-secondary focus-ring" type="button" onClick={openMoveSheet}>
-                    Move workout
+                    {locale === "es" ? "Mover entrenamiento" : locale === "ca" ? "Mou entrenament" : locale === "de" ? "Training verschieben" : "Move workout"}
                   </button>
                 ) : null}
               </div>
@@ -356,8 +372,9 @@ function CalendarContent({ todayKey }: { todayKey: string }) {
       </Screen>
 
       {sheetMode ? (
-        <CalendarActionSheet
+          <CalendarActionSheet
           mode={sheetMode}
+          locale={locale}
           dateKey={summaryDateKey}
           onClose={() => setSheetMode(null)}
           onConfirm={confirmSheet}

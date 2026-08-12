@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useLocale } from "@/components/locale-provider";
 import {
   buildMeasurementHistory,
   computeMeasurementDifference,
@@ -145,6 +146,7 @@ function updateCheckpointPhoto(
 
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const auth = useAuthStore();
+  const { locale } = useLocale();
   const authRef = useRef(auth);
   const [state, setState] = useState<ProgressState>(() => createProgressDemoState());
 
@@ -534,7 +536,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       savePhaseReview,
       resetProgressDemo
     };
-  }, [state]);
+  }, [state, locale]);
 
   return <ProgressStoreContext.Provider value={value}>{children}</ProgressStoreContext.Provider>;
 }

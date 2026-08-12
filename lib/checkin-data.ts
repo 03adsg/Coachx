@@ -155,6 +155,141 @@ export const weeklyCheckinQuestions: WeeklyCheckinQuestionDefinition[] = [
   }
 ];
 
+const checkinQuestionCopy: Record<Locale, Record<string, Pick<WeeklyCheckinQuestionDefinition, "title" | "prompt" | "helperText"> & { scale?: { minimumLabel: string; maximumLabel: string } }>> = {
+  en: {
+    training_adherence: {
+      title: "Training adherence",
+      prompt: "How consistently did you follow the planned training this week?",
+      helperText: "Use the full scale. Low does not mean failure; it just helps the review stay honest.",
+      scale: { minimumLabel: "Not at all", maximumLabel: "Fully" }
+    },
+    nutrition_adherence: {
+      title: "Nutrition adherence",
+      prompt: "How closely did you follow the nutrition plan this week?",
+      helperText: "Choose the level that best reflects the whole week, not one day.",
+      scale: { minimumLabel: "Off track", maximumLabel: "Very consistent" }
+    },
+    energy: {
+      title: "Energy",
+      prompt: "How was your energy across the week?",
+      helperText: "Higher is better here.",
+      scale: { minimumLabel: "Very low", maximumLabel: "Very high" }
+    },
+    sleep: {
+      title: "Sleep",
+      prompt: "How was your sleep quality this week?",
+      helperText: "Think about consistency and recovery, not one isolated night.",
+      scale: { minimumLabel: "Poor", maximumLabel: "Excellent" }
+    },
+    stress: {
+      title: "Stress",
+      prompt: "How manageable was your stress this week?",
+      helperText: "Higher means stress felt easier to manage.",
+      scale: { minimumLabel: "Hard to manage", maximumLabel: "Very manageable" }
+    },
+    recovery: {
+      title: "Recovery",
+      prompt: "How well did you recover between sessions?",
+      helperText: "Consider soreness, readiness, and how you felt on training days.",
+      scale: { minimumLabel: "Poor", maximumLabel: "Great" }
+    },
+    pain_discomfort: {
+      title: "Pain or discomfort",
+      prompt: "Did anything feel painful or concerning while training or recovering?",
+      helperText: "If something felt off, flag it. The review stays calm and private."
+    },
+    weekly_notes: {
+      title: "Weekly notes",
+      prompt: "Anything else you want AthlexForce to know?",
+      helperText: "Short notes are fine. This is the place for context."
+    }
+  },
+  es: {
+    training_adherence: { title: "Adherencia al entrenamiento", prompt: "¿Qué tan bien seguiste el entrenamiento planificado esta semana?", helperText: "Usa toda la escala. Bajo no significa fracaso; solo ayuda a una revisión honesta.", scale: { minimumLabel: "Nada", maximumLabel: "Totalmente" } },
+    nutrition_adherence: { title: "Adherencia a la nutrición", prompt: "¿Qué tan bien seguiste el plan de nutrición esta semana?", helperText: "Elige el nivel que mejor represente toda la semana, no solo un día.", scale: { minimumLabel: "Desviado", maximumLabel: "Muy constante" } },
+    energy: { title: "Energía", prompt: "¿Cómo estuvo tu energía durante la semana?", helperText: "Más alto es mejor.", scale: { minimumLabel: "Muy baja", maximumLabel: "Muy alta" } },
+    sleep: { title: "Sueño", prompt: "¿Cómo fue la calidad de tu sueño esta semana?", helperText: "Piensa en la constancia y la recuperación, no en una sola noche.", scale: { minimumLabel: "Mala", maximumLabel: "Excelente" } },
+    stress: { title: "Estrés", prompt: "¿Qué tan manejable fue tu estrés esta semana?", helperText: "Más alto significa que el estrés fue más fácil de manejar.", scale: { minimumLabel: "Difícil", maximumLabel: "Muy manejable" } },
+    recovery: { title: "Recuperación", prompt: "¿Qué tan bien te recuperaste entre sesiones?", helperText: "Considera dolor muscular, frescura y cómo te sentiste al entrenar.", scale: { minimumLabel: "Mala", maximumLabel: "Buena" } },
+    pain_discomfort: { title: "Dolor o molestia", prompt: "¿Notaste algo doloroso o preocupante al entrenar o recuperarte?", helperText: "Si algo no iba bien, márcalo. La revisión sigue siendo calmada y privada." },
+    weekly_notes: { title: "Notas semanales", prompt: "¿Algo más que AthlexForce deba saber?", helperText: "Bastan notas cortas. Aquí va el contexto." }
+  },
+  ca: {
+    training_adherence: { title: "Adherència a l'entrenament", prompt: "Fins a quin punt vas seguir el pla d'entrenament aquesta setmana?", helperText: "Fes servir tota l'escala. Baix no vol dir fracàs; només ajuda a una revisió honesta.", scale: { minimumLabel: "Gens", maximumLabel: "Totalment" } },
+    nutrition_adherence: { title: "Adherència a la nutrició", prompt: "Fins a quin punt vas seguir el pla de nutrició aquesta setmana?", helperText: "Tria el nivell que millor representi tota la setmana, no només un dia.", scale: { minimumLabel: "Desviat", maximumLabel: "Molt constant" } },
+    energy: { title: "Energia", prompt: "Com ha estat la teva energia durant la setmana?", helperText: "Més alt és millor.", scale: { minimumLabel: "Molt baixa", maximumLabel: "Molt alta" } },
+    sleep: { title: "Son", prompt: "Com ha estat la qualitat del teu son aquesta setmana?", helperText: "Pensa en la constància i la recuperació, no en una sola nit.", scale: { minimumLabel: "Dolent", maximumLabel: "Excel·lent" } },
+    stress: { title: "Estrès", prompt: "Com de manejable ha estat l'estrès aquesta setmana?", helperText: "Més alt vol dir que l'estrès ha estat més fàcil de gestionar.", scale: { minimumLabel: "Difícil", maximumLabel: "Molt manejable" } },
+    recovery: { title: "Recuperació", prompt: "Com t'has recuperat entre sessions?", helperText: "Tingues en compte el dolor muscular, la disposició i com t'has sentit en entrenar.", scale: { minimumLabel: "Dolenta", maximumLabel: "Bona" } },
+    pain_discomfort: { title: "Dolor o molèstia", prompt: "Has notat alguna cosa dolorosa o preocupant entrenant o recuperant-te?", helperText: "Si alguna cosa no anava bé, marca-ho. La revisió continua sent tranquil·la i privada." },
+    weekly_notes: { title: "Notes setmanals", prompt: "Hi ha res més que AthlexForce hagi de saber?", helperText: "N'hi ha prou amb notes curtes. Aquí va el context." }
+  },
+  de: {
+    training_adherence: { title: "Trainingsadhärenz", prompt: "Wie konsequent bist du diese Woche dem Trainingsplan gefolgt?", helperText: "Nutze die ganze Skala. Niedrig bedeutet nicht Versagen; es hilft nur einer ehrlichen Bewertung.", scale: { minimumLabel: "Gar nicht", maximumLabel: "Vollständig" } },
+    nutrition_adherence: { title: "Ernährungsadhärenz", prompt: "Wie genau bist du diese Woche dem Ernährungsplan gefolgt?", helperText: "Wähle den Wert, der die ganze Woche am besten beschreibt, nicht nur einen Tag.", scale: { minimumLabel: "Abweichend", maximumLabel: "Sehr konstant" } },
+    energy: { title: "Energie", prompt: "Wie war deine Energie über die Woche?", helperText: "Höher ist besser.", scale: { minimumLabel: "Sehr niedrig", maximumLabel: "Sehr hoch" } },
+    sleep: { title: "Schlaf", prompt: "Wie war deine Schlafqualität diese Woche?", helperText: "Denke an Konstanz und Erholung, nicht an eine einzelne Nacht.", scale: { minimumLabel: "Schlecht", maximumLabel: "Exzellent" } },
+    stress: { title: "Stress", prompt: "Wie gut war dein Stress diese Woche zu bewältigen?", helperText: "Höher heißt, der Stress war leichter zu handhaben.", scale: { minimumLabel: "Schwer", maximumLabel: "Sehr gut bewältigbar" } },
+    recovery: { title: "Erholung", prompt: "Wie gut hast du dich zwischen den Sessions erholt?", helperText: "Berücksichtige Muskelkater, Bereitschaft und dein Gefühl an Trainingstagen.", scale: { minimumLabel: "Schlecht", maximumLabel: "Gut" } },
+    pain_discomfort: { title: "Schmerz oder Unwohlsein", prompt: "Gab es etwas Schmerzhaftes oder Besorgniserregendes beim Training oder in der Erholung?", helperText: "Wenn sich etwas nicht gut angefühlt hat, markiere es. Die Bewertung bleibt ruhig und privat." },
+    weekly_notes: { title: "Wöchentliche Notizen", prompt: "Gibt es noch etwas, das AthlexForce wissen sollte?", helperText: "Kurze Notizen reichen. Hier gehört der Kontext hin." }
+  }
+};
+
+export function getWeeklyCheckinQuestions(locale: Locale = getCurrentLocale()) {
+  const copy = checkinQuestionCopy[locale] ?? checkinQuestionCopy.en;
+  return weeklyCheckinQuestions.map((question) => {
+    const localized = copy[question.key];
+    return {
+      ...question,
+      ...(localized
+        ? {
+            title: localized.title,
+            prompt: localized.prompt,
+            helperText: localized.helperText,
+            scale: localized.scale
+              ? {
+                  minimum: question.scale?.minimum ?? 1,
+                  maximum: question.scale?.maximum ?? 5,
+                  minimumLabel: localized.scale.minimumLabel,
+                  maximumLabel: localized.scale.maximumLabel
+                }
+              : question.scale,
+            options: question.options?.map((option) => ({
+              ...option,
+              label:
+                locale === "es"
+                  ? option.id === "none"
+                    ? "Ninguno"
+                    : option.id === "mild"
+                      ? "Leve"
+                      : option.id === "moderate"
+                        ? "Moderado"
+                        : "Alto"
+                  : locale === "ca"
+                    ? option.id === "none"
+                      ? "Cap"
+                      : option.id === "mild"
+                        ? "Lleu"
+                        : option.id === "moderate"
+                          ? "Moderat"
+                          : "Alt"
+                    : locale === "de"
+                      ? option.id === "none"
+                        ? "Keins"
+                        : option.id === "mild"
+                          ? "Leicht"
+                          : option.id === "moderate"
+                            ? "Mittel"
+                            : "Hoch"
+                      : option.label
+            }))
+          }
+        : question)
+    };
+  });
+}
+
 function addDays(date: Date, days: number) {
   const next = new Date(date);
   next.setUTCDate(next.getUTCDate() + days);
@@ -312,3 +447,4 @@ export function computeSignalFromScoredQuestions(scores: {
     lowStressControlFlag: scoreToSignal(scores.stress)
   } satisfies WeeklyCheckinSummarySignal;
 }
+import { getCurrentLocale, type Locale } from "@/lib/i18n";

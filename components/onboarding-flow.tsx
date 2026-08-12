@@ -366,15 +366,18 @@ export function EntryScreen() {
                     <SecondaryButton
                       className="focus-ring"
                       type="button"
-                      style={{ minWidth: 92 }}
+                      style={{ minWidth: 44, paddingInline: 0 }}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                       onClick={() => setShowPassword((current) => !current)}
                     >
-                      {showPassword ? "Hide" : "Show"}
+                      <span className="icon" aria-hidden="true">
+                        {showPassword ? "visibility_off" : "visibility"}
+                      </span>
                     </SecondaryButton>
                   </div>
                 </label>
 
-                <label className="row" style={{ alignItems: "center", gap: 10 }}>
+                <label className="row focus-ring" style={{ alignItems: "center", gap: 10, cursor: "pointer" }}>
                   <input
                     type="checkbox"
                     checked={auth.rememberSession}

@@ -1,3 +1,4 @@
+import { getCurrentLocale, type Locale } from "@/lib/i18n";
 import {
   createOnboardingDemoState,
   type AthleteProfile,
@@ -98,16 +99,75 @@ export interface ProfileSettingsState {
   lastSavedLabel: string;
 }
 
-export const profileSectionOrder: Array<{ id: ProfileEditSection; label: string; route: string; summary: string }> = [
-  { id: "personal", label: "Personal Details", route: "/profile/preferences/personal", summary: "Name, height, weight, units, timezone" },
-  { id: "language", label: "Language", route: "/profile/preferences/language", summary: "App language across sign-in and your saved profile" },
-  { id: "goals", label: "Goals & Priorities", route: "/profile/preferences/goals", summary: "Goal and ordered priorities" },
-  { id: "training", label: "Training Preferences", route: "/profile/preferences/training", summary: "Days, duration, equipment, style" },
-  { id: "schedule", label: "Schedule & Lifestyle", route: "/profile/preferences/schedule", summary: "Work, sleep, energy, reminders" },
-  { id: "nutrition", label: "Nutrition Preferences", route: "/profile/preferences/nutrition", summary: "Meal routine, restrictions, preferences" },
-  { id: "health", label: "Health & Limitations", route: "/profile/preferences/health", summary: "Pain, injuries, movement limits" },
-  { id: "notifications", label: "Notifications & Reminders", route: "/profile/notifications", summary: "Workout, progress and coaching reminders" }
-];
+const sectionOrderCopy: Record<Locale, Array<{ id: ProfileEditSection; label: string; summary: string }>> = {
+  en: [
+    { id: "personal", label: "Personal Details", summary: "Name, height, weight, units, timezone" },
+    { id: "language", label: "Language", summary: "App language across sign-in and your saved profile" },
+    { id: "goals", label: "Goals & Priorities", summary: "Goal and ordered priorities" },
+    { id: "training", label: "Training Preferences", summary: "Days, duration, equipment, style" },
+    { id: "schedule", label: "Schedule & Lifestyle", summary: "Work, sleep, energy, reminders" },
+    { id: "nutrition", label: "Nutrition Preferences", summary: "Meal routine, restrictions, preferences" },
+    { id: "health", label: "Health & Limitations", summary: "Pain, injuries, movement limits" },
+    { id: "notifications", label: "Notifications & Reminders", summary: "Workout, progress and coaching reminders" }
+  ],
+  es: [
+    { id: "personal", label: "Datos personales", summary: "Nombre, altura, peso, unidades y zona horaria" },
+    { id: "language", label: "Idioma", summary: "Idioma de la app al iniciar sesión y en tu perfil guardado" },
+    { id: "goals", label: "Objetivos y prioridades", summary: "Objetivo y prioridades ordenadas" },
+    { id: "training", label: "Preferencias de entrenamiento", summary: "Días, duración, equipo y estilo" },
+    { id: "schedule", label: "Horario y estilo de vida", summary: "Trabajo, sueño, energía y recordatorios" },
+    { id: "nutrition", label: "Preferencias de nutrición", summary: "Rutina, restricciones y preferencias" },
+    { id: "health", label: "Salud y limitaciones", summary: "Dolor, lesiones y límites de movimiento" },
+    { id: "notifications", label: "Notificaciones y recordatorios", summary: "Recordatorios de entrenamiento, progreso y coaching" }
+  ],
+  ca: [
+    { id: "personal", label: "Dades personals", summary: "Nom, alçada, pes, unitats i zona horària" },
+    { id: "language", label: "Idioma", summary: "Idioma de l'app en iniciar sessió i al perfil desat" },
+    { id: "goals", label: "Objectius i prioritats", summary: "Objectiu i prioritats ordenades" },
+    { id: "training", label: "Preferències d'entrenament", summary: "Dies, durada, equip i estil" },
+    { id: "schedule", label: "Horari i estil de vida", summary: "Feina, son, energia i recordatoris" },
+    { id: "nutrition", label: "Preferències de nutrició", summary: "Rutina, restriccions i preferències" },
+    { id: "health", label: "Salut i limitacions", summary: "Dolor, lesions i límits de moviment" },
+    { id: "notifications", label: "Notificacions i recordatoris", summary: "Recordatoris d'entrenament, progrés i coaching" }
+  ],
+  de: [
+    { id: "personal", label: "Persönliche Daten", summary: "Name, Größe, Gewicht, Einheiten und Zeitzone" },
+    { id: "language", label: "Sprache", summary: "App-Sprache beim Login und im gespeicherten Profil" },
+    { id: "goals", label: "Ziele & Prioritäten", summary: "Ziel und geordnete Prioritäten" },
+    { id: "training", label: "Trainingspräferenzen", summary: "Tage, Dauer, Equipment und Stil" },
+    { id: "schedule", label: "Zeitplan & Lebensstil", summary: "Arbeit, Schlaf, Energie und Erinnerungen" },
+    { id: "nutrition", label: "Ernährungspräferenzen", summary: "Routine, Restriktionen und Vorlieben" },
+    { id: "health", label: "Gesundheit & Einschränkungen", summary: "Schmerz, Verletzungen und Bewegungsgrenzen" },
+    { id: "notifications", label: "Benachrichtigungen & Erinnerungen", summary: "Erinnerungen zu Training, Fortschritt und Coaching" }
+  ]
+};
+
+export function getProfileSectionOrder(locale: Locale = getCurrentLocale()) {
+  const copy = sectionOrderCopy[locale] ?? sectionOrderCopy.en;
+  return copy.map((section) => ({
+    id: section.id,
+    label: section.label,
+    route:
+      section.id === "personal"
+        ? "/profile/preferences/personal"
+        : section.id === "language"
+          ? "/profile/preferences/language"
+          : section.id === "goals"
+            ? "/profile/preferences/goals"
+            : section.id === "training"
+              ? "/profile/preferences/training"
+              : section.id === "schedule"
+                ? "/profile/preferences/schedule"
+                : section.id === "nutrition"
+                  ? "/profile/preferences/nutrition"
+                  : section.id === "health"
+                    ? "/profile/preferences/health"
+                    : "/profile/notifications",
+    summary: section.summary
+  }));
+}
+
+export const profileSectionOrder = getProfileSectionOrder("en");
 
 export const profileStorageKey = "coachx-profile-settings-v1";
 
@@ -395,7 +455,62 @@ export function createProfileSnapshot(): ProfileSnapshot {
   };
 }
 
-export function createNotificationSettings(): NotificationSettings {
+const notificationCopy: Record<Locale, Array<{ id: NotificationCategoryId; label: string; description: string; enabled: boolean }>> = {
+  en: [
+    { id: "workout-reminders", label: "Workout reminders", description: "Session reminders before training starts.", enabled: true },
+    { id: "program-updates", label: "Program updates", description: "Changes to the current plan or schedule.", enabled: true },
+    { id: "weekly-check-in", label: "Weekly check-in", description: "Sunday review and quick progress prompt.", enabled: true },
+    { id: "measurements", label: "Measurements", description: "Reminders for baseline and follow-up measurements.", enabled: true },
+    { id: "progress-photos", label: "Progress photos", description: "Front, side, and back check-in reminders.", enabled: true },
+    { id: "phase-reviews", label: "Phase reviews", description: "Weekly or phase-end review prompts.", enabled: true },
+    { id: "nutrition-reminders", label: "Nutrition reminders", description: "Optional meal and hydration nudges.", enabled: false },
+    { id: "hydration", label: "Hydration", description: "Light hydration reminders during the day.", enabled: true },
+    { id: "supplements", label: "Supplements", description: "Creatine or protein timing reminders.", enabled: false },
+    { id: "sleep-routine", label: "Sleep routine", description: "Wind-down reminders before bedtime.", enabled: false },
+    { id: "adaptive-alerts", label: "Adaptive AthlexForce alerts", description: "A concise heads-up when the plan needs attention.", enabled: true }
+  ],
+  es: [
+    { id: "workout-reminders", label: "Recordatorios de entrenamiento", description: "Avisos antes de entrenar.", enabled: true },
+    { id: "program-updates", label: "Actualizaciones del programa", description: "Cambios del plan o horario.", enabled: true },
+    { id: "weekly-check-in", label: "Check-in semanal", description: "Revisión del domingo y progreso.", enabled: true },
+    { id: "measurements", label: "Mediciones", description: "Recordatorios para medidas de control.", enabled: true },
+    { id: "progress-photos", label: "Fotos de progreso", description: "Recordatorios de fotos frontal, lateral y trasera.", enabled: true },
+    { id: "phase-reviews", label: "Revisiones de fase", description: "Avisos de revisión semanal o de fase.", enabled: true },
+    { id: "nutrition-reminders", label: "Recordatorios de nutrición", description: "Avisos suaves de comidas e hidratación.", enabled: false },
+    { id: "hydration", label: "Hidratación", description: "Recordatorios ligeros de agua durante el día.", enabled: true },
+    { id: "supplements", label: "Suplementos", description: "Avisos de creatina o proteína.", enabled: false },
+    { id: "sleep-routine", label: "Rutina de sueño", description: "Recordatorios de cierre antes de dormir.", enabled: false },
+    { id: "adaptive-alerts", label: "Alertas adaptativas AthlexForce", description: "Aviso breve si el plan necesita atención.", enabled: true }
+  ],
+  ca: [
+    { id: "workout-reminders", label: "Recordatoris d'entrenament", description: "Avisos abans d'entrenar.", enabled: true },
+    { id: "program-updates", label: "Actualitzacions del programa", description: "Canvis del pla o horari.", enabled: true },
+    { id: "weekly-check-in", label: "Check-in setmanal", description: "Revisió del diumenge i progrés.", enabled: true },
+    { id: "measurements", label: "Mesures", description: "Recordatoris per a les mesures de control.", enabled: true },
+    { id: "progress-photos", label: "Fotos de progrés", description: "Recordatoris de fotos frontal, lateral i posterior.", enabled: true },
+    { id: "phase-reviews", label: "Revisions de fase", description: "Avisos de revisió setmanal o de fase.", enabled: true },
+    { id: "nutrition-reminders", label: "Recordatoris de nutrició", description: "Avisos suaus de menjars i hidratació.", enabled: false },
+    { id: "hydration", label: "Hidratació", description: "Recordatoris lleugers d'aigua durant el dia.", enabled: true },
+    { id: "supplements", label: "Suplements", description: "Avisos de creatina o proteïna.", enabled: false },
+    { id: "sleep-routine", label: "Rutina de son", description: "Recordatoris de tancament abans de dormir.", enabled: false },
+    { id: "adaptive-alerts", label: "Alertes adaptatives AthlexForce", description: "Avís breu si el pla necessita atenció.", enabled: true }
+  ],
+  de: [
+    { id: "workout-reminders", label: "Trainingserinnerungen", description: "Hinweise vor dem Training.", enabled: true },
+    { id: "program-updates", label: "Programm-Updates", description: "Änderungen am Plan oder Zeitplan.", enabled: true },
+    { id: "weekly-check-in", label: "Wöchentlicher Check-in", description: "Sonntags-Review und Fortschritt.", enabled: true },
+    { id: "measurements", label: "Messungen", description: "Erinnerungen für Kontrollmessungen.", enabled: true },
+    { id: "progress-photos", label: "Fortschrittsfotos", description: "Erinnerungen für Front-, Seiten- und Rückenfotos.", enabled: true },
+    { id: "phase-reviews", label: "Phasen-Reviews", description: "Hinweise für Wochen- oder Phasen-Reviews.", enabled: true },
+    { id: "nutrition-reminders", label: "Ernährungserinnerungen", description: "Sanfte Hinweise auf Mahlzeiten und Hydration.", enabled: false },
+    { id: "hydration", label: "Hydration", description: "Leichte Wassererinnerungen im Tagesverlauf.", enabled: true },
+    { id: "supplements", label: "Supplements", description: "Hinweise für Kreatin oder Protein.", enabled: false },
+    { id: "sleep-routine", label: "Schlafroutine", description: "Runterfahr-Erinnerungen vor dem Schlafen.", enabled: false },
+    { id: "adaptive-alerts", label: "Adaptive AthlexForce-Alerts", description: "Kurzer Hinweis, wenn der Plan Aufmerksamkeit braucht.", enabled: true }
+  ]
+};
+
+export function createNotificationSettings(locale: Locale = getCurrentLocale()): NotificationSettings {
   return {
     masterEnabled: true,
     permission: "not-requested",
@@ -406,19 +521,7 @@ export function createNotificationSettings(): NotificationSettings {
       end: "07:00",
       timezone: "Device local"
     },
-    categories: [
-      { id: "workout-reminders", label: "Workout Reminders", description: "Session reminders before training starts.", enabled: true },
-      { id: "program-updates", label: "Program Updates", description: "Changes to the current plan or schedule.", enabled: true },
-      { id: "weekly-check-in", label: "Weekly Check-in", description: "Sunday review and quick progress prompt.", enabled: true },
-      { id: "measurements", label: "Measurements", description: "Reminders for baseline and follow-up measurements.", enabled: true },
-      { id: "progress-photos", label: "Progress Photos", description: "Front, side, and back check-in reminders.", enabled: true },
-      { id: "phase-reviews", label: "Phase Reviews", description: "Weekly or phase-end review prompts.", enabled: true },
-      { id: "nutrition-reminders", label: "Nutrition Reminders", description: "Optional meal and hydration nudges.", enabled: false },
-      { id: "hydration", label: "Hydration", description: "Light hydration reminders during the day.", enabled: true },
-      { id: "supplements", label: "Supplements", description: "Creatine or protein timing reminders.", enabled: false },
-      { id: "sleep-routine", label: "Sleep Routine", description: "Wind-down reminders before bedtime.", enabled: false },
-      { id: "adaptive-alerts", label: "Adaptive AthlexForce Alerts", description: "A concise heads-up when the plan needs attention.", enabled: true }
-    ]
+    categories: notificationCopy[locale] ?? notificationCopy.en
   };
 }
 

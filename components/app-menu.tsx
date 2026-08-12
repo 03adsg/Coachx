@@ -5,28 +5,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/components/auth-provider";
 import { RemoteAvatar } from "@/components/remote-avatar";
+import { useTranslator } from "@/components/locale-provider";
 import { useProfileSettingsStore } from "@/components/profile-settings-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-
-const primaryItems = [
-  { href: "/", label: "Today", icon: "today" },
-  { href: "/calendar", label: "Calendar", icon: "calendar_today" },
-  { href: "/nutrition", label: "Nutrition", icon: "restaurant" },
-  { href: "/progress", label: "Progress", icon: "insights" },
-  { href: "/program", label: "Program", icon: "view_agenda" }
-];
-
-const secondaryItems = [
-  { href: "/profile", label: "Profile", detail: "Identity and current plan" },
-  { href: "/profile/preferences", label: "Settings", detail: "Name, goals, training, nutrition" },
-  { href: "/profile/notifications", label: "Notifications", detail: "Reminders and quiet hours" },
-  { href: "/profile/security", label: "Account / Security", detail: "Sign-in and password" }
-];
 
 export function AppMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
   const auth = useAuthStore();
   const { saved } = useProfileSettingsStore();
+  const { t } = useTranslator();
   const [isCoach, setIsCoach] = useState(false);
   const sheetRef = useRef<HTMLDivElement | null>(null);
 
@@ -87,12 +74,27 @@ export function AppMenu({ open, onClose }: { open: boolean; onClose: () => void 
     () =>
       isCoach
         ? [
-            { href: "/coach", label: "Coach Panel", detail: "Athletes, reviews, and actions" },
-            { href: "/coach/profile", label: "Coach Profile", detail: "Coach identity and avatar" }
+            { href: "/coach", label: t("coach.dashboard"), detail: t("coach.quickLinks") },
+            { href: "/coach/profile", label: t("coach.profile"), detail: t("coach.profileDetail") }
           ]
         : [],
-    [isCoach]
+    [isCoach, t]
   );
+
+  const primaryItems = [
+    { href: "/", label: t("nav.today"), icon: "today" },
+    { href: "/calendar", label: t("nav.calendar"), icon: "calendar_today" },
+    { href: "/nutrition", label: t("nav.nutrition"), icon: "restaurant" },
+    { href: "/progress", label: t("nav.progress"), icon: "insights" },
+    { href: "/program", label: t("common.program"), icon: "view_agenda" }
+  ];
+
+  const secondaryItems = [
+    { href: "/profile", label: t("common.profile"), detail: t("profile.hubDetail") },
+    { href: "/profile/preferences", label: t("common.settings"), detail: t("profile.settingsDetail") },
+    { href: "/profile/notifications", label: t("common.notifications"), detail: t("profile.notificationsDetail") },
+    { href: "/profile/security", label: t("profile.security"), detail: t("profile.securityDetail") }
+  ];
 
   if (!open) {
     return null;
@@ -114,23 +116,23 @@ export function AppMenu({ open, onClose }: { open: boolean; onClose: () => void 
                 </span>
               </button>
             </div>
-            <div className="app-menu__profile">
-              <RemoteAvatar name={saved.profile.name} avatarPath={saved.profile.avatarPath ?? null} size={48} className="profile-avatar" />
-              <div style={{ minWidth: 0 }}>
-                <div className="body-md" style={{ fontWeight: 700 }}>
-                  {saved.profile.name}
-                </div>
-                <div className="caption" style={{ marginTop: 4 }}>
-                  {auth.user?.email ?? "Signed in athlete"}
-                </div>
+          <div className="app-menu__profile">
+            <RemoteAvatar name={saved.profile.name} avatarPath={saved.profile.avatarPath ?? null} size={48} className="profile-avatar" />
+            <div style={{ minWidth: 0 }}>
+              <div className="body-md" style={{ fontWeight: 700 }}>
+                {saved.profile.name}
+              </div>
+              <div className="caption" style={{ marginTop: 4 }}>
+                  {auth.user?.email ?? t("auth.signedInAthlete")}
               </div>
             </div>
           </div>
         </div>
+      </div>
 
         <div className="app-menu__body">
           <div className="app-menu__section">
-            <div className="eyebrow">Primary</div>
+            <div className="eyebrow">{t("common.primary")}</div>
             <div className="app-menu__list">
               {primaryItems.map((item) => (
                 <Link key={item.href} className="app-menu__item focus-ring" href={item.href} onClick={onClose}>
@@ -144,7 +146,7 @@ export function AppMenu({ open, onClose }: { open: boolean; onClose: () => void 
           </div>
 
           <div className="app-menu__section">
-            <div className="eyebrow">Secondary</div>
+            <div className="eyebrow">{t("common.secondary")}</div>
             <div className="app-menu__list">
               {secondaryItems.map((item) => (
                 <Link key={item.href} className="app-menu__item app-menu__item--stack focus-ring" href={item.href} onClick={onClose}>
@@ -157,11 +159,11 @@ export function AppMenu({ open, onClose }: { open: boolean; onClose: () => void 
             </div>
           </div>
 
-          {coachItems.length > 0 ? (
-            <div className="app-menu__section">
-              <div className="eyebrow">Coach</div>
-              <div className="app-menu__list">
-                {coachItems.map((item) => (
+        {coachItems.length > 0 ? (
+          <div className="app-menu__section">
+            <div className="eyebrow">{t("coach.dashboardTitle")}</div>
+            <div className="app-menu__list">
+              {coachItems.map((item) => (
                   <Link key={item.href} className="app-menu__item app-menu__item--stack focus-ring" href={item.href} onClick={onClose}>
                     <span className="body-md" style={{ fontWeight: 700 }}>
                       {item.label}
@@ -184,7 +186,7 @@ export function AppMenu({ open, onClose }: { open: boolean; onClose: () => void 
               router.push("/entry");
             }}
           >
-            Sign out
+            {t("common.signOut")}
           </button>
         </div>
       </aside>

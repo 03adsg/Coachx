@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { gsap } from "gsap";
+import { useTranslator } from "@/components/locale-provider";
 import type { MealOption, MealSlot } from "@/lib/nutrition-data";
 import { useReducedMotion } from "@/motion/useReducedMotion";
 
@@ -13,6 +14,52 @@ interface NutritionMealSheetProps {
   onSelectOption: (optionId: string) => void;
   onConfirm: () => void;
   onClose: () => void;
+}
+
+function copyFor(locale: string) {
+  return (
+    {
+      en: {
+        chooseOption: "Choose option",
+        close: "Close meal chooser",
+        cancel: "Cancel",
+        confirm: "Confirm selection",
+        noSafeOptions: "No safe options available",
+        target: "target"
+      },
+      es: {
+        chooseOption: "Elegir opción",
+        close: "Cerrar selector",
+        cancel: "Cancelar",
+        confirm: "Confirmar selección",
+        noSafeOptions: "No hay opciones seguras",
+        target: "objetivo"
+      },
+      ca: {
+        chooseOption: "Tria opció",
+        close: "Tanca el selector",
+        cancel: "Cancel·la",
+        confirm: "Confirma la selecció",
+        noSafeOptions: "No hi ha opcions segures",
+        target: "objectiu"
+      },
+      de: {
+        chooseOption: "Option wählen",
+        close: "Auswahl schließen",
+        cancel: "Abbrechen",
+        confirm: "Auswahl bestätigen",
+        noSafeOptions: "Keine sicheren Optionen verfügbar",
+        target: "Ziel"
+      }
+    }[locale as "en" | "es" | "ca" | "de"] ?? {
+      chooseOption: "Choose option",
+      close: "Close meal chooser",
+      cancel: "Cancel",
+      confirm: "Confirm selection",
+      noSafeOptions: "No safe options available",
+      target: "target"
+    }
+  );
 }
 
 export function NutritionMealSheet({
@@ -26,6 +73,8 @@ export function NutritionMealSheet({
   const sheetRef = useRef<HTMLDivElement | null>(null);
   const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
   const reducedMotion = useReducedMotion();
+  const { locale } = useTranslator();
+  const copy = copyFor(locale);
 
   useEffect(() => {
     setPortalRoot(document.body);
@@ -39,11 +88,7 @@ export function NutritionMealSheet({
     }
 
     const context = gsap.context(() => {
-      gsap.fromTo(
-        sheet,
-        { autoAlpha: 0, y: 24 },
-        { autoAlpha: 1, y: 0, duration: 0.28, ease: "power2.out" }
-      );
+      gsap.fromTo(sheet, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.28, ease: "power2.out" });
     }, sheet);
 
     return () => context.revert();
@@ -80,16 +125,16 @@ export function NutritionMealSheet({
         <div className="nutrition-sheet__header">
           <div>
             <div className="eyebrow" style={{ marginBottom: 4 }}>
-              Choose option
+              {copy.chooseOption}
             </div>
             <h3 className="headline-md" id="nutrition-meal-sheet-title">
               {slot.label}
             </h3>
             <p className="caption" style={{ marginTop: 6 }}>
-              {slot.target.calories} kcal target · {slot.target.protein}P / {slot.target.carbs}C / {slot.target.fat}F
+              {slot.target.calories} kcal {copy.target} · {slot.target.protein}P / {slot.target.carbs}C / {slot.target.fat}F
             </p>
           </div>
-          <button aria-label="Close meal chooser" className="tap-target focus-ring nutrition-sheet__close" onClick={onClose} type="button">
+          <button aria-label={copy.close} className="tap-target focus-ring nutrition-sheet__close" onClick={onClose} type="button">
             <span className="icon" aria-hidden="true">
               close
             </span>
@@ -145,15 +190,10 @@ export function NutritionMealSheet({
 
         <div className="nutrition-sheet__footer">
           <button className="button-secondary focus-ring nutrition-sheet__secondary" onClick={onClose} type="button">
-            Cancel
+            {copy.cancel}
           </button>
-          <button
-            className="button-primary focus-ring nutrition-sheet__primary"
-            disabled={!selectedOption}
-            onClick={onConfirm}
-            type="button"
-          >
-            Confirm selection
+          <button className="button-primary focus-ring nutrition-sheet__primary" disabled={!selectedOption} onClick={onConfirm} type="button">
+            {copy.confirm}
           </button>
         </div>
       </div>

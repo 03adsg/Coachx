@@ -388,26 +388,50 @@ function buildMuscleFocus(templateExercises: WorkoutTemplateExercisesRow[]): Mus
 }
 
 function buildWorkoutBadge(templateCode: string) {
+  const locale = getCurrentLocale();
+  const copy = {
+    en: { workoutA: "Workout A", workoutB: "Workout B", workoutC: "Workout C", recovery: "Recovery", workout: "Workout" },
+    es: { workoutA: "Entrenamiento A", workoutB: "Entrenamiento B", workoutC: "Entrenamiento C", recovery: "Recuperación", workout: "Entrenamiento" },
+    ca: { workoutA: "Entrenament A", workoutB: "Entrenament B", workoutC: "Entrenament C", recovery: "Recuperació", workout: "Entrenament" },
+    de: { workoutA: "Training A", workoutB: "Training B", workoutC: "Training C", recovery: "Regeneration", workout: "Training" }
+  }[locale];
+
   switch (templateCode) {
     case "WORKOUT_A":
-      return "Workout A";
+      return copy.workoutA;
     case "UPPER_A":
-      return "Workout B";
+      return copy.workoutB;
     case "LOWER_B":
-      return "Workout C";
+      return copy.workoutC;
     case "RECOVERY":
-      return "Recovery";
+      return copy.recovery;
     default:
-      return "Workout";
+      return copy.workout;
   }
 }
 
 function buildWorkoutTitle(template: WorkoutTemplatesRow) {
-  return template.name;
+  const locale = getCurrentLocale();
+  const titles = {
+    en: { WORKOUT_A: "Glutes + Hamstrings", UPPER_A: "Upper Body Power", LOWER_B: "Glutes + Legs", RECOVERY: "Recovery" },
+    es: { WORKOUT_A: "Glúteos + isquios", UPPER_A: "Potencia de tren superior", LOWER_B: "Glúteos + piernas", RECOVERY: "Recuperación" },
+    ca: { WORKOUT_A: "Glutis + isquios", UPPER_A: "Potència de tren superior", LOWER_B: "Glutis + cames", RECOVERY: "Recuperació" },
+    de: { WORKOUT_A: "Glutes + Hamstrings", UPPER_A: "Oberkörper-Power", LOWER_B: "Glutes + Beine", RECOVERY: "Regeneration" }
+  }[locale];
+
+  return titles[template.code as keyof typeof titles] ?? template.name;
 }
 
 function buildWorkoutType(template: WorkoutTemplatesRow) {
-  return template.focus;
+  const locale = getCurrentLocale();
+  const focuses = {
+    en: { WORKOUT_A: "Posterior chain emphasis", UPPER_A: "Chest + back balance", LOWER_B: "Lower-body balance", RECOVERY: "Zone 2 + mobility" },
+    es: { WORKOUT_A: "Énfasis en cadena posterior", UPPER_A: "Equilibrio pecho + espalda", LOWER_B: "Equilibrio tren inferior", RECOVERY: "Zona 2 + movilidad" },
+    ca: { WORKOUT_A: "Èmfasi en la cadena posterior", UPPER_A: "Equilibri pit + esquena", LOWER_B: "Equilibri tren inferior", RECOVERY: "Zona 2 + mobilitat" },
+    de: { WORKOUT_A: "Fokus auf die hintere Muskelkette", UPPER_A: "Brust- und Rückenbalance", LOWER_B: "Balance im Unterkörper", RECOVERY: "Zone 2 + Mobilität" }
+  }[locale];
+
+  return focuses[template.code as keyof typeof focuses] ?? template.focus;
 }
 
 function buildVolumeLabel(templateCode: string) {
@@ -426,17 +450,49 @@ function buildVolumeLabel(templateCode: string) {
 }
 
 function buildInsight(templateCode: string) {
+  const locale = getCurrentLocale();
+  const copy = {
+    en: {
+      WORKOUT_A: "Keep the pelvis neutral on thrusts and hinge with control on every rep.",
+      UPPER_A: "Stay tall through the torso and keep the pull pattern smooth.",
+      LOWER_B: "Maintain stable foot pressure and own the top squeeze.",
+      RECOVERY: "Keep the recovery slot calm and repeatable.",
+      DEFAULT: "Follow the plan with controlled reps and clean execution."
+    },
+    es: {
+      WORKOUT_A: "Mantén la pelvis neutra en los thrusts y controla cada repetición.",
+      UPPER_A: "Mantén el torso estable y el gesto de tracción fluido.",
+      LOWER_B: "Conserva una presión estable en los pies y domina la contracción final.",
+      RECOVERY: "Mantén el bloque de recuperación calmado y repetible.",
+      DEFAULT: "Sigue el plan con repeticiones controladas y ejecución limpia."
+    },
+    ca: {
+      WORKOUT_A: "Mantén la pelvis neutra als thrusts i controla cada repetició.",
+      UPPER_A: "Mantén el tronc estable i la tracció fluida.",
+      LOWER_B: "Conserva una pressió estable als peus i domina la contracció final.",
+      RECOVERY: "Mantén el bloc de recuperació calm i repetible.",
+      DEFAULT: "Segueix el pla amb repeticions controlades i una execució neta."
+    },
+    de: {
+      WORKOUT_A: "Halte das Becken bei Thrusts neutral und arbeite jede Wiederholung kontrolliert.",
+      UPPER_A: "Bleib aufrecht und führe den Zug gleichmäßig aus.",
+      LOWER_B: "Halte stabilen Fußdruck und kontrolliere die Endkontraktion.",
+      RECOVERY: "Halte den Regenerationsslot ruhig und wiederholbar.",
+      DEFAULT: "Folge dem Plan mit kontrollierten Wiederholungen und sauberer Ausführung."
+    }
+  }[locale];
+
   switch (templateCode) {
     case "WORKOUT_A":
-      return "Keep the pelvis neutral on thrusts and hinge with control on every rep.";
+      return copy.WORKOUT_A;
     case "UPPER_A":
-      return "Stay tall through the torso and keep the pull pattern smooth.";
+      return copy.UPPER_A;
     case "LOWER_B":
-      return "Maintain stable foot pressure and own the top squeeze.";
+      return copy.LOWER_B;
     case "RECOVERY":
-      return "Keep the recovery slot calm and repeatable.";
+      return copy.RECOVERY;
     default:
-      return "Follow the plan with controlled reps and clean execution.";
+      return copy.DEFAULT;
   }
 }
 

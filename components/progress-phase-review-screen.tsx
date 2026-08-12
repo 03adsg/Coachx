@@ -12,18 +12,207 @@ import { ProgramChangeProposalPanel } from "@/components/program-change-proposal
 import type { AthleteFeedback } from "@/lib/progress-data";
 import { buildPhaseAchievementImmersion } from "@/lib/motivational-immersion";
 
+function copyFor(locale: string) {
+  return (
+    {
+      en: {
+        closeScreen: "Close screen",
+        phaseReview: "PHASE REVIEW",
+        comparePhotos: "COMPARE PHOTOS",
+        outcome: "OUTCOME",
+        startNow: "Start -> Now",
+        trainingAdherence: "TRAINING ADHERENCE",
+        visualProgress: "Visual Progress",
+        strengthGains: "Strength Gains",
+        insights: "ATHLEXFORCE INSIGHTS",
+        insightBody: "Your current training structure is working well. Recovery, especially sleep, is the clearest opportunity for improvement moving into Phase 2.",
+        whatWorked: "WHAT WORKED",
+        whatHeldBack: "WHAT HELD YOU BACK",
+        athleteFeedback: "ATHLETE FEEDBACK",
+        goalPriority: "GOAL / PRIORITY CONFIRMATION",
+        keepMainGoal: "KEEP MAIN GOAL",
+        adjustGoal: "ADJUST GOAL",
+        keepPriorities: "KEEP PRIORITIES",
+        edit: "EDIT",
+        recommendedNextPhase: "RECOMMENDED NEXT PHASE",
+        buildPhase2: "BUILD PHASE 2",
+        back: "BACK",
+        week1: "WEEK 1",
+        week8: "WEEK 8",
+        veryGood: "Very Good",
+        good: "Good",
+        mixed: "Mixed",
+        tooHard: "Too Hard",
+        tooEasy: "Too Easy",
+        notSure: "Not Sure",
+        phaseBase: "W1 Base",
+        phaseMid: "W4 Mid",
+        phaseNow: "W8 Now",
+        phaseOne: "Phase 1",
+        weekOneOfEight: "Week 1 of 8"
+      },
+      es: {
+        closeScreen: "Cerrar pantalla",
+        phaseReview: "REVISIÓN DE FASE",
+        comparePhotos: "COMPARAR FOTOS",
+        outcome: "RESULTADO",
+        startNow: "Inicio -> Ahora",
+        trainingAdherence: "ADHERENCIA AL ENTRENAMIENTO",
+        visualProgress: "Progreso visual",
+        strengthGains: "Mejoras de fuerza",
+        insights: "INSIGHTS DE ATHLEXFORCE",
+        insightBody: "Tu estructura de entrenamiento actual funciona bien. La recuperación, especialmente el sueño, es la oportunidad más clara de mejora de cara a la Fase 2.",
+        whatWorked: "QUÉ FUNCIONÓ",
+        whatHeldBack: "QUÉ TE FRENÓ",
+        athleteFeedback: "RETROALIMENTACIÓN DEL ATLETA",
+        goalPriority: "CONFIRMACIÓN DE OBJETIVO / PRIORIDAD",
+        keepMainGoal: "MANTENER OBJETIVO",
+        adjustGoal: "AJUSTAR OBJETIVO",
+        keepPriorities: "MANTENER PRIORIDADES",
+        edit: "EDITAR",
+        recommendedNextPhase: "SIGUIENTE FASE RECOMENDADA",
+        buildPhase2: "CONSTRUIR FASE 2",
+        back: "ATRÁS",
+        week1: "SEMANA 1",
+        week8: "SEMANA 8",
+        veryGood: "Muy bien",
+        good: "Bien",
+        mixed: "Mixto",
+        tooHard: "Demasiado duro",
+        tooEasy: "Demasiado fácil",
+        notSure: "No estoy seguro",
+        phaseBase: "S1 Base",
+        phaseMid: "S4 Media",
+        phaseNow: "S8 Ahora",
+        phaseOne: "Fase 1",
+        weekOneOfEight: "Semana 1 de 8"
+      },
+      ca: {
+        closeScreen: "Tanca la pantalla",
+        phaseReview: "REVISIÓ DE FASE",
+        comparePhotos: "COMPARA FOTOS",
+        outcome: "RESULTAT",
+        startNow: "Inici -> Ara",
+        trainingAdherence: "ADHERÈNCIA A L'ENTRENAMENT",
+        visualProgress: "Progrés visual",
+        strengthGains: "Guanys de força",
+        insights: "INSIGHTS D'ATHLEXFORCE",
+        insightBody: "La teva estructura d'entrenament actual està funcionant bé. La recuperació, especialment el son, és l'oportunitat més clara de millora per a la Fase 2.",
+        whatWorked: "QUÈ HA FUNCIONAT",
+        whatHeldBack: "QUÈ T'HA FRENET",
+        athleteFeedback: "RETROACCIÓ DE L'ATLETA",
+        goalPriority: "CONFIRMACIÓ D'OBJECTIU / PRIORITAT",
+        keepMainGoal: "MANTÉ L'OBJECTIU",
+        adjustGoal: "AJUSTA L'OBJECTIU",
+        keepPriorities: "MANTÉ PRIORITATS",
+        edit: "EDITA",
+        recommendedNextPhase: "SEGÜENT FASE RECOMANADA",
+        buildPhase2: "CONSTRUEIX FASE 2",
+        back: "ENRERE",
+        week1: "SETMANA 1",
+        week8: "SETMANA 8",
+        veryGood: "Molt bé",
+        good: "Bé",
+        mixed: "Mixt",
+        tooHard: "Massa dur",
+        tooEasy: "Massa fàcil",
+        notSure: "No ho sé",
+        phaseBase: "S1 Base",
+        phaseMid: "S4 Mitja",
+        phaseNow: "S8 Ara",
+        phaseOne: "Fase 1",
+        weekOneOfEight: "Setmana 1 de 8"
+      },
+      de: {
+        closeScreen: "Bildschirm schließen",
+        phaseReview: "PHASENRÜCKBLICK",
+        comparePhotos: "FOTOS VERGLEICHEN",
+        outcome: "ERGEBNIS",
+        startNow: "Start -> Jetzt",
+        trainingAdherence: "TRAININGSADHÄRENZ",
+        visualProgress: "Visueller Fortschritt",
+        strengthGains: "Kraftzuwächse",
+        insights: "ATHLEXFORCE EINBLICKE",
+        insightBody: "Deine aktuelle Trainingsstruktur funktioniert gut. Die Erholung, insbesondere der Schlaf, ist die klarste Chance zur Verbesserung für Phase 2.",
+        whatWorked: "WAS FUNKTIONIERT HAT",
+        whatHeldBack: "WAS DICH GEBREMST HAT",
+        athleteFeedback: "ATHLETENFEEDBACK",
+        goalPriority: "ZIEL- / PRIORITÄTSBESTÄTIGUNG",
+        keepMainGoal: "HAUPTZIEL BEIBEHALTEN",
+        adjustGoal: "ZIEL ANPASSEN",
+        keepPriorities: "PRIORITÄTEN BEIBEHALTEN",
+        edit: "BEARBEITEN",
+        recommendedNextPhase: "EMPFOHLENE NÄCHSTE PHASE",
+        buildPhase2: "PHASE 2 AUFBAUEN",
+        back: "ZURÜCK",
+        week1: "WOCHE 1",
+        week8: "WOCHE 8",
+        veryGood: "Sehr gut",
+        good: "Gut",
+        mixed: "Gemischt",
+        tooHard: "Zu hart",
+        tooEasy: "Zu leicht",
+        notSure: "Nicht sicher",
+        phaseBase: "W1 Basis",
+        phaseMid: "W4 Mitte",
+        phaseNow: "W8 Jetzt",
+        phaseOne: "Phase 1",
+        weekOneOfEight: "Woche 1 von 8"
+      }
+    }[locale as "en" | "es" | "ca" | "de"] ?? {
+      closeScreen: "Close screen",
+      phaseReview: "PHASE REVIEW",
+      comparePhotos: "COMPARE PHOTOS",
+      outcome: "OUTCOME",
+      startNow: "Start -> Now",
+      trainingAdherence: "TRAINING ADHERENCE",
+      visualProgress: "Visual Progress",
+      strengthGains: "Strength Gains",
+      insights: "ATHLEXFORCE INSIGHTS",
+      insightBody: "Your current training structure is working well. Recovery, especially sleep, is the clearest opportunity for improvement moving into Phase 2.",
+      whatWorked: "WHAT WORKED",
+      whatHeldBack: "WHAT HELD YOU BACK",
+      athleteFeedback: "ATHLETE FEEDBACK",
+      goalPriority: "GOAL / PRIORITY CONFIRMATION",
+      keepMainGoal: "KEEP MAIN GOAL",
+      adjustGoal: "ADJUST GOAL",
+      keepPriorities: "KEEP PRIORITIES",
+      edit: "EDIT",
+      recommendedNextPhase: "RECOMMENDED NEXT PHASE",
+      buildPhase2: "BUILD PHASE 2",
+      back: "BACK",
+      week1: "WEEK 1",
+      week8: "WEEK 8",
+      veryGood: "Very Good",
+      good: "Good",
+      mixed: "Mixed",
+      tooHard: "Too Hard",
+      tooEasy: "Too Easy",
+      notSure: "Not Sure",
+      phaseBase: "W1 Base",
+      phaseMid: "W4 Mid",
+      phaseNow: "W8 Now",
+      phaseOne: "Phase 1",
+      weekOneOfEight: "Week 1 of 8"
+    }
+  );
+}
+
 const feedbackOptions: AthleteFeedback[] = ["Very Good", "Good", "Mixed", "Too Hard", "Too Easy", "Not Sure"];
 
 function PhaseTopbar() {
+  const { locale } = useLocale();
+  const copy = copyFor(locale);
+
   return (
     <header className="progress-review-topbar">
-      <Link href="/progress" className="progress-review-topbar__button focus-ring" aria-label="Close screen">
+      <Link href="/progress" className="progress-review-topbar__button focus-ring" aria-label={copy.closeScreen}>
         <span className="icon" aria-hidden="true">
           close
         </span>
       </Link>
       <BrandLogo variant="mark" width={34} alt="AthlexForce" />
-      <span className="progress-review-topbar__label">PHASE REVIEW</span>
+      <span className="progress-review-topbar__label">{copy.phaseReview}</span>
     </header>
   );
 }
@@ -61,6 +250,7 @@ export function ProgressPhaseReviewScreen() {
   const { state, setAthleteFeedback, setGoalDecision, setPriorityDecision } = useProgressStore();
   const { activeProgram } = useProgramStore();
   const { locale } = useLocale();
+  const copy = copyFor(locale);
   const review = state.phaseReview;
   const baselineFront = state.photos.checkpoints[0]?.photos.front.image ?? "/progress-photo-front.svg";
   const currentFront = state.photos.checkpoints[1]?.photos.front.image ?? "/progress-photo-front.svg";
@@ -72,6 +262,15 @@ export function ProgressPhaseReviewScreen() {
     workoutSessionCount: 0
   });
 
+  const localizedFeedback = {
+    "Very Good": copy.veryGood,
+    Good: copy.good,
+    Mixed: copy.mixed,
+    "Too Hard": copy.tooHard,
+    "Too Easy": copy.tooEasy,
+    "Not Sure": copy.notSure
+  } as const;
+
   return (
     <Screen shellClassName="progress-flow-shell" topbar={<PhaseTopbar />}>
       <main className="content tight">
@@ -80,9 +279,9 @@ export function ProgressPhaseReviewScreen() {
             {review.label}
           </h1>
           <div className="progress-phase-timeline progress-phase-timeline--review">
-            <span>W1 Base</span>
-            <span>W4 Mid</span>
-            <span className="accent">W8 Now</span>
+            <span>{copy.phaseBase}</span>
+            <span>{copy.phaseMid}</span>
+            <span className="accent">{copy.phaseNow}</span>
           </div>
         </section>
 
@@ -91,7 +290,7 @@ export function ProgressPhaseReviewScreen() {
             immersion={phaseImmersion}
             action={
               <Link href="/progress/photos/compare" className="button-secondary focus-ring">
-                COMPARE PHOTOS
+                {copy.comparePhotos}
               </Link>
             }
           />
@@ -101,7 +300,7 @@ export function ProgressPhaseReviewScreen() {
           <Card className="progress-review-outcome p-16">
             <div className="row start">
               <div className="eyebrow" style={{ margin: 0 }}>
-                OUTCOME
+                {copy.outcome}
               </div>
               <span className="progress-chip progress-chip--accent">{review.outcome}</span>
             </div>
@@ -113,7 +312,7 @@ export function ProgressPhaseReviewScreen() {
 
         <section className="section">
           <h2 className="headline-md" style={{ marginBottom: 12 }}>
-            Start → Now
+            {copy.startNow}
           </h2>
           <div className="progress-review-grid">
             {review.startMeasurements.map((item) => (
@@ -131,7 +330,7 @@ export function ProgressPhaseReviewScreen() {
           <Card className="progress-review-adherence p-16" style={{ marginTop: 16 }}>
             <div className="row start" style={{ marginBottom: 10 }}>
               <div className="eyebrow" style={{ margin: 0 }}>
-                TRAINING ADHERENCE
+                {copy.trainingAdherence}
               </div>
               <div className="headline-md" style={{ color: "var(--accent-primary)" }}>
                 90%
@@ -145,20 +344,20 @@ export function ProgressPhaseReviewScreen() {
 
         <section className="section">
           <h2 className="headline-md" style={{ marginBottom: 12 }}>
-            Visual Progress
+            {copy.visualProgress}
           </h2>
           <div className="progress-review-photos">
-            <PhotoCompareCard accent image={baselineFront} label="WEEK 1" />
-            <PhotoCompareCard accent image={currentFront} label="WEEK 8" />
+            <PhotoCompareCard accent image={baselineFront} label={copy.week1} />
+            <PhotoCompareCard accent image={currentFront} label={copy.week8} />
           </div>
           <Link className="progress-mini-action progress-mini-action--block focus-ring" href="/progress/photos/compare" style={{ marginTop: 12 }}>
-            COMPARE PHOTOS
+            {copy.comparePhotos}
           </Link>
         </section>
 
         <section className="section">
           <h2 className="headline-md" style={{ marginBottom: 12 }}>
-            Strength Gains
+            {copy.strengthGains}
           </h2>
           <div className="stack">
             {[
@@ -196,11 +395,11 @@ export function ProgressPhaseReviewScreen() {
                 smart_toy
               </span>
               <h3 className="eyebrow" style={{ margin: 0, color: "var(--accent-primary)" }}>
-                ATHLEXFORCE INSIGHTS
+                {copy.insights}
               </h3>
             </div>
             <p className="body-md" style={{ fontStyle: "italic", lineHeight: 1.6 }}>
-              “Your current training structure is working well... Recovery, especially sleep, is the clearest opportunity for improvement moving into Phase 2.”
+              {copy.insightBody}
             </p>
           </Card>
         </section>
@@ -209,7 +408,7 @@ export function ProgressPhaseReviewScreen() {
           <div className="stack">
             <Card className="progress-review-list p-16">
               <div className="eyebrow" style={{ marginBottom: 8 }}>
-                WHAT WORKED
+                {copy.whatWorked}
               </div>
               <ul className="progress-dialog-list">
                 {review.whatWorked.map((item) => (
@@ -219,7 +418,7 @@ export function ProgressPhaseReviewScreen() {
             </Card>
             <Card className="progress-review-list p-16">
               <div className="eyebrow" style={{ marginBottom: 8 }}>
-                WHAT HELD YOU BACK
+                {copy.whatHeldBack}
               </div>
               <ul className="progress-dialog-list">
                 {review.whatHeldBack.map((item) => (
@@ -232,16 +431,12 @@ export function ProgressPhaseReviewScreen() {
 
         <section className="section">
           <div className="eyebrow" style={{ marginBottom: 10 }}>
-            ATHLETE FEEDBACK
+            {copy.athleteFeedback}
           </div>
           <div className="progress-choice-row">
             {feedbackOptions.map((feedback) => (
-              <ChoiceChip
-                key={feedback}
-                active={review.athleteFeedback[0].value === feedback}
-                onClick={() => setAthleteFeedback(feedback)}
-              >
-                {feedback}
+              <ChoiceChip key={feedback} active={review.athleteFeedback[0].value === feedback} onClick={() => setAthleteFeedback(feedback)}>
+                {localizedFeedback[feedback]}
               </ChoiceChip>
             ))}
           </div>
@@ -251,28 +446,28 @@ export function ProgressPhaseReviewScreen() {
           <div className="stack">
             <Card className="progress-review-list p-16">
               <div className="eyebrow" style={{ marginBottom: 10 }}>
-                GOAL / PRIORITY CONFIRMATION
+                {copy.goalPriority}
               </div>
               <div className="progress-choice-row">
                 <ChoiceChip active={review.mainGoalDecision.current === "KEEP"} onClick={() => setGoalDecision("KEEP")}>
-                  KEEP MAIN GOAL
+                  {copy.keepMainGoal}
                 </ChoiceChip>
                 <ChoiceChip active={review.mainGoalDecision.current === "ADJUST"} onClick={() => setGoalDecision("ADJUST")}>
-                  ADJUST GOAL
+                  {copy.adjustGoal}
                 </ChoiceChip>
               </div>
               <div className="progress-choice-row" style={{ marginTop: 10 }}>
                 <ChoiceChip active={review.priorityDecision.current === "KEEP"} onClick={() => setPriorityDecision("KEEP")}>
-                  KEEP PRIORITIES
+                  {copy.keepPriorities}
                 </ChoiceChip>
                 <ChoiceChip active={review.priorityDecision.current === "ADJUST"} onClick={() => setPriorityDecision("ADJUST")}>
-                  EDIT
+                  {copy.edit}
                 </ChoiceChip>
               </div>
             </Card>
             <Card className="progress-review-list p-16">
               <div className="eyebrow" style={{ marginBottom: 8 }}>
-                RECOMMENDED NEXT PHASE
+                {copy.recommendedNextPhase}
               </div>
               <div className="headline-md" style={{ textTransform: "uppercase" }}>
                 {review.recommendation.title} — {review.recommendation.duration}
@@ -296,13 +491,12 @@ export function ProgressPhaseReviewScreen() {
 
       <div className="progress-fixed-actions">
         <PrimaryButton href="/progress" className="focus-ring">
-          BUILD PHASE 2
+          {copy.buildPhase2}
         </PrimaryButton>
         <SecondaryButton className="focus-ring" onClick={() => window.history.back()}>
-          BACK
+          {copy.back}
         </SecondaryButton>
       </div>
     </Screen>
   );
 }
-

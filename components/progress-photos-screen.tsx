@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BrandLogo } from "@/components/brand-logo";
+import { useTranslator } from "@/components/locale-provider";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { useProgressStore } from "@/components/progress-provider";
@@ -25,15 +26,16 @@ function poseHref(pose: PhotoPose) {
 }
 
 function ProgressTopbar({ closeHref, onHelp }: { closeHref: string; onHelp?: () => void }) {
+  const { t } = useTranslator();
   return (
     <header className="progress-topbar progress-topbar--photos">
-      <Link href={closeHref} className="progress-topbar__button focus-ring" aria-label="Close screen">
+      <Link href={closeHref} className="progress-topbar__button focus-ring" aria-label={t("common.close")}>
         <span className="icon" aria-hidden="true">
           close
         </span>
       </Link>
       <BrandLogo variant="mark" width={34} alt="AthlexForce" />
-      <button className="progress-topbar__button focus-ring" type="button" aria-label="Help" onClick={onHelp}>
+      <button className="progress-topbar__button focus-ring" type="button" aria-label={t("common.help")} onClick={onHelp}>
         <span className="icon" aria-hidden="true">
           help
         </span>

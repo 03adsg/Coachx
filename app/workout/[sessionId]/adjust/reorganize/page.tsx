@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Screen } from "@/components/screen";
 import { Card } from "@/components/ui";
+import { useLocale } from "@/components/locale-provider";
 import { useProgramStore } from "@/components/program-provider";
 import { useWorkoutStore } from "@/components/workout-provider";
 
@@ -27,8 +28,106 @@ function getNextTuesday(date: Date) {
   return nextDate.toISOString().slice(0, 10);
 }
 
+function copyFor(locale: string) {
+  return (
+    {
+      en: {
+        back: "Back",
+        title: "Adjust Workout",
+        reorg: "Reorganize My Week",
+        description: "AthlexForce will find the best way to preserve your training priorities and recovery.",
+        before: "Before",
+        after: "After",
+        logic: "AthlexForce Logic",
+        moved: "Moved",
+        removed: "Removed",
+        freq: "Weekly Freq.",
+        recovery: "Recovery",
+        save: "Saving...",
+        useSchedule: "Use This Schedule ✓",
+        chooseOther: "Choose Another Day",
+        rowLabels: { glutes: "Glutes", upper: "Upper", recov: "Recov." },
+        stats: { moved: "2 sessions", removed: "0 sessions", freq: "4 workouts", recovery: "Maintained" }
+      },
+      es: {
+        back: "Atrás",
+        title: "Ajustar entrenamiento",
+        reorg: "Reorganizar mi semana",
+        description: "AthlexForce encontrará la mejor forma de preservar tus prioridades y recuperación.",
+        before: "Antes",
+        after: "Después",
+        logic: "Lógica de AthlexForce",
+        moved: "Movido",
+        removed: "Eliminado",
+        freq: "Frecuencia semanal",
+        recovery: "Recuperación",
+        save: "Guardando...",
+        useSchedule: "Usar este horario ✓",
+        chooseOther: "Elegir otro día",
+        rowLabels: { glutes: "Glúteos", upper: "Superior", recov: "Recup." },
+        stats: { moved: "2 sesiones", removed: "0 sesiones", freq: "4 entrenamientos", recovery: "Mantenida" }
+      },
+      ca: {
+        back: "Enrere",
+        title: "Ajusta l'entrenament",
+        reorg: "Reorganitza la meva setmana",
+        description: "AthlexForce trobarà la millor manera de preservar les teves prioritats d'entrenament i recuperació.",
+        before: "Abans",
+        after: "Després",
+        logic: "Lògica d'AthlexForce",
+        moved: "Mogut",
+        removed: "Eliminat",
+        freq: "Freq. setmanal",
+        recovery: "Recuperació",
+        save: "Desant...",
+        useSchedule: "Fes servir aquest horari ✓",
+        chooseOther: "Tria un altre dia",
+        rowLabels: { glutes: "Glutis", upper: "Superior", recov: "Recup." },
+        stats: { moved: "2 sessions", removed: "0 sessions", freq: "4 entrenaments", recovery: "Mantinguda" }
+      },
+      de: {
+        back: "Zurück",
+        title: "Training anpassen",
+        reorg: "Meine Woche neu ordnen",
+        description: "AthlexForce findet den besten Weg, Trainingsprioritäten und Erholung zu bewahren.",
+        before: "Vorher",
+        after: "Nachher",
+        logic: "AthlexForce-Logik",
+        moved: "Verschoben",
+        removed: "Entfernt",
+        freq: "Wöchentl. Frequenz",
+        recovery: "Erholung",
+        save: "Speichern...",
+        useSchedule: "Diesen Plan verwenden ✓",
+        chooseOther: "Anderen Tag wählen",
+        rowLabels: { glutes: "Gluteus", upper: "Oberkörper", recov: "Erhol." },
+        stats: { moved: "2 Einheiten", removed: "0 Einheiten", freq: "4 Workouts", recovery: "Erhalten" }
+      }
+    }[locale as "en" | "es" | "ca" | "de"] ?? {
+      back: "Back",
+      title: "Adjust Workout",
+      reorg: "Reorganize My Week",
+      description: "AthlexForce will find the best way to preserve your training priorities and recovery.",
+      before: "Before",
+      after: "After",
+      logic: "AthlexForce Logic",
+      moved: "Moved",
+      removed: "Removed",
+      freq: "Weekly Freq.",
+      recovery: "Recovery",
+      save: "Saving...",
+      useSchedule: "Use This Schedule ✓",
+      chooseOther: "Choose Another Day",
+      rowLabels: { glutes: "Glutes", upper: "Upper", recov: "Recov." },
+      stats: { moved: "2 sessions", removed: "0 sessions", freq: "4 workouts", recovery: "Maintained" }
+    }
+  );
+}
+
 export default function ReorganizeWeekPage() {
   const router = useRouter();
+  const { locale } = useLocale();
+  const copy = copyFor(locale);
   const { session } = useWorkoutStore();
   const { rescheduleWorkoutDay } = useProgramStore();
   const [saving, setSaving] = useState(false);
@@ -41,13 +140,13 @@ export default function ReorganizeWeekPage() {
       shellClassName="screen-shell workout-shell"
       topbar={
         <header className="workout-section-topbar">
-          <button aria-label="Back" className="tap-target focus-ring" type="button" onClick={() => router.back()}>
+          <button aria-label={copy.back} className="tap-target focus-ring" type="button" onClick={() => router.back()}>
             <span className="icon" aria-hidden="true">
               close
             </span>
           </button>
           <div className="headline-md" style={{ fontSize: 20, textTransform: "uppercase" }}>
-            Adjust Workout
+            {copy.title}
           </div>
           <span className="tap-target" />
         </header>
@@ -56,35 +155,35 @@ export default function ReorganizeWeekPage() {
       <main className="content tight">
         <section className="section">
           <h1 className="headline-lg" style={{ textTransform: "uppercase" }}>
-            Reorganize My Week
+            {copy.reorg}
           </h1>
           <p className="body-lg" style={{ marginTop: 10, color: "var(--text-secondary)" }}>
-            AthlexForce will find the best way to preserve your training priorities and recovery.
+            {copy.description}
           </p>
         </section>
 
         <section className="section">
           <Card className="workout-reorg-card">
-            <div className="eyebrow">Before</div>
+            <div className="eyebrow">{copy.before}</div>
             <div className="workout-reorg-grid">
               {["Sat", "Sun", "Mon", "Tue"].map((day, index) => (
                 <div key={day} className={`workout-day-tile ${index === 0 ? "active" : ""}`}>
                   <div className="body-md" style={{ fontWeight: 700 }}>
                     {day.toUpperCase()}
                   </div>
-                  <div className="caption">{index === 0 ? "Glutes" : index % 2 === 0 ? "Upper" : "Recov."}</div>
+                  <div className="caption">{index === 0 ? copy.rowLabels.glutes : index % 2 === 0 ? copy.rowLabels.upper : copy.rowLabels.recov}</div>
                 </div>
               ))}
             </div>
             <div className="workout-divider" />
-            <div className="eyebrow">After</div>
+            <div className="eyebrow">{copy.after}</div>
             <div className="workout-reorg-grid">
               {["Sat", "Sun", "Mon", "Tue"].map((day, index) => (
                 <div key={day} className={`workout-day-tile ${index === 3 ? "active" : ""}`}>
                   <div className="body-md" style={{ fontWeight: 700 }}>
                     {day.toUpperCase()}
                   </div>
-                  <div className="caption">{index === 3 ? "Glutes" : index === 1 ? "Upper" : "Recov."}</div>
+                  <div className="caption">{index === 3 ? copy.rowLabels.glutes : index === 1 ? copy.rowLabels.upper : copy.rowLabels.recov}</div>
                 </div>
               ))}
             </div>
@@ -94,37 +193,37 @@ export default function ReorganizeWeekPage() {
         <section className="section">
           <Card className="workout-reorg-logic">
             <div className="eyebrow" style={{ color: "#b6ff00" }}>
-              AthlexForce Logic
+              {copy.logic}
             </div>
             <p className="body-md" style={{ marginTop: 10, color: "var(--text-secondary)" }}>
-              Move this session to Tuesday to preserve 48+ hours between lower-body workouts.
+              {copy.description}
             </p>
           </Card>
         </section>
 
         <section className="grid-2 section">
           <Card className="workout-stat-card">
-            <div className="eyebrow">Moved</div>
+            <div className="eyebrow">{copy.moved}</div>
             <div className="headline-md" style={{ marginTop: 8 }}>
-              2 sessions
+              {copy.stats.moved}
             </div>
           </Card>
           <Card className="workout-stat-card">
-            <div className="eyebrow">Removed</div>
+            <div className="eyebrow">{copy.removed}</div>
             <div className="headline-md" style={{ marginTop: 8 }}>
-              0 sessions
+              {copy.stats.removed}
             </div>
           </Card>
           <Card className="workout-stat-card">
-            <div className="eyebrow">Weekly Freq.</div>
+            <div className="eyebrow">{copy.freq}</div>
             <div className="headline-md" style={{ marginTop: 8 }}>
-              4 workouts
+              {copy.stats.freq}
             </div>
           </Card>
           <Card className="workout-stat-card">
-            <div className="eyebrow">Recovery</div>
+            <div className="eyebrow">{copy.recovery}</div>
             <div className="headline-md" style={{ marginTop: 8 }}>
-              Maintained
+              {copy.stats.recovery}
             </div>
           </Card>
         </section>
@@ -144,10 +243,10 @@ export default function ReorganizeWeekPage() {
               }
             }}
           >
-            {saving ? "Saving..." : "Use This Schedule ✓"}
+            {saving ? copy.save : copy.useSchedule}
           </button>
           <Link className="workout-secondary-button focus-ring" href={`/workout/${session.id}/adjust`}>
-            Choose Another Day
+            {copy.chooseOther}
           </Link>
         </div>
       </main>

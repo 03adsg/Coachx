@@ -1,4 +1,4 @@
-export const supportedLocales = ["es", "ca", "en", "de"] as const;
+﻿export const supportedLocales = ["es", "ca", "en", "de"] as const;
 export type Locale = (typeof supportedLocales)[number];
 
 export const localeCookieName = "athlexforce-locale";
@@ -11,6 +11,7 @@ type MessageTree = {
     skip: string;
     save: string;
     retry: string;
+    help: string;
     close: string;
     edit: string;
     review: string;
@@ -23,10 +24,14 @@ type MessageTree = {
     openSettings: string;
     signOut: string;
     loading: string;
+    language: string;
+    primary: string;
+    secondary: string;
     profile: string;
     program: string;
     today: string;
     calendar: string;
+    nutrition: string;
     progress: string;
     coachPanel: string;
     dashboard: string;
@@ -49,6 +54,7 @@ type MessageTree = {
   nav: {
     today: string;
     calendar: string;
+    nutrition: string;
     progress: string;
     profile: string;
   };
@@ -58,6 +64,7 @@ type MessageTree = {
     signIn: string;
     signUp: string;
     logout: string;
+    signedInAthlete: string;
   };
   onboarding: {
     title: string;
@@ -100,6 +107,7 @@ type MessageTree = {
   };
   profile: {
     hubTitle: string;
+    hubDetail: string;
     provisionalHub: string;
     signedInAs: string;
     currentPlan: string;
@@ -110,8 +118,12 @@ type MessageTree = {
     location: string;
     profileEditing: string;
     notifications: string;
+    notificationsDetail: string;
     programOverview: string;
     developmentMode: string;
+    settingsDetail: string;
+    security: string;
+    securityDetail: string;
     profileSaved: string;
     programUpdatePending: string;
     noPendingProgramUpdates: string;
@@ -128,6 +140,7 @@ type MessageTree = {
     athletes: string;
     reviews: string;
     profile: string;
+    profileDetail: string;
   };
   calendar: {
     title: string;
@@ -179,6 +192,7 @@ const messages: Record<Locale, MessageTree> = {
       skip: "Skip",
       save: "Save",
       retry: "Retry",
+      help: "Help",
       close: "Close",
       edit: "Edit",
       review: "Review",
@@ -191,10 +205,14 @@ const messages: Record<Locale, MessageTree> = {
       openSettings: "Open Settings",
       signOut: "Sign out",
       loading: "Loading",
+      language: "Language",
+      primary: "Primary",
+      secondary: "Secondary",
       profile: "Profile",
       program: "Program",
       today: "Today",
       calendar: "Calendar",
+      nutrition: "Nutrition",
       progress: "Progress",
       coachPanel: "Coach Panel",
       dashboard: "Dashboard",
@@ -209,13 +227,14 @@ const messages: Record<Locale, MessageTree> = {
       noData: "No data"
     },
     locale: { es: "Spanish", ca: "Catalan", en: "English", de: "German" },
-    nav: { today: "Today", calendar: "Calendar", progress: "Progress", profile: "Profile" },
+    nav: { today: "Today", calendar: "Calendar", nutrition: "Nutrition", progress: "Progress", profile: "Profile" },
     auth: {
       entryTitle: "AthlexForce",
       entrySubtitle: "A premium training experience for athletes and coaches",
       signIn: "Sign in",
       signUp: "Sign up",
-      logout: "Logout"
+      logout: "Logout",
+      signedInAthlete: "Signed in athlete"
     },
     onboarding: {
       title: "Onboarding",
@@ -258,6 +277,7 @@ const messages: Record<Locale, MessageTree> = {
     },
     profile: {
       hubTitle: "Profile",
+      hubDetail: "Profile hub and core settings",
       provisionalHub: "Profile hub and core settings",
       signedInAs: "Signed in as",
       currentPlan: "Current plan",
@@ -268,8 +288,12 @@ const messages: Record<Locale, MessageTree> = {
       location: "Location",
       profileEditing: "Profile editing",
       notifications: "Notifications",
+      notificationsDetail: "Workout, progress, and coaching reminders",
       programOverview: "Program overview",
       developmentMode: "Workspace mode",
+      settingsDetail: "Language, training, and account preferences",
+      security: "Security",
+      securityDetail: "Password, sessions, and account access",
       profileSaved: "profile saved",
       programUpdatePending: "Program update pending",
       noPendingProgramUpdates: "No pending program updates"
@@ -285,7 +309,8 @@ const messages: Record<Locale, MessageTree> = {
       quickLinks: "Quick links",
       athletes: "Athletes",
       reviews: "Reviews",
-      profile: "Profile"
+      profile: "Profile",
+      profileDetail: "Identity and current plan"
     },
     calendar: {
       title: "Calendar",
@@ -330,11 +355,12 @@ const messages: Record<Locale, MessageTree> = {
   },
   es: {
     common: {
-      back: "Atrás",
+      back: "AtrÃ¡s",
       continue: "Continuar",
       skip: "Saltar",
       save: "Guardar",
       retry: "Reintentar",
+      help: "Ayuda",
       close: "Cerrar",
       edit: "Editar",
       review: "Revisar",
@@ -345,12 +371,16 @@ const messages: Record<Locale, MessageTree> = {
       startWorkout: "Empezar entrenamiento",
       viewWorkout: "Ver entrenamiento",
       openSettings: "Abrir ajustes",
-      signOut: "Cerrar sesión",
+      signOut: "Cerrar sesiÃ³n",
       loading: "Cargando",
+      language: "Idioma",
+      primary: "Principal",
+      secondary: "Secundaria",
       profile: "Perfil",
       program: "Programa",
       today: "Hoy",
       calendar: "Calendario",
+      nutrition: "NutriciÃ³n",
       progress: "Progreso",
       coachPanel: "Panel de coach",
       dashboard: "Panel",
@@ -364,103 +394,109 @@ const messages: Record<Locale, MessageTree> = {
       success: "Correcto",
       noData: "Sin datos"
     },
-    locale: { es: "Español", ca: "Català", en: "Inglés", de: "Alemán" },
-    nav: { today: "Hoy", calendar: "Calendario", progress: "Progreso", profile: "Perfil" },
-    auth: { entryTitle: "AthlexForce", entrySubtitle: "Una experiencia premium para atletas y coaches", signIn: "Entrar", signUp: "Crear cuenta", logout: "Salir" },
+    locale: { es: "EspaÃ±ol", ca: "CatalÃ ", en: "InglÃ©s", de: "AlemÃ¡n" },
+    nav: { today: "Hoy", calendar: "Calendario", nutrition: "NutriciÃ³n", progress: "Progreso", profile: "Perfil" },
+    auth: { entryTitle: "AthlexForce", entrySubtitle: "Una experiencia premium para atletas y coaches", signIn: "Entrar", signUp: "Crear cuenta", logout: "Salir", signedInAthlete: "Atleta autenticado" },
     onboarding: {
       title: "Onboarding",
       subtitle: "Configura el atleta antes de revelar el plan.",
-      introTitle: "Empieza por lo básico",
+      introTitle: "Empieza por lo bÃ¡sico",
       introSubtitle: "Configura el atleta antes de revelar el plan.",
-      introBasicsTitle: "Empieza por lo básico",
-      introBasicsCaption: "AthlexForce usa un único contexto de atleta para perfil, objetivos, entrenamiento, nutrición, baseline y la revelación del plan.",
-      whatWeSetUp: "Qué vamos a configurar",
+      introBasicsTitle: "Empieza por lo bÃ¡sico",
+      introBasicsCaption: "AthlexForce usa un Ãºnico contexto de atleta para perfil, objetivos, entrenamiento, nutriciÃ³n, baseline y la revelaciÃ³n del plan.",
+      whatWeSetUp: "QuÃ© vamos a configurar",
       profileTitle: "Perfil",
       profileSubtitle: "Nombre, edad, altura, peso y unidades.",
-      profileQuestion: "¿Cómo te llamamos?",
-      profileCaption: "Mantén los mismos datos del atleta en cada paso.",
+      profileQuestion: "Â¿CÃ³mo te llamamos?",
+      profileCaption: "MantÃ©n los mismos datos del atleta en cada paso.",
       goalsTitle: "Objetivos",
       goalsSubtitle: "Objetivo principal y prioridades ordenadas.",
       goalsQuestion: "Define el objetivo principal",
-      goalsCaption: "Mantén el lenguaje visual simple. El objetivo y las prioridades deben leerse bien en móvil.",
+      goalsCaption: "MantÃ©n el lenguaje visual simple. El objetivo y las prioridades deben leerse bien en mÃ³vil.",
       trainingExperienceTitle: "Experiencia de entrenamiento",
       trainingExperienceSubtitle: "Frecuencia, confianza, cargas y familiaridad con movimientos.",
       trainingExperienceSummary: "Resumen de experiencia",
       trainingPreferencesTitle: "Preferencias de entrenamiento",
-      trainingPreferencesSubtitle: "Días, duración, equipo, variedad y descanso.",
+      trainingPreferencesSubtitle: "DÃ­as, duraciÃ³n, equipo, variedad y descanso.",
       trainingPreferencesCaption: "Anclas repetibles",
       scheduleTitle: "Horario y estilo de vida",
-      scheduleSubtitle: "Trabajo, sueño, estrés, hidratación y ventanas de entrenamiento.",
+      scheduleSubtitle: "Trabajo, sueÃ±o, estrÃ©s, hidrataciÃ³n y ventanas de entrenamiento.",
       healthTitle: "Salud y limitaciones",
-      healthSubtitle: "Mantén esto tranquilo, privado y sin diagnóstico.",
-      nutritionTitle: "Preferencias de nutrición",
+      healthSubtitle: "MantÃ©n esto tranquilo, privado y sin diagnÃ³stico.",
+      nutritionTitle: "Preferencias de nutriciÃ³n",
       nutritionSubtitle: "Alergias, restricciones, rutina y flexibilidad.",
       baselineTitle: "Baseline",
       baselineSubtitle: "Medidas y fotos privadas opcionales.",
-      reviewTitle: "Revisión final",
+      reviewTitle: "RevisiÃ³n final",
       reviewSubtitle: "Confirma el perfil antes de construir el plan.",
       buildingPlanTitle: "Construyendo tu plan",
       buildingPlanSubtitle: "Una pausa tranquila mientras tu plan se prepara.",
-      planReadyTitle: "Tu plan está listo",
-      planReadySubtitle: "La Fase 1 está lista para revisar hasta que empieces.",
+      planReadyTitle: "Tu plan estÃ¡ listo",
+      planReadySubtitle: "La Fase 1 estÃ¡ lista para revisar hasta que empieces.",
       programTitle: "Resumen del programa",
       programSubtitle: "Fase 1, progreso y estructura actual."
     },
     profile: {
       hubTitle: "Perfil",
+      hubDetail: "Centro de perfil y ajustes base",
       provisionalHub: "Centro de perfil y ajustes base",
-      signedInAs: "Sesión iniciada como",
+      signedInAs: "SesiÃ³n iniciada como",
       currentPlan: "Plan actual",
       active: "Activo",
       proposed: "Propuesto",
-      daysPerWeek: "Días / semana",
-      duration: "Duración",
-      location: "Ubicación",
-      profileEditing: "Edición de perfil",
+      daysPerWeek: "DÃ­as / semana",
+      duration: "DuraciÃ³n",
+      location: "UbicaciÃ³n",
+      profileEditing: "EdiciÃ³n de perfil",
       notifications: "Notificaciones",
+      notificationsDetail: "Recordatorios de entrenamiento, progreso y coaching",
       programOverview: "Resumen del programa",
       developmentMode: "Modo de trabajo",
+      settingsDetail: "Idioma, entrenamiento y preferencias de cuenta",
+      security: "Seguridad",
+      securityDetail: "ContraseÃ±a, sesiones y acceso a la cuenta",
       profileSaved: "perfil guardado",
-      programUpdatePending: "Actualización del programa pendiente",
+      programUpdatePending: "ActualizaciÃ³n del programa pendiente",
       noPendingProgramUpdates: "Sin actualizaciones pendientes"
     },
     coach: {
       accessDeniedTitle: "Acceso denegado",
-      accessDeniedCopy: "Esta cuenta todavía no tiene acceso de coach.",
+      accessDeniedCopy: "Esta cuenta todavÃ­a no tiene acceso de coach.",
       dashboardTitle: "Panel de coach",
-      dataNotReadyTitle: "Los datos del coach aún no están listos",
-      dataNotReadyCopy: "Los datos de coach todavía no están listos en este espacio.",
-      assignedAthletesOnly: "Solo atletas asignados. Revisa primero los que necesitan atención.",
-      needsAttention: "Necesita atención",
-      quickLinks: "Accesos rápidos",
+      dataNotReadyTitle: "Los datos del coach aÃºn no estÃ¡n listos",
+      dataNotReadyCopy: "Los datos de coach todavÃ­a no estÃ¡n listos en este espacio.",
+      assignedAthletesOnly: "Solo atletas asignados. Revisa primero los que necesitan atenciÃ³n.",
+      needsAttention: "Necesita atenciÃ³n",
+      quickLinks: "Accesos rÃ¡pidos",
       athletes: "Atletas",
       reviews: "Revisiones",
-      profile: "Perfil"
+      profile: "Perfil",
+      profileDetail: "Identidad y plan actual"
     },
     calendar: {
       title: "Calendario",
       previousMonth: "Mes anterior",
       nextMonth: "Mes siguiente",
-      nutrition: "Nutrición",
-      cardioHabits: "Cardio y hábitos",
-      viewDay: "Ver día",
+      nutrition: "NutriciÃ³n",
+      cardioHabits: "Cardio y hÃ¡bitos",
+      viewDay: "Ver dÃ­a",
       monthFallback: "Mes actual"
     },
     today: {
-      restDay: "Día de descanso",
-      recoveryDay: "Día de recuperación",
-      nextWorkout: "Próximo entrenamiento",
+      restDay: "DÃ­a de descanso",
+      recoveryDay: "DÃ­a de recuperaciÃ³n",
+      nextWorkout: "PrÃ³ximo entrenamiento",
       targetZones: "Zonas objetivo",
       primary: "Principal",
       secondary: "Secundaria",
-      readyTomorrow: "Listo mañana",
-      duration: "Duración",
-      calories: "Calorías",
+      readyTomorrow: "Listo maÃ±ana",
+      duration: "DuraciÃ³n",
+      calories: "CalorÃ­as",
       cardio: "Cardio",
       volume: "Volumen",
       sets: "Series",
       movements: "Movimientos",
-      posteriorChainEmphasis: "Énfasis en la cadena posterior"
+      posteriorChainEmphasis: "Ã‰nfasis en la cadena posterior"
     },
     program: {
       overview: "Resumen del programa",
@@ -468,13 +504,13 @@ const messages: Record<Locale, MessageTree> = {
       weeklyStructure: "Estructura semanal",
       workoutTemplates: "Plantillas de entrenamiento",
       keyMovements: "Movimientos clave",
-      progression: "Progresión",
-      nutrition: "Nutrición",
+      progression: "ProgresiÃ³n",
+      nutrition: "NutriciÃ³n",
       cardio: "Cardio",
-      recovery: "Recuperación",
-      habits: "Hábitos",
+      recovery: "RecuperaciÃ³n",
+      habits: "HÃ¡bitos",
       checkIn: "Check-in",
-      reviewTimeline: "Calendario de revisión",
+      reviewTimeline: "Calendario de revisiÃ³n",
       recentAdjustments: "Ajustes recientes"
     }
   },
@@ -485,132 +521,143 @@ const messages: Record<Locale, MessageTree> = {
       skip: "Salta",
       save: "Desa",
       retry: "Torna-ho a provar",
+      help: "Ajuda",
       close: "Tanca",
       edit: "Edita",
       review: "Revisa",
       apply: "Aplica",
       approve: "Aprova",
       reject: "Rebutja",
-      startOnboarding: "Comença l'onboarding",
-      startWorkout: "Comença l'entrenament",
+      startOnboarding: "ComenÃ§a l'onboarding",
+      startWorkout: "ComenÃ§a l'entrenament",
       viewWorkout: "Veure entrenament",
       openSettings: "Obre els ajustos",
-      signOut: "Tanca la sessió",
+      signOut: "Tanca la sessiÃ³",
       loading: "Carregant",
+      language: "Idioma",
+      primary: "Principal",
+      secondary: "SecundÃ ria",
       profile: "Perfil",
       program: "Programa",
       today: "Avui",
       calendar: "Calendari",
-      progress: "Progrés",
+      nutrition: "NutriciÃ³",
+      progress: "ProgrÃ©s",
       coachPanel: "Panell de coach",
       dashboard: "Tauler",
       athletes: "Atletes",
       reviews: "Revisions",
       notifications: "Notificacions",
       settings: "Ajustos",
-      unauthorized: "Sense accés",
+      unauthorized: "Sense accÃ©s",
       networkFailure: "Error de xarxa",
       error: "Error",
       success: "Correcte",
       noData: "Sense dades"
     },
-    locale: { es: "Castellà", ca: "Català", en: "Anglès", de: "Alemany" },
-    nav: { today: "Avui", calendar: "Calendari", progress: "Progrés", profile: "Perfil" },
-    auth: { entryTitle: "AthlexForce", entrySubtitle: "Una experiència premium per a atletes i coaches", signIn: "Inicia sessió", signUp: "Crea un compte", logout: "Surt" },
+    locale: { es: "CastellÃ ", ca: "CatalÃ ", en: "AnglÃ¨s", de: "Alemany" },
+    nav: { today: "Avui", calendar: "Calendari", nutrition: "NutriciÃ³", progress: "ProgrÃ©s", profile: "Perfil" },
+    auth: { entryTitle: "AthlexForce", entrySubtitle: "Una experiÃ¨ncia premium per a atletes i coaches", signIn: "Inicia sessiÃ³", signUp: "Crea un compte", logout: "Surt", signedInAthlete: "Atleta autenticat" },
     onboarding: {
       title: "Onboarding",
       subtitle: "Configura l'atleta abans de revelar el pla.",
-      introTitle: "Comença pel bàsic",
+      introTitle: "ComenÃ§a pel bÃ sic",
       introSubtitle: "Configura l'atleta abans de revelar el pla.",
-      introBasicsTitle: "Comença pel bàsic",
-      introBasicsCaption: "AthlexForce fa servir un únic context d'atleta per perfil, objectius, entrenament, nutrició, baseline i la revelació del pla.",
-      whatWeSetUp: "Què configurarem",
+      introBasicsTitle: "ComenÃ§a pel bÃ sic",
+      introBasicsCaption: "AthlexForce fa servir un Ãºnic context d'atleta per perfil, objectius, entrenament, nutriciÃ³, baseline i la revelaciÃ³ del pla.",
+      whatWeSetUp: "QuÃ¨ configurarem",
       profileTitle: "Perfil",
-      profileSubtitle: "Nom, edat, alçada, pes i unitats.",
+      profileSubtitle: "Nom, edat, alÃ§ada, pes i unitats.",
       profileQuestion: "Com t'hem de dir?",
-      profileCaption: "Mantén les mateixes dades de l'atleta a cada pas.",
+      profileCaption: "MantÃ©n les mateixes dades de l'atleta a cada pas.",
       goalsTitle: "Objectius",
       goalsSubtitle: "Objectiu principal i prioritats ordenades.",
       goalsQuestion: "Defineix l'objectiu principal",
-      goalsCaption: "Mantén el llenguatge visual simple. L'objectiu i les prioritats s'han de llegir bé al mòbil.",
-      trainingExperienceTitle: "Experiència d'entrenament",
-      trainingExperienceSubtitle: "Freqüència, confiança, càrregues i familiaritat amb moviments.",
-      trainingExperienceSummary: "Resum d'experiència",
-      trainingPreferencesTitle: "Preferències d'entrenament",
+      goalsCaption: "MantÃ©n el llenguatge visual simple. L'objectiu i les prioritats s'han de llegir bÃ© al mÃ²bil.",
+      trainingExperienceTitle: "ExperiÃ¨ncia d'entrenament",
+      trainingExperienceSubtitle: "FreqÃ¼Ã¨ncia, confianÃ§a, cÃ rregues i familiaritat amb moviments.",
+      trainingExperienceSummary: "Resum d'experiÃ¨ncia",
+      trainingPreferencesTitle: "PreferÃ¨ncies d'entrenament",
       trainingPreferencesSubtitle: "Dies, durada, equip, varietat i descans.",
       trainingPreferencesCaption: "Ancoratges repetibles",
       scheduleTitle: "Horari i estil de vida",
-      scheduleSubtitle: "Feina, son, estrès, hidratació i franges d'entrenament.",
+      scheduleSubtitle: "Feina, son, estrÃ¨s, hidrataciÃ³ i franges d'entrenament.",
       healthTitle: "Salut i limitacions",
-      healthSubtitle: "Mantén això tranquil, privat i sense diagnòstic.",
-      nutritionTitle: "Preferències de nutrició",
-      nutritionSubtitle: "Al·lèrgies, restriccions, rutina i flexibilitat.",
+      healthSubtitle: "MantÃ©n aixÃ² tranquil, privat i sense diagnÃ²stic.",
+      nutritionTitle: "PreferÃ¨ncies de nutriciÃ³",
+      nutritionSubtitle: "AlÂ·lÃ¨rgies, restriccions, rutina i flexibilitat.",
       baselineTitle: "Baseline",
       baselineSubtitle: "Mesures i fotos privades opcionals.",
-      reviewTitle: "Revisió final",
+      reviewTitle: "RevisiÃ³ final",
       reviewSubtitle: "Confirma el perfil abans de construir el pla.",
       buildingPlanTitle: "Construint el teu pla",
-      buildingPlanSubtitle: "Una pausa tranquil·la mentre el teu pla es prepara.",
-      planReadyTitle: "El teu pla està llest",
-      planReadySubtitle: "La Fase 1 està llesta per revisar fins que comencis.",
+      buildingPlanSubtitle: "Una pausa tranquilÂ·la mentre el teu pla es prepara.",
+      planReadyTitle: "El teu pla estÃ  llest",
+      planReadySubtitle: "La Fase 1 estÃ  llesta per revisar fins que comencis.",
       programTitle: "Resum del programa",
-      programSubtitle: "Fase 1, progrés i estructura actual."
+      programSubtitle: "Fase 1, progrÃ©s i estructura actual."
     },
     profile: {
       hubTitle: "Perfil",
+      hubDetail: "Centre de perfil i ajustos base",
       provisionalHub: "Centre de perfil i ajustos base",
-      signedInAs: "Sessió iniciada com a",
+      signedInAs: "SessiÃ³ iniciada com a",
       currentPlan: "Pla actual",
       active: "Actiu",
       proposed: "Proposat",
       daysPerWeek: "Dies / setmana",
       duration: "Durada",
-      location: "Ubicació",
-      profileEditing: "Edició de perfil",
+      location: "UbicaciÃ³",
+      profileEditing: "EdiciÃ³ de perfil",
       notifications: "Notificacions",
+      notificationsDetail: "Recordatoris d'entrenament, progrÃ©s i coaching",
       programOverview: "Resum del programa",
       developmentMode: "Mode de treball",
+      settingsDetail: "Idioma, entrenament i preferÃ¨ncies del compte",
+      security: "Seguretat",
+      securityDetail: "Contrasenya, sessions i accÃ©s al compte",
       profileSaved: "perfil desat",
-      programUpdatePending: "Actualització del programa pendent",
+      programUpdatePending: "ActualitzaciÃ³ del programa pendent",
       noPendingProgramUpdates: "Sense actualitzacions pendents"
     },
     coach: {
-      accessDeniedTitle: "Accés denegat",
-      accessDeniedCopy: "Aquest compte encara no té accés de coach.",
+      accessDeniedTitle: "AccÃ©s denegat",
+      accessDeniedCopy: "Aquest compte encara no tÃ© accÃ©s de coach.",
       dashboardTitle: "Tauler de coach",
       dataNotReadyTitle: "Les dades del coach encara no estan llestes",
       dataNotReadyCopy: "Les dades de coach encara no estan llestes en aquest espai.",
-      assignedAthletesOnly: "Només atletes assignats. Revisa primer els que necessiten atenció.",
-      needsAttention: "Necessita atenció",
-      quickLinks: "Accessos ràpids",
+      assignedAthletesOnly: "NomÃ©s atletes assignats. Revisa primer els que necessiten atenciÃ³.",
+      needsAttention: "Necessita atenciÃ³",
+      quickLinks: "Accessos rÃ pids",
       athletes: "Atletes",
       reviews: "Revisions",
-      profile: "Perfil"
+      profile: "Perfil",
+      profileDetail: "Identitat i pla actual"
     },
     calendar: {
       title: "Calendari",
       previousMonth: "Mes anterior",
-      nextMonth: "Mes següent",
-      nutrition: "Nutrició",
-      cardioHabits: "Cardio i hàbits",
+      nextMonth: "Mes segÃ¼ent",
+      nutrition: "NutriciÃ³",
+      cardioHabits: "Cardio i hÃ bits",
       viewDay: "Veure dia",
       monthFallback: "Mes actual"
     },
     today: {
       restDay: "Dia de descans",
-      recoveryDay: "Dia de recuperació",
+      recoveryDay: "Dia de recuperaciÃ³",
       nextWorkout: "Proper entrenament",
       targetZones: "Zones objectiu",
       primary: "Principal",
-      secondary: "Secundària",
-      readyTomorrow: "A punt demà",
+      secondary: "SecundÃ ria",
+      readyTomorrow: "A punt demÃ ",
       duration: "Durada",
       calories: "Calories",
       cardio: "Cardio",
       volume: "Volum",
-      sets: "Sèries",
+      sets: "SÃ¨ries",
       movements: "Moviments",
-      posteriorChainEmphasis: "Èmfasi en la cadena posterior"
+      posteriorChainEmphasis: "Ãˆmfasi en la cadena posterior"
     },
     program: {
       overview: "Resum del programa",
@@ -618,42 +665,47 @@ const messages: Record<Locale, MessageTree> = {
       weeklyStructure: "Estructura setmanal",
       workoutTemplates: "Plantilles d'entrenament",
       keyMovements: "Moviments clau",
-      progression: "Progressió",
-      nutrition: "Nutrició",
+      progression: "ProgressiÃ³",
+      nutrition: "NutriciÃ³",
       cardio: "Cardio",
-      recovery: "Recuperació",
-      habits: "Hàbits",
+      recovery: "RecuperaciÃ³",
+      habits: "HÃ bits",
       checkIn: "Check-in",
-      reviewTimeline: "Calendari de revisió",
+      reviewTimeline: "Calendari de revisiÃ³",
       recentAdjustments: "Ajustos recents"
     }
   },
   de: {
     common: {
-      back: "Zurück",
+      back: "ZurÃ¼ck",
       continue: "Weiter",
-      skip: "Überspringen",
+      skip: "Ãœberspringen",
       save: "Speichern",
       retry: "Erneut versuchen",
-      close: "Schließen",
+      help: "Hilfe",
+      close: "SchlieÃŸen",
       edit: "Bearbeiten",
-      review: "Prüfen",
+      review: "PrÃ¼fen",
       apply: "Anwenden",
       approve: "Genehmigen",
       reject: "Ablehnen",
       startOnboarding: "Onboarding starten",
       startWorkout: "Training starten",
       viewWorkout: "Training ansehen",
-      openSettings: "Einstellungen öffnen",
+      openSettings: "Einstellungen Ã¶ffnen",
       signOut: "Abmelden",
-      loading: "Lädt",
+      loading: "LÃ¤dt",
+      language: "Sprache",
+      primary: "PrimÃ¤r",
+      secondary: "SekundÃ¤r",
       profile: "Profil",
       program: "Programm",
       today: "Heute",
       calendar: "Kalender",
+      nutrition: "ErnÃ¤hrung",
       progress: "Fortschritt",
       coachPanel: "Coach-Panel",
-      dashboard: "Übersicht",
+      dashboard: "Ãœbersicht",
       athletes: "Athleten",
       reviews: "Reviews",
       notifications: "Benachrichtigungen",
@@ -665,49 +717,50 @@ const messages: Record<Locale, MessageTree> = {
       noData: "Keine Daten"
     },
     locale: { es: "Spanisch", ca: "Katalanisch", en: "Englisch", de: "Deutsch" },
-    nav: { today: "Heute", calendar: "Kalender", progress: "Fortschritt", profile: "Profil" },
-    auth: { entryTitle: "AthlexForce", entrySubtitle: "Ein hochwertiges Trainingserlebnis für Athleten und Coaches", signIn: "Anmelden", signUp: "Konto erstellen", logout: "Abmelden" },
+    nav: { today: "Heute", calendar: "Kalender", nutrition: "ErnÃ¤hrung", progress: "Fortschritt", profile: "Profil" },
+    auth: { entryTitle: "AthlexForce", entrySubtitle: "Ein hochwertiges Trainingserlebnis fÃ¼r Athleten und Coaches", signIn: "Anmelden", signUp: "Konto erstellen", logout: "Abmelden", signedInAthlete: "Angemeldeter Athlet" },
     onboarding: {
       title: "Onboarding",
       subtitle: "Lege das Athleten-Setup fest, bevor der Plan angezeigt wird.",
       introTitle: "Mit den Grundlagen beginnen",
       introSubtitle: "Lege das Athleten-Setup fest, bevor der Plan angezeigt wird.",
       introBasicsTitle: "Mit den Grundlagen beginnen",
-      introBasicsCaption: "AthlexForce verwendet einen einheitlichen Athletenkontext für Profil, Ziele, Training, Ernährung, Baseline und Plananzeige.",
+      introBasicsCaption: "AthlexForce verwendet einen einheitlichen Athletenkontext fÃ¼r Profil, Ziele, Training, ErnÃ¤hrung, Baseline und Plananzeige.",
       whatWeSetUp: "Was wir einrichten",
       profileTitle: "Profil",
-      profileSubtitle: "Name, Alter, Größe, Gewicht und Einheiten.",
+      profileSubtitle: "Name, Alter, GrÃ¶ÃŸe, Gewicht und Einheiten.",
       profileQuestion: "Wie sollen wir dich nennen?",
       profileCaption: "Verwende durchgehend dieselben Athletendaten.",
       goalsTitle: "Ziele",
-      goalsSubtitle: "Hauptziel und geordnete Prioritäten.",
+      goalsSubtitle: "Hauptziel und geordnete PrioritÃ¤ten.",
       goalsQuestion: "Lege das Hauptziel fest",
-      goalsCaption: "Halte die visuelle Sprache einfach. Ziel und Prioritäten sollen auf Mobilgeräten klar lesbar sein.",
+      goalsCaption: "Halte die visuelle Sprache einfach. Ziel und PrioritÃ¤ten sollen auf MobilgerÃ¤ten klar lesbar sein.",
       trainingExperienceTitle: "Trainingserfahrung",
       trainingExperienceSubtitle: "Frequenz, Vertrauen, Lasten und Bewegungsroutine.",
-      trainingExperienceSummary: "Erfahrungsübersicht",
-      trainingPreferencesTitle: "Trainingspräferenzen",
+      trainingExperienceSummary: "ErfahrungsÃ¼bersicht",
+      trainingPreferencesTitle: "TrainingsprÃ¤ferenzen",
       trainingPreferencesSubtitle: "Tage, Dauer, Equipment, Vielfalt und Pausen.",
       trainingPreferencesCaption: "Wiederholbare Anker",
       scheduleTitle: "Zeitplan & Lebensstil",
       scheduleSubtitle: "Arbeit, Schlaf, Stress, Hydration und Trainingsfenster.",
-      healthTitle: "Gesundheit & Einschränkungen",
+      healthTitle: "Gesundheit & EinschrÃ¤nkungen",
       healthSubtitle: "Bleibe ruhig, privat und ohne Diagnose.",
-      nutritionTitle: "Ernährungspräferenzen",
-      nutritionSubtitle: "Allergien, Restriktionen, Routine und Flexibilität.",
+      nutritionTitle: "ErnÃ¤hrungsprÃ¤ferenzen",
+      nutritionSubtitle: "Allergien, Restriktionen, Routine und FlexibilitÃ¤t.",
       baselineTitle: "Baseline",
       baselineSubtitle: "Messungen und optionale private Fortschrittsfotos.",
-      reviewTitle: "Abschließende Prüfung",
-      reviewSubtitle: "Bestätige das Profil, bevor der Plan gebaut wird.",
+      reviewTitle: "AbschlieÃŸende PrÃ¼fung",
+      reviewSubtitle: "BestÃ¤tige das Profil, bevor der Plan gebaut wird.",
       buildingPlanTitle: "Plan wird erstellt",
-      buildingPlanSubtitle: "Eine ruhige Pause, während dein Plan vorbereitet wird.",
+      buildingPlanSubtitle: "Eine ruhige Pause, wÃ¤hrend dein Plan vorbereitet wird.",
       planReadyTitle: "Dein Plan ist bereit",
-      planReadySubtitle: "Phase 1 ist bereit zur Prüfung, bis du startest.",
-      programTitle: "Programmübersicht",
+      planReadySubtitle: "Phase 1 ist bereit zur PrÃ¼fung, bis du startest.",
+      programTitle: "ProgrammÃ¼bersicht",
       programSubtitle: "Phase 1, Fortschritt und aktuelle Struktur."
     },
     profile: {
       hubTitle: "Profil",
+      hubDetail: "Profil-Hub und Grundeinstellungen",
       provisionalHub: "Profil-Hub und Grundeinstellungen",
       signedInAs: "Angemeldet als",
       currentPlan: "Aktueller Plan",
@@ -718,30 +771,35 @@ const messages: Record<Locale, MessageTree> = {
       location: "Ort",
       profileEditing: "Profilbearbeitung",
       notifications: "Benachrichtigungen",
-      programOverview: "Programmübersicht",
+      notificationsDetail: "Erinnerungen zu Training, Fortschritt und Coaching",
+      programOverview: "ProgrammÃ¼bersicht",
       developmentMode: "Arbeitsmodus",
+      settingsDetail: "Sprache, Training und Kontoeinstellungen",
+      security: "Sicherheit",
+      securityDetail: "Passwort, Sitzungen und Kontozugriff",
       profileSaved: "Profil gespeichert",
       programUpdatePending: "Programmaktualisierung ausstehend",
       noPendingProgramUpdates: "Keine ausstehenden Programmaktualisierungen"
     },
     coach: {
       accessDeniedTitle: "Zugriff verweigert",
-      accessDeniedCopy: "Dieses Konto ist noch nicht für den Coach-Zugang eingerichtet.",
-      dashboardTitle: "Coach-Übersicht",
+      accessDeniedCopy: "Dieses Konto ist noch nicht fÃ¼r den Coach-Zugang eingerichtet.",
+      dashboardTitle: "Coach-Ãœbersicht",
       dataNotReadyTitle: "Coach-Daten sind noch nicht bereit",
       dataNotReadyCopy: "Die Coach-Daten sind in diesem Arbeitsbereich noch nicht bereit.",
-      assignedAthletesOnly: "Nur zugewiesene Athleten. Prüfe zuerst die mit Handlungsbedarf.",
-      needsAttention: "Benötigt Aufmerksamkeit",
+      assignedAthletesOnly: "Nur zugewiesene Athleten. PrÃ¼fe zuerst die mit Handlungsbedarf.",
+      needsAttention: "BenÃ¶tigt Aufmerksamkeit",
       quickLinks: "Schnellzugriffe",
       athletes: "Athleten",
       reviews: "Reviews",
-      profile: "Profil"
+      profile: "Profil",
+      profileDetail: "Identität und aktueller Plan"
     },
     calendar: {
       title: "Kalender",
       previousMonth: "Vorheriger Monat",
-      nextMonth: "Nächster Monat",
-      nutrition: "Ernährung",
+      nextMonth: "NÃ¤chster Monat",
+      nutrition: "ErnÃ¤hrung",
       cardioHabits: "Cardio & Gewohnheiten",
       viewDay: "Tag ansehen",
       monthFallback: "Aktueller Monat"
@@ -749,27 +807,27 @@ const messages: Record<Locale, MessageTree> = {
     today: {
       restDay: "Ruhetag",
       recoveryDay: "Regenerationstag",
-      nextWorkout: "Nächstes Training",
+      nextWorkout: "NÃ¤chstes Training",
       targetZones: "Zielzonen",
-      primary: "Primär",
-      secondary: "Sekundär",
+      primary: "PrimÃ¤r",
+      secondary: "SekundÃ¤r",
       readyTomorrow: "Morgen bereit",
       duration: "Dauer",
       calories: "Kalorien",
       cardio: "Cardio",
       volume: "Volumen",
-      sets: "Sätze",
-      movements: "Übungen",
+      sets: "SÃ¤tze",
+      movements: "Ãœbungen",
       posteriorChainEmphasis: "Fokus auf die hintere Muskelkette"
     },
     program: {
-      overview: "Programmübersicht",
+      overview: "ProgrammÃ¼bersicht",
       myProgram: "Mein Programm",
       weeklyStructure: "Wochenstruktur",
       workoutTemplates: "Trainingsvorlagen",
-      keyMovements: "Kernübungen",
+      keyMovements: "KernÃ¼bungen",
       progression: "Progression",
-      nutrition: "Ernährung",
+      nutrition: "ErnÃ¤hrung",
       cardio: "Cardio",
       recovery: "Regeneration",
       habits: "Gewohnheiten",
@@ -779,6 +837,8 @@ const messages: Record<Locale, MessageTree> = {
     }
   }
 };
+
+export { messages as i18nMessages };
 
 let currentLocale: Locale = "es";
 const listeners = new Set<() => void>();

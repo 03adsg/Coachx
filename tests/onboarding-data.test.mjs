@@ -120,6 +120,19 @@ const authSessionPolicy = await import(pathToFileURL(path.join(tempDir, "auth/se
 const authErrors = await import(pathToFileURL(path.join(tempDir, "auth/auth-errors.mjs")).href);
 const feedbackLibrary = await import(pathToFileURL(path.join(tempDir, "feedback.mjs")).href);
 
+function flattenMessagePaths(tree, prefix = "") {
+  const entries = [];
+  for (const [key, value] of Object.entries(tree)) {
+    const pathKey = prefix ? `${prefix}.${key}` : key;
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      entries.push(...flattenMessagePaths(value, pathKey));
+    } else {
+      entries.push(pathKey);
+    }
+  }
+  return entries;
+}
+
 test("trusted app origins are explicit and keep open-redirect protection intact", () => {
   assert.equal(authSessionPolicy.isTrustedAppOrigin("http://localhost:3000"), true);
   assert.equal(authSessionPolicy.isTrustedAppOrigin("https://coachxsync1.vercel.app"), true);
@@ -170,6 +183,23 @@ test("feedback memory can clear stale auth sign-in notices without affecting oth
   assert.equal(nextMemory.recent.some((notice) => notice.actionId === "workout.set"), true);
   assert.equal(Object.hasOwn(nextMemory.lastByAction, "auth.sign-in"), false);
   assert.equal(Object.hasOwn(nextMemory.lastByAction, "workout.set"), true);
+});
+
+test("i18n dictionaries stay in parity across supported locales", () => {
+  const referencePaths = flattenMessagePaths(i18n.i18nMessages.en).sort();
+
+  for (const locale of i18n.supportedLocales) {
+    const localePaths = flattenMessagePaths(i18n.i18nMessages[locale]).sort();
+    assert.deepEqual(localePaths, referencePaths, `Locale ${locale} is missing product keys`);
+  }
+});
+
+test("locale switching updates the active locale and translation lookup immediately", () => {
+  const previousLocale = i18n.getCurrentLocale();
+  i18n.setCurrentLocale("de");
+  assert.equal(i18n.getCurrentLocale(), "de");
+  assert.equal(i18n.getTranslation("de", "common.language"), "Sprache");
+  i18n.setCurrentLocale(previousLocale);
 });
 
 test("onboarding step ordering works", () => {

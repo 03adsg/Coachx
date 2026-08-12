@@ -11,7 +11,7 @@ import {
   buildProfileReview,
   createNotificationSettings,
   createProfileSnapshot,
-  profileSectionOrder,
+  getProfileSectionOrder,
   profileStorageKey,
   reviveProfileSettingsState,
   serializeProfileSettingsState,
@@ -47,7 +47,7 @@ const ProfileSettingsContext = createContext<ProfileSettingsStoreValue | null>(n
 
 export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
   const auth = useAuthStore();
-  const { setLocale } = useLocale();
+  const { setLocale, locale } = useLocale();
   const authRef = useRef(auth);
   const programStore = useProgramStore();
   const programStoreRef = useRef(programStore);
@@ -169,7 +169,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, [auth.isConfigured, auth.ready, auth.user?.id]);
+  }, [auth.isConfigured, auth.ready, auth.user?.id, locale]);
 
   async function persistSnapshot(nextSnapshot: ProfileSnapshot) {
     const client = getSupabaseBrowserClient();
@@ -417,9 +417,9 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
       applyPendingReview,
       markSaveError,
       resetProfileSettings,
-      sectionOrder: profileSectionOrder
+      sectionOrder: getProfileSectionOrder(locale)
     };
-  }, [state]);
+  }, [state, locale]);
 
   return <ProfileSettingsContext.Provider value={value}>{children}</ProfileSettingsContext.Provider>;
 }

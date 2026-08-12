@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -36,7 +36,7 @@ export default function ProfilePage() {
             <div className="profile-identity__copy">
               <h1 className="headline-md">{saved.profile.name}</h1>
               <p className="caption profile-identity__context">
-                Athlete · {program?.phaseLabel ?? "Phase 1"}
+                {t("common.profile")} · {program?.phaseLabel ?? t("program.overview")}
               </p>
               {auth.user?.email ? (
                 <p className="caption profile-identity__email">
@@ -86,7 +86,7 @@ export default function ProfilePage() {
             <Card className="p-16">
               <div className="row start">
                 <div>
-                  <div className="eyebrow">Profile editing</div>
+                  <div className="eyebrow">{t("profile.profileEditing")}</div>
                   <div className="body-md" style={{ marginTop: 6, fontWeight: 700 }}>
                     {t("profile.profileEditing")}
                   </div>
@@ -102,7 +102,7 @@ export default function ProfilePage() {
             <Card className="p-16">
               <div className="row start">
                 <div>
-                  <div className="eyebrow">Notifications</div>
+                  <div className="eyebrow">{t("profile.notifications")}</div>
                   <div className="body-md" style={{ marginTop: 6, fontWeight: 700 }}>
                     {t("profile.notifications")}
                   </div>
@@ -118,7 +118,7 @@ export default function ProfilePage() {
             <Card className="p-16">
               <div className="row start">
                 <div>
-                  <div className="eyebrow">Program overview</div>
+                  <div className="eyebrow">{t("profile.programOverview")}</div>
                   <div className="body-md" style={{ marginTop: 6, fontWeight: 700 }}>
                     {t("profile.programOverview")}
                   </div>
@@ -135,9 +135,9 @@ export default function ProfilePage() {
           <Card className="elevated p-16">
             <div className="row start">
               <div>
-                <div className="eyebrow">Athlete settings</div>
+                <div className="eyebrow">{t("profile.hubTitle")}</div>
                 <p className="body-md" style={{ marginTop: 6, color: "var(--text-secondary)" }}>
-                  This app is ready to connect to your athlete data without changing the experience.
+                  {t("profile.hubDetail")}
                 </p>
                 {pendingReview ? (
                   <p className="caption" style={{ marginTop: 10 }}>
@@ -151,10 +151,10 @@ export default function ProfilePage() {
 
         <div className="stack">
           <Link href="/profile/preferences" className="button-secondary focus-ring" style={{ width: "100%" }}>
-            Open Settings
+            {t("common.openSettings")}
           </Link>
           <Link href="/profile/security" className="button-secondary focus-ring" style={{ width: "100%" }}>
-            Account / Security
+            {t("profile.security")}
           </Link>
           {auth.isConfigured ? (
             <button
@@ -166,7 +166,7 @@ export default function ProfilePage() {
               }}
               style={{ width: "100%" }}
             >
-              Sign out
+              {t("common.signOut")}
             </button>
           ) : null}
         </div>

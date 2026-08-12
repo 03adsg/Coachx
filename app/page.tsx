@@ -39,12 +39,12 @@ function RestDayHero({ athleteName, day, nextWorkout }: { athleteName: string; d
                 {nextWorkout.workoutTitle}
               </h2>
               <p className="caption" style={{ marginTop: 6 }}>
-                {nextWorkout.workoutType === "Posterior chain emphasis"
+                {nextWorkout.templateCode === "WORKOUT_A"
                   ? t("today.posteriorChainEmphasis")
                   : nextWorkout.workoutType}
               </p>
             </div>
-            <button aria-label="Open workout" className="tap-target focus-ring" type="button" style={{ background: "var(--accent-primary)", borderRadius: 9999 }}>
+            <button aria-label={t("common.viewWorkout")} className="tap-target focus-ring" type="button" style={{ background: "var(--accent-primary)", borderRadius: 9999 }}>
               <span className="icon filled" style={{ color: "var(--background-deep)" }} aria-hidden="true">
                 play_arrow
               </span>
@@ -117,7 +117,7 @@ function TodayContent() {
                       {day.workoutTitle}
                     </h2>
                     <p className="caption" style={{ marginTop: 6 }}>
-                      {day.workoutType === "Posterior chain emphasis"
+                      {day.templateCode === "WORKOUT_A"
                         ? t("today.posteriorChainEmphasis")
                         : day.workoutType}
                     </p>

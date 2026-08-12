@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { AnatomyPreview } from "@/components/anatomy-preview";
 import { RemoteAvatar } from "@/components/remote-avatar";
+import { useTranslator } from "@/components/locale-provider";
 import { useProfileSettingsStore } from "@/components/profile-settings-provider";
 import { useProgramStore } from "@/components/program-provider";
 import { Screen } from "@/components/screen";
@@ -19,6 +20,7 @@ function resolveDateKey(param: string | string[] | undefined, fallback: string) 
 
 export default function DayDetailPage() {
   const params = useParams<{ date?: string | string[] }>();
+  const { t } = useTranslator();
   const { saved } = useProfileSettingsStore();
   const { getDaySummary, selectedDateKey } = useProgramStore();
   const dateKey = resolveDateKey(params.date, selectedDateKey ?? "2026-08-08");
@@ -181,7 +183,7 @@ export default function DayDetailPage() {
             </Link>
           ) : null}
           <Link href="/calendar" className="workout-secondary-button focus-ring">
-            Back to Calendar
+            {t("common.back")} {t("common.calendar")}
           </Link>
         </div>
       </main>

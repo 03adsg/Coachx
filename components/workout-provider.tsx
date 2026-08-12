@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAuthStore } from "@/components/auth-provider";
+import { useLocale } from "@/components/locale-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
 import {
@@ -139,6 +140,7 @@ function markCompletedSetOnSession(session: WorkoutSessionState, exerciseId: str
 
 export function WorkoutProvider({ children }: { children: ReactNode }) {
   const auth = useAuthStore();
+  const { locale } = useLocale();
   const sessionRef = useRef<WorkoutSessionState>(createDemoWorkoutSession());
   const [session, setSession] = useState<WorkoutSessionState>(createDemoWorkoutSession);
 
@@ -156,7 +158,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     const revived = reviveSession(cached);
     setSession(revived);
     sessionRef.current = revived;
-  }, [auth.isConfigured, auth.ready, auth.user?.id]);
+  }, [auth.isConfigured, auth.ready, auth.user?.id, locale]);
 
   useEffect(() => {
     if (!auth.ready || typeof window === "undefined") {
@@ -165,7 +167,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
 
     const key = getStorageKey(auth.isConfigured && auth.user ? auth.user.id : null);
     window.localStorage.setItem(key, JSON.stringify(session));
-  }, [auth.isConfigured, auth.ready, auth.user?.id, session]);
+  }, [auth.isConfigured, auth.ready, auth.user?.id, session, locale]);
 
   useEffect(() => {
     if (!session.restTimer?.active) {
@@ -191,7 +193,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     }, 1000);
 
     return () => window.clearInterval(interval);
-  }, [session.restTimer?.active]);
+  }, [session.restTimer?.active, locale]);
 
   const value = useMemo<WorkoutStoreValue>(() => {
     const hydrateSession: WorkoutStoreValue["hydrateSession"] = (nextSession) => {
@@ -472,7 +474,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       finishWorkout,
       resetDemoWorkout
     };
-  }, [auth.isConfigured, auth.user, session]);
+  }, [auth.isConfigured, auth.user, session, locale]);
 
   return <WorkoutStoreContext.Provider value={value}>{children}</WorkoutStoreContext.Provider>;
 }

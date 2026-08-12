@@ -8,6 +8,7 @@ import { Card, PrimaryButton } from "@/components/ui";
 import { useAuthStore } from "@/components/auth-provider";
 import { useProgramStore } from "@/components/program-provider";
 import { useWorkoutStore } from "@/components/workout-provider";
+import { useTranslator } from "@/components/locale-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getExerciseDefinition, countCompletedExercises } from "@/lib/workout-data";
 import { getOrCreateWorkoutSession, type WorkoutSessionSeed } from "@/lib/workout-session-service";
@@ -40,6 +41,7 @@ export default function WorkoutOverviewPage() {
   const params = useParams<{ sessionId?: string | string[] }>();
   const router = useRouter();
   const auth = useAuthStore();
+  const { locale } = useTranslator();
   const { session, hydrateSession } = useWorkoutStore();
   const { scheduledWorkouts, templates, templateExercises, getDaySummary, ready: programReady } = useProgramStore();
   const workoutId = resolveSessionId(params.sessionId);
@@ -144,6 +146,63 @@ export default function WorkoutOverviewPage() {
     };
   }, [auth.isConfigured, auth.ready, auth.user?.id, day, hydrateSession, programReady, router, scheduledWorkout, session.workoutSessionId, templateView, workoutId]);
 
+  const copy = {
+    en: {
+      goBack: "Go back",
+      moreOptions: "More options",
+      workoutSession: "Workout Session",
+      exercisesCompleted: "exercises completed",
+      prescription: "Prescription:",
+      lastSession: "Last Session",
+      readyToProgress: "Ready to Progress",
+      swap: "Swap",
+      startSession: "Start Session"
+    },
+    es: {
+      goBack: "Volver",
+      moreOptions: "Más opciones",
+      workoutSession: "Sesión de entrenamiento",
+      exercisesCompleted: "ejercicios completados",
+      prescription: "Prescripción:",
+      lastSession: "Sesión anterior",
+      readyToProgress: "Listo para progresar",
+      swap: "Cambiar",
+      startSession: "Empezar sesión"
+    },
+    ca: {
+      goBack: "Enrere",
+      moreOptions: "Més opcions",
+      workoutSession: "Sessió d'entrenament",
+      exercisesCompleted: "exercicis completats",
+      prescription: "Prescripció:",
+      lastSession: "Sessió anterior",
+      readyToProgress: "Preparat per progressar",
+      swap: "Canvia",
+      startSession: "Inicia la sessió"
+    },
+    de: {
+      goBack: "Zurück",
+      moreOptions: "Weitere Optionen",
+      workoutSession: "Trainingseinheit",
+      exercisesCompleted: "Übungen abgeschlossen",
+      prescription: "Vorgabe:",
+      lastSession: "Letzte Einheit",
+      readyToProgress: "Bereit für Fortschritt",
+      swap: "Tauschen",
+      startSession: "Sitzung starten"
+    }
+  }[locale as "en" | "es" | "ca" | "de"] ?? {
+    goBack: "Go back",
+    moreOptions: "More options",
+    workoutSession: "Workout Session",
+    exercisesCompleted: "exercises completed",
+    prescription: "Prescription:",
+    lastSession: "Last Session",
+    readyToProgress: "Ready to Progress",
+    swap: "Swap",
+    startSession: "Start Session"
+  };
+
   const backHref = day ? `/day/${day.dateKey}` : "/calendar";
 
   return (
@@ -151,15 +210,15 @@ export default function WorkoutOverviewPage() {
       shellClassName="screen-shell workout-shell"
       topbar={
         <header className="topbar workout-overview-topbar">
-          <Link aria-label="Go back" className="tap-target focus-ring" href={backHref}>
+          <Link aria-label={copy.goBack} className="tap-target focus-ring" href={backHref}>
             <span className="icon" aria-hidden="true">
               arrow_back
             </span>
           </Link>
           <div className="headline-md" style={{ fontSize: 18, lineHeight: "24px", fontWeight: 700 }}>
-            Workout Session
+            {copy.workoutSession}
           </div>
-          <button aria-label="More options" className="tap-target focus-ring" type="button">
+          <button aria-label={copy.moreOptions} className="tap-target focus-ring" type="button">
             <span className="icon" aria-hidden="true">
               more_vert
             </span>
@@ -183,7 +242,7 @@ export default function WorkoutOverviewPage() {
         <section className="section">
           <div className="row" style={{ marginBottom: 8 }}>
             <div className="eyebrow" style={{ margin: 0 }}>
-              {countCompletedExercises(session)} / {session.totalExercises} exercises completed
+              {countCompletedExercises(session)} / {session.totalExercises} {copy.exercisesCompleted}
             </div>
           </div>
           <div className="progress-track" style={{ height: 8 }}>
@@ -223,7 +282,7 @@ export default function WorkoutOverviewPage() {
 
                 <div className="p-16" style={{ display: "grid", gap: 12 }}>
                   <div className="row">
-                    <span className="caption">Prescription:</span>
+                    <span className="caption">{copy.prescription}</span>
                     <span className="body-md" style={{ fontWeight: 700 }}>
                       {definition.programSets} x {definition.programReps}{" "}
                       <span className="caption" style={{ marginLeft: 8 }}>
@@ -234,10 +293,10 @@ export default function WorkoutOverviewPage() {
                   <div className="workout-mini-panel">
                     <div className="row" style={{ marginBottom: 4 }}>
                       <span className="eyebrow" style={{ margin: 0 }}>
-                        Last Session
+                        {copy.lastSession}
                       </span>
                       <span className="pill" style={{ minHeight: 24, padding: "0 10px", background: "rgba(182,255,0,0.12)" }}>
-                        Ready to Progress
+                        {copy.readyToProgress}
                       </span>
                     </div>
                     <div className="body-md">{exercise.lastComparableSession}</div>
@@ -246,7 +305,7 @@ export default function WorkoutOverviewPage() {
                     <span className="icon" aria-hidden="true">
                       swap_horiz
                     </span>
-                    Swap
+                    {copy.swap}
                   </Link>
                 </div>
               </Card>
@@ -255,7 +314,7 @@ export default function WorkoutOverviewPage() {
         </section>
 
         <div className="sticky-action">
-          <PrimaryButton href={`/workout/${session.id}/exercise/${session.exercises[0].id}`}>Start Session</PrimaryButton>
+          <PrimaryButton href={`/workout/${session.id}/exercise/${session.exercises[0].id}`}>{copy.startSession}</PrimaryButton>
         </div>
       </main>
     </Screen>
