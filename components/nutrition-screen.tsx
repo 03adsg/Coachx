@@ -323,6 +323,10 @@ function MetricBar({ label, current, target }: { label: string; current: number;
   );
 }
 
+function formatMacroDisplay(summary: MacroSummary) {
+  return `${summary.calories} kcal · ${summary.protein}P / ${summary.carbs}C / ${summary.fat}F`;
+}
+
 function MealCard({
   slot,
   safetyProfile,
@@ -344,6 +348,7 @@ function MealCard({
   const canChoose = safeOptions.length > 0;
   const localizedSlot = presentation?.mealSlots[slot.id] ?? null;
   const slotLabel = localizedSlot?.label ?? copy.mealLabels[slot.id as keyof typeof copy.mealLabels] ?? slot.label;
+  const selectedOptionName = selectedOption ? presentation?.options[selectedOption.id]?.name ?? selectedOption.name : null;
   const statusLabel =
     slot.state === "completed"
       ? copy.completed
@@ -390,12 +395,12 @@ function MealCard({
             <span className="caption nutrition-meal-card__status">{statusLabel}</span>
           </div>
           <h3 className={`headline-md nutrition-meal-card__title ${slot.state === "completed" ? "nutrition-meal-card__title--complete" : ""}`.trim()}>
-            {slot.state === "completed" && selectedOption
-              ? selectedOption.name
+            {slot.state === "completed" && selectedOptionName
+              ? selectedOptionName
               : slot.isNext
                 ? copy.chooseMeal
-                : slot.id === "breakfast" && selectedOption
-                  ? selectedOption.name
+                : slot.id === "breakfast" && selectedOptionName
+                  ? selectedOptionName
                   : slotLabel}
           </h3>
           <p className="caption nutrition-meal-card__subtitle">
@@ -428,7 +433,7 @@ function MealCard({
             {actionLabel}
           </button>
           {slot.state === "completed" ? null : (
-            <span className="caption nutrition-meal-card__macro-summary">{formatMacro(slot.target)}</span>
+            <span className="caption nutrition-meal-card__macro-summary">{formatMacroDisplay(slot.target)}</span>
           )}
           {!canChoose && slot.state !== "selected" && slot.state !== "eaten" ? (
             <span className="caption nutrition-meal-card__macro-summary">{copy.noSafeOptions}</span>
