@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ChangeEvent, type InputHTMLAttributes, type ReactNode } from "react";
@@ -108,6 +108,152 @@ function SectionCard({
         {children}
       </div>
     </Card>
+  );
+}
+
+function profileSettingsCopyFor(locale: string) {
+  return (
+    {
+      en: {
+        languageTitle: "Language",
+        languageSubtitle: "App-wide language preference",
+        languageCopy: "Choose the language used across athlete navigation and settings.",
+        notificationsTitle: "Notifications",
+        notificationsSubtitle: "Choose what AthlexForce should remind you about.",
+        notificationsHeroTitle: "AthlexForce Notifications",
+        notificationsHeroSubtitle: "Training, progress and coaching reminders.",
+        notificationsPaused: "Delivery is paused. Your reminder preferences stay stored.",
+        permission: "Permission",
+        reminderIntensity: "Reminder intensity",
+        quietHours: "Quiet hours",
+        quietHoursEnabled: "Quiet hours enabled",
+        categories: "Categories",
+        timezonePrefix: "Timezone:",
+        notRequested: "Not requested",
+        notRequestedDetail: "No browser/iOS permission yet",
+        allowed: "Allowed",
+        allowedDetail: "Notifications can be delivered",
+        denied: "Denied",
+        deniedDetail: "Delivery is blocked by the device",
+        minimal: "Minimal",
+        minimalDetail: "Only the essential prompts",
+        recommended: "Recommended",
+        recommendedDetail: "Balanced support",
+        moreSupport: "More support",
+        moreSupportDetail: "Extra guidance without spam"
+      },
+      es: {
+        languageTitle: "Idioma",
+        languageSubtitle: "Preferencia de idioma de toda la app",
+        languageCopy: "Elige el idioma que se usarÃ¡ en la navegaciÃ³n y ajustes del atleta.",
+        notificationsTitle: "Notificaciones",
+        notificationsSubtitle: "Elige quÃ© debe recordarte AthlexForce.",
+        notificationsHeroTitle: "Notificaciones de AthlexForce",
+        notificationsHeroSubtitle: "Recordatorios de entrenamiento, progreso y coaching.",
+        notificationsPaused: "La entrega estÃ¡ en pausa. Tus preferencias de recordatorio siguen guardadas.",
+        permission: "Permiso",
+        reminderIntensity: "Intensidad de recordatorios",
+        quietHours: "Horas de silencio",
+        quietHoursEnabled: "Horas de silencio activadas",
+        categories: "CategorÃ­as",
+        timezonePrefix: "Zona horaria:",
+        notRequested: "No solicitado",
+        notRequestedDetail: "Sin permiso del navegador/iOS todavÃ­a",
+        allowed: "Permitido",
+        allowedDetail: "Se pueden entregar notificaciones",
+        denied: "Denegado",
+        deniedDetail: "El dispositivo bloquea la entrega",
+        minimal: "MÃ­nimo",
+        minimalDetail: "Solo los avisos esenciales",
+        recommended: "Recomendado",
+        recommendedDetail: "Apoyo equilibrado",
+        moreSupport: "MÃ¡s apoyo",
+        moreSupportDetail: "GuÃ­a extra sin saturar"
+      },
+      ca: {
+        languageTitle: "Idioma",
+        languageSubtitle: "PreferÃ¨ncia d'idioma de tota l'app",
+        languageCopy: "Tria l'idioma que s'utilitzarÃ  a la navegaciÃ³ i els ajustos de l'atleta.",
+        notificationsTitle: "Notificacions",
+        notificationsSubtitle: "Tria quÃ¨ t'ha de recordar AthlexForce.",
+        notificationsHeroTitle: "Notificacions d'AthlexForce",
+        notificationsHeroSubtitle: "Recordatoris d'entrenament, progrÃ©s i coaching.",
+        notificationsPaused: "L'enviament estÃ  en pausa. Les teves preferÃ¨ncies de recordatori continuen desades.",
+        permission: "PermÃ­s",
+        reminderIntensity: "Intensitat dels recordatoris",
+        quietHours: "Hores de silenci",
+        quietHoursEnabled: "Hores de silenci activades",
+        categories: "Categories",
+        timezonePrefix: "Zona horÃ ria:",
+        notRequested: "No solÂ·licitat",
+        notRequestedDetail: "Encara no hi ha permÃ­s del navegador/iOS",
+        allowed: "PermÃ¨s",
+        allowedDetail: "Es poden lliurar notificacions",
+        denied: "Denegat",
+        deniedDetail: "El dispositiu bloqueja l'enviament",
+        minimal: "MÃ­nim",
+        minimalDetail: "NomÃ©s els avisos essencials",
+        recommended: "Recomanat",
+        recommendedDetail: "Suport equilibrat",
+        moreSupport: "MÃ©s suport",
+        moreSupportDetail: "Guia extra sense saturar"
+      },
+      de: {
+        languageTitle: "Sprache",
+        languageSubtitle: "App-weite Spracheinstellung",
+        languageCopy: "WÃ¤hle die Sprache fÃ¼r Navigation und Einstellungen der Athletenansicht.",
+        notificationsTitle: "Benachrichtigungen",
+        notificationsSubtitle: "WÃ¤hle aus, woran dich AthlexForce erinnern soll.",
+        notificationsHeroTitle: "AthlexForce-Benachrichtigungen",
+        notificationsHeroSubtitle: "Erinnerungen fÃ¼r Training, Fortschritt und Coaching.",
+        notificationsPaused: "Die Zustellung ist pausiert. Deine Erinnerungs-Einstellungen bleiben gespeichert.",
+        permission: "Berechtigung",
+        reminderIntensity: "ErinnerungsintensitÃ¤t",
+        quietHours: "Ruhezeiten",
+        quietHoursEnabled: "Ruhezeiten aktiviert",
+        categories: "Kategorien",
+        timezonePrefix: "Zeitzone:",
+        notRequested: "Nicht angefragt",
+        notRequestedDetail: "Noch keine Browser-/iOS-Berechtigung",
+        allowed: "Erlaubt",
+        allowedDetail: "Benachrichtigungen kÃ¶nnen zugestellt werden",
+        denied: "Verweigert",
+        deniedDetail: "Die Zustellung ist auf dem GerÃ¤t blockiert",
+        minimal: "Minimal",
+        minimalDetail: "Nur die wichtigsten Hinweise",
+        recommended: "Empfohlen",
+        recommendedDetail: "Ausgewogene UnterstÃ¼tzung",
+        moreSupport: "Mehr UnterstÃ¼tzung",
+        moreSupportDetail: "ZusÃ¤tzliche Hinweise ohne Spam"
+      }
+    }[locale as "en" | "es" | "ca" | "de"] ?? {
+      languageTitle: "Language",
+      languageSubtitle: "App-wide language preference",
+      languageCopy: "Choose the language used across athlete navigation and settings.",
+      notificationsTitle: "Notifications",
+      notificationsSubtitle: "Choose what AthlexForce should remind you about.",
+      notificationsHeroTitle: "AthlexForce Notifications",
+      notificationsHeroSubtitle: "Training, progress and coaching reminders.",
+      notificationsPaused: "Delivery is paused. Your reminder preferences stay stored.",
+      permission: "Permission",
+      reminderIntensity: "Reminder intensity",
+      quietHours: "Quiet hours",
+      quietHoursEnabled: "Quiet hours enabled",
+      categories: "Categories",
+      timezonePrefix: "Timezone:",
+      notRequested: "Not requested",
+      notRequestedDetail: "No browser/iOS permission yet",
+      allowed: "Allowed",
+      allowedDetail: "Notifications can be delivered",
+      denied: "Denied",
+      deniedDetail: "Delivery is blocked by the device",
+      minimal: "Minimal",
+      minimalDetail: "Only the essential prompts",
+      recommended: "Recommended",
+      recommendedDetail: "Balanced support",
+      moreSupport: "More support",
+      moreSupportDetail: "Extra guidance without spam"
+    }
   );
 }
 
@@ -511,7 +657,7 @@ export function ProfilePreferencesIndexScreen() {
                   {pendingReview ? "Program update pending" : "No pending program updates"}
                 </div>
                 <div className="body-md" style={{ fontWeight: 700 }}>
-                  {pendingReview ? pendingReview.title : `${saved.profile.name} · profile saved`}
+                  {pendingReview ? pendingReview.title : `${saved.profile.name} Â· profile saved`}
                 </div>
               </div>
             </div>
@@ -717,12 +863,14 @@ export function ProfilePersonalInfoScreen() {
 
 export function ProfileLanguageScreen() {
   const { saved, commitLocale } = useProfileSettingsStore();
+  const { locale } = useTranslator();
+  const copy = profileSettingsCopyFor(locale);
 
   return (
-    <EditorShell backHref="/profile/preferences" title="Language" subtitle="App-wide language preference">
+    <EditorShell backHref="/profile/preferences" title={copy.languageTitle} subtitle={copy.languageSubtitle}>
       <section className="section">
         <Card className="p-16 language-settings-card" style={{ borderRadius: 20 }}>
-          <p className="caption language-settings-card__copy">Choose the language used across athlete navigation and settings.</p>
+          <p className="caption language-settings-card__copy">{copy.languageCopy}</p>
           <LanguageSelector value={saved.profile.locale} onChange={commitLocale} />
         </Card>
       </section>
@@ -733,6 +881,7 @@ export function ProfileLanguageScreen() {
 export function ProfileGoalsScreen() {
   const router = useRouter();
   const { saved, commitProfileSnapshot, saveState } = useProfileSettingsStore();
+  const { t } = useTranslator();
   const [draft, setDraft] = useSyncedProfileDraft(saved);
   const guard = useUnsavedGuard(dirtyFromState(saved, draft), "/profile/preferences");
 
@@ -751,7 +900,7 @@ export function ProfileGoalsScreen() {
   };
 
   return (
-    <EditorShell backHref="/profile/preferences" title="Goals" subtitle="Main goal and ordered priorities" brand>
+    <EditorShell backHref="/profile/preferences" title={t("onboarding.goalsTitle")} subtitle={t("onboarding.goalsCaption")} brand>
       <section className="section stack">
         <ChoiceGrid
           oneColumn
@@ -795,6 +944,7 @@ export function ProfileGoalsScreen() {
 export function ProfileTrainingPreferencesScreen() {
   const router = useRouter();
   const { saved, commitProfileSnapshot, saveState } = useProfileSettingsStore();
+  const { t } = useTranslator();
   const [draft, setDraft] = useSyncedProfileDraft(saved);
   const guard = useUnsavedGuard(dirtyFromState(saved, draft), "/profile/preferences");
 
@@ -828,7 +978,7 @@ export function ProfileTrainingPreferencesScreen() {
   };
 
   return (
-    <EditorShell backHref="/profile/preferences" title="Edit Training Preferences" subtitle="Update anything that has changed." brand>
+    <EditorShell backHref="/profile/preferences" title={t("onboarding.trainingPreferencesTitle")} subtitle={t("onboarding.trainingPreferencesSubtitle")} brand>
       <section className="section stack">
         <SectionCard title="Training days">
           <TextField
@@ -913,6 +1063,7 @@ export function ProfileTrainingPreferencesScreen() {
 export function ProfileScheduleLifestyleScreen() {
   const router = useRouter();
   const { saved, commitProfileSnapshot, saveState } = useProfileSettingsStore();
+  const { t } = useTranslator();
   const [draft, setDraft] = useSyncedProfileDraft(saved);
   const guard = useUnsavedGuard(dirtyFromState(saved, draft), "/profile/preferences");
 
@@ -922,7 +1073,7 @@ export function ProfileScheduleLifestyleScreen() {
   };
 
   return (
-    <EditorShell backHref="/profile/preferences" title="Schedule & Lifestyle" subtitle="Work, sleep, stress, and reminders" brand>
+    <EditorShell backHref="/profile/preferences" title={t("onboarding.scheduleTitle")} subtitle={t("onboarding.scheduleSubtitle")} brand>
       <section className="section stack">
         <SectionCard title="Work and energy">
           <TextAreaField label="Work schedule" value={draft.scheduleLifestyle.workSchedule} onChange={(value) => setDraft((current) => ({ ...current, scheduleLifestyle: { ...current.scheduleLifestyle, workSchedule: value } }))} />
@@ -964,6 +1115,7 @@ export function ProfileScheduleLifestyleScreen() {
 export function ProfileNutritionPreferencesScreen() {
   const router = useRouter();
   const { saved, commitProfileSnapshot, saveState } = useProfileSettingsStore();
+  const { t } = useTranslator();
   const [draft, setDraft] = useSyncedProfileDraft(saved);
   const guard = useUnsavedGuard(dirtyFromState(saved, draft), "/profile/preferences");
 
@@ -987,7 +1139,7 @@ export function ProfileNutritionPreferencesScreen() {
   };
 
   return (
-    <EditorShell backHref="/profile/preferences" title="Nutrition Preferences" subtitle="Preferences only. Prescription remains separate." brand>
+    <EditorShell backHref="/profile/preferences" title={t("onboarding.nutritionTitle")} subtitle={t("onboarding.nutritionSubtitle")} brand>
       <section className="section stack">
         <SectionCard title="Routine">
           <TextField label="Meal frequency" value={draft.nutritionPreferences.mealFrequency} onChange={(value) => setDraft((current) => ({ ...current, nutritionPreferences: { ...current.nutritionPreferences, mealFrequency: value } }))} />
@@ -1023,6 +1175,7 @@ export function ProfileNutritionPreferencesScreen() {
 export function ProfileHealthLimitationsScreen() {
   const router = useRouter();
   const { saved, commitProfileSnapshot, saveState } = useProfileSettingsStore();
+  const { t } = useTranslator();
   const [draft, setDraft] = useSyncedProfileDraft(saved);
   const guard = useUnsavedGuard(dirtyFromState(saved, draft), "/profile/preferences");
 
@@ -1046,7 +1199,7 @@ export function ProfileHealthLimitationsScreen() {
   };
 
   return (
-    <EditorShell backHref="/profile/preferences" title="Health & Limitations" subtitle="Update any pain or movement limitations." brand>
+    <EditorShell backHref="/profile/preferences" title={t("onboarding.healthTitle")} subtitle={t("onboarding.healthSubtitle")} brand>
       <section className="section stack">
         <SwitchRow
           title="Active pain"
@@ -1170,6 +1323,27 @@ function NotificationRow({
 export function ProfileNotificationsScreen() {
   const router = useRouter();
   const { notifications, commitNotifications } = useProfileSettingsStore();
+  const { locale } = useTranslator();
+  const copy = profileSettingsCopyFor(locale);
+  const startLabel = locale === "es" ? "Inicio" : locale === "ca" ? "Inici" : locale === "de" ? "Start" : "Start";
+  const endLabel = locale === "es" ? "Fin" : locale === "ca" ? "Fi" : locale === "de" ? "Ende" : "End";
+  const adaptiveAlertsTitle = locale === "es" ? "Alertas adaptativas" : locale === "ca" ? "Alertes adaptatives" : locale === "de" ? "Adaptive Hinweise" : "Adaptive alerts";
+  const adaptiveAlertsCopy =
+    locale === "es"
+      ? "Calendario, entrenamiento y recordatorios de check-in se coordinan con el estado del atleta."
+      : locale === "ca"
+        ? "Calendari, entrenament i recordatoris de check-in es coordinen amb l'estat de l'atleta."
+        : locale === "de"
+          ? "Kalender-, Workout- und Check-in-Erinnerungen bleiben mit dem Athletenstatus abgestimmt."
+          : "Calendar, workout, and check-in reminders stay coordinated with the athlete state.";
+  const adaptiveAlertsDetail =
+    locale === "es"
+      ? "Las preferencias de recordatorio se guardan de forma remota y se pueden restaurar despues de cambiar el interruptor principal."
+      : locale === "ca"
+        ? "Les preferencies de recordatori es guarden remotament i es poden restaurar despres de canviar l'interruptor principal."
+        : locale === "de"
+          ? "Die Erinnerungs-Einstellungen werden remote gespeichert und koennen nach dem Umschalten wiederhergestellt werden."
+          : "Reminder preferences are stored remotely and can be restored after toggling the master switch.";
   const [draft, setDraft] = useState<NotificationSettings>(notifications);
   const dirty = JSON.stringify(notifications) !== JSON.stringify(draft);
   const guard = useUnsavedGuard(dirty, "/profile");
@@ -1180,14 +1354,14 @@ export function ProfileNotificationsScreen() {
   };
 
   return (
-            <EditorShell backHref="/profile" title="NOTIFICATIONS" subtitle="Choose what AthlexForce should remind you about." brand={false}>
+    <EditorShell backHref="/profile" title={copy.notificationsTitle} subtitle={copy.notificationsSubtitle} brand={false}>
       <section className="section stack">
         <Card className="p-16" style={{ background: "var(--surface-elevated)" }}>
           <div className="row" style={{ alignItems: "center", gap: 16 }}>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div className="headline-md" style={{ fontSize: 28 }}>ATHLEXFORCE NOTIFICATIONS</div>
+              <div className="headline-md" style={{ fontSize: 28 }}>{copy.notificationsHeroTitle}</div>
               <p className="caption" style={{ marginTop: 10 }}>
-                Training, progress and coaching reminders.
+                {copy.notificationsHeroSubtitle}
               </p>
             </div>
             <button
@@ -1220,59 +1394,61 @@ export function ProfileNotificationsScreen() {
           </div>
           {!draft.masterEnabled ? (
             <p className="caption" style={{ marginTop: 12 }}>
-              Delivery is paused. Your reminder preferences stay stored.
+              {copy.notificationsPaused}
             </p>
           ) : null}
         </Card>
 
-        <SectionCard title="Permission">
+        <SectionCard title={copy.permission}>
           <ChoiceGrid
             oneColumn
             selected={draft.permission}
             onSelect={(value) => setDraft((current) => ({ ...current, permission: value as NotificationSettings["permission"] }))}
             items={[
-              { id: "not-requested", label: "Not requested", description: "No browser/iOS permission yet" },
-              { id: "allowed", label: "Allowed", description: "Notifications can be delivered" },
-              { id: "denied", label: "Denied", description: "Delivery is blocked by the device" }
+              { id: "not-requested", label: copy.notRequested, description: copy.notRequestedDetail },
+              { id: "allowed", label: copy.allowed, description: copy.allowedDetail },
+              { id: "denied", label: copy.denied, description: copy.deniedDetail }
             ]}
           />
         </SectionCard>
 
-        <SectionCard title="Reminder intensity">
+        <SectionCard title={copy.reminderIntensity}>
           <ChoiceGrid
             oneColumn
             selected={draft.intensity}
             onSelect={(value) => setDraft((current) => ({ ...current, intensity: value as NotificationSettings["intensity"] }))}
             items={[
-              { id: "minimal", label: "Minimal", description: "Only the essential prompts" },
-              { id: "recommended", label: "Recommended", description: "Balanced support" },
-              { id: "more-support", label: "More support", description: "Extra guidance without spam" }
+              { id: "minimal", label: copy.minimal, description: copy.minimalDetail },
+              { id: "recommended", label: copy.recommended, description: copy.recommendedDetail },
+              { id: "more-support", label: copy.moreSupport, description: copy.moreSupportDetail }
             ]}
           />
         </SectionCard>
 
-        <SectionCard title="Quiet hours">
+        <SectionCard title={copy.quietHours}>
           <div className="stack" style={{ gap: 12 }}>
             <SwitchRow
-              title="Quiet hours enabled"
-              subtitle={`${draft.quietHours.start} → ${draft.quietHours.end}`}
+              title={copy.quietHoursEnabled}
+              subtitle={`${draft.quietHours.start} - ${draft.quietHours.end}`}
               checked={draft.quietHours.enabled}
               onToggle={() => setDraft((current) => ({ ...current, quietHours: { ...current.quietHours, enabled: !current.quietHours.enabled } }))}
             />
             <div className="row" style={{ gap: 12 }}>
               <div style={{ flex: 1 }}>
-                <TextField label="Start" value={draft.quietHours.start} onChange={(value) => setDraft((current) => ({ ...current, quietHours: { ...current.quietHours, start: value } }))} />
+                <TextField label={startLabel} value={draft.quietHours.start} onChange={(value) => setDraft((current) => ({ ...current, quietHours: { ...current.quietHours, start: value } }))} />
               </div>
               <div style={{ flex: 1 }}>
-                <TextField label="End" value={draft.quietHours.end} onChange={(value) => setDraft((current) => ({ ...current, quietHours: { ...current.quietHours, end: value } }))} />
+                <TextField label={endLabel} value={draft.quietHours.end} onChange={(value) => setDraft((current) => ({ ...current, quietHours: { ...current.quietHours, end: value } }))} />
               </div>
             </div>
-            <div className="caption">Timezone: {draft.quietHours.timezone}</div>
+            <div className="caption">
+              {copy.timezonePrefix} {draft.quietHours.timezone}
+            </div>
           </div>
         </SectionCard>
 
         <div className="stack" style={{ gap: 12 }}>
-          <div className="eyebrow">Categories</div>
+          <div className="eyebrow">{copy.categories}</div>
           {draft.categories.map((category) => (
             <NotificationRow
               key={category.id}
@@ -1288,12 +1464,12 @@ export function ProfileNotificationsScreen() {
           ))}
         </div>
 
-        <SectionCard title="Adaptive alerts">
+        <SectionCard title={adaptiveAlertsTitle}>
           <div className="body-md" style={{ fontWeight: 700 }}>
-            Calendar, workout, and check-in reminders stay coordinated with the athlete state.
+            {adaptiveAlertsCopy}
           </div>
           <p className="caption" style={{ marginTop: 8 }}>
-            Reminder preferences are stored remotely and can be restored after toggling the master switch.
+            {adaptiveAlertsDetail}
           </p>
         </SectionCard>
       </section>
@@ -1306,7 +1482,6 @@ export function ProfileNotificationsScreen() {
     </EditorShell>
   );
 }
-
 export function ProfileImpactReviewScreen() {
   const router = useRouter();
   const { pendingReview, saved, applyPendingReview, clearPendingReview } = useProfileSettingsStore();
@@ -1368,7 +1543,7 @@ export function ProfileImpactReviewScreen() {
                     </div>
                     <div style={{ flex: 1, textAlign: "right" }}>
                       <div className="body-md" style={{ fontWeight: 700 }}>{change.before}</div>
-                      <div className="caption" style={{ marginTop: 4 }}>→ {change.after}</div>
+                      <div className="caption" style={{ marginTop: 4 }}>â†’ {change.after}</div>
                     </div>
                   </div>
                 ))

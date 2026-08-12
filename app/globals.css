@@ -1932,25 +1932,177 @@ img {
 }
 
 .language-selector {
+  position: relative;
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
-.language-selector > .eyebrow {
-  margin: 0;
-}
-
-.language-selector--compact {
-  grid-template-columns: auto minmax(140px, 184px);
+.language-selector__label-row {
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
-.language-selector--compact .input-field {
-  min-height: 44px;
+.language-selector__eyebrow {
+  margin: 0;
+}
+
+.language-selector__trigger {
+  width: 100%;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--border-quiet);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+    var(--surface-default);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  text-align: left;
+}
+
+.language-selector__trigger:hover {
+  border-color: rgba(182, 255, 0, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 0 0 1px rgba(182, 255, 0, 0.08);
+}
+
+.language-selector__trigger:active {
+  transform: translateY(1px);
+}
+
+.language-selector__trigger-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.language-selector__selection {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.language-selector__flag {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgba(182, 255, 0, 0.08);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.language-selector__value {
+  min-width: 0;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.language-selector__status {
+  color: var(--text-secondary);
+}
+
+.language-selector__chevron {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+}
+
+.language-selector__menu {
+  position: absolute;
+  z-index: 30;
+  inset-inline: 0;
+  top: calc(100% + 8px);
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 20px;
+  border: 1px solid var(--border-quiet);
+  background: rgba(9, 9, 9, 0.98);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  max-height: min(320px, calc(100dvh - var(--safe-top) - var(--safe-bottom) - 120px));
+  overflow: auto;
+  overscroll-behavior: contain;
+  backdrop-filter: blur(18px);
+}
+
+.language-selector--compact .language-selector__trigger {
+  min-height: 54px;
+  border-radius: 16px;
+}
+
+.language-selector--compact .language-selector__value {
+  font-size: 14px;
+}
+
+.language-selector--compact .language-selector__menu {
+  max-height: min(280px, calc(100dvh - var(--safe-top) - var(--safe-bottom) - 96px));
+}
+
+.language-selector__option {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
   border-radius: 14px;
-  padding-inline: 12px 36px;
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: left;
+}
+
+.language-selector__option:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(182, 255, 0, 0.14);
+}
+
+.language-selector__option.selected {
+  background: rgba(182, 255, 0, 0.08);
+  border-color: rgba(182, 255, 0, 0.24);
+}
+
+.language-selector__option-copy {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.language-selector__option-text {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.language-selector__option-name {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.language-selector__option-code {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.language-selector__option-check {
+  flex: 0 0 auto;
+  color: var(--accent-primary);
+  font-family: "Material Symbols Outlined";
+  font-size: 22px;
+  line-height: 1;
+  font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24;
 }
 
 .language-settings-card {

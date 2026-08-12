@@ -1,37 +1,165 @@
 "use client";
 
-import { useTranslator } from "@/components/locale-provider";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useTranslator, getLocaleFlag } from "@/components/locale-provider";
 import { supportedLocales, type Locale } from "@/lib/i18n";
-import { getLocaleFlag } from "@/components/locale-provider";
 
-export function LanguageSelector({ value, onChange, compact = false }: { value: Locale; onChange: (locale: Locale) => void; compact?: boolean }) {
-  const { t } = useTranslator();
+type LanguageSelectorProps = {
+  value: Locale;
+  onChange: (locale: Locale) => void;
+  compact?: boolean;
+};
+
+export function LanguageSelector({ value, onChange, compact = false }: LanguageSelectorProps) {
+  const { locale, t } = useTranslator();
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const optionRefs = useRef<Record<Locale, HTMLButtonElement | null>>({
+    es: null,
+    ca: null,
+    en: null,
+    de: null
+  });
+  const menuId = useId();
+  const [open, setOpen] = useState(false);
+
+  const label = t("common.language");
+  const selectedLocale = useMemo(() => supportedLocales.find((entry) => entry === value) ?? "es", [value]);
+  const selectedName = t(`locale.${selectedLocale}`);
+  const selectedFlag = getLocaleFlag(selectedLocale);
+  const appliedInstantlyCopy =
+    {
+      en: "Applied instantly",
+      es: "Se aplica al instante",
+      ca: "S'aplica a l'instant",
+      de: "Wird sofort angewendet"
+    }[locale as "en" | "es" | "ca" | "de"] ?? "Applied instantly";
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [value]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const current = optionRefs.current[value];
+    current?.focus();
+  }, [open, value]);
+
+  const options = useMemo(
+    () =>
+      supportedLocales.map((locale) => ({
+        locale,
+        name: t(`locale.${locale}`),
+        flag: getLocaleFlag(locale)
+      })),
+    [t]
+  );
+
+  const selectLocale = (locale: Locale) => {
+    onChange(locale);
+    setOpen(false);
+    triggerRef.current?.focus();
+  };
 
   return (
-    <fieldset className={`language-selector ${compact ? "language-selector--compact" : ""}`.trim()}>
-      <legend className="eyebrow">{t("common.language")}</legend>
-      <div className="language-selector__grid" role="radiogroup" aria-label={t("common.language")}>
-        {supportedLocales.map((locale) => {
-          const selected = locale === value;
-
-          return (
-            <button
-              key={locale}
-              type="button"
-              role="radio"
-              aria-checked={selected}
-              aria-label={`${getLocaleFlag(locale)} ${t(`locale.${locale}`)}`}
-              className={`language-selector__option focus-ring ${selected ? "selected" : ""}`.trim()}
-              onClick={() => onChange(locale)}
-            >
-              <span className="language-selector__flag" aria-hidden="true">
-                {getLocaleFlag(locale)}
-              </span>
-              <span className="language-selector__label">{t(`locale.${locale}`)}</span>
-            </button>
-          );
-        })}
+    <div ref={rootRef} className={`language-selector ${compact ? "language-selector--compact" : ""}`.trim()}>
+      <div className="language-selector__label-row">
+        <div className="eyebrow language-selector__eyebrow">{label}</div>
       </div>
-    </fieldset>
+
+      <button
+        ref={triggerRef}
+        aria-controls={menuId}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        className="language-selector__trigger focus-ring"
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setOpen(true);
+          }
+        }}
+      >
+        <span className="language-selector__trigger-copy">
+          <span className="language-selector__selection">
+            <span className="language-selector__flag" aria-hidden="true">
+              {selectedFlag}
+            </span>
+            <span className="language-selector__value">{selectedName}</span>
+          </span>
+          <span className="caption language-selector__status">{appliedInstantlyCopy}</span>
+        </span>
+        <span className="icon language-selector__chevron" aria-hidden="true">
+          {open ? "expand_less" : "expand_more"}
+        </span>
+      </button>
+
+      {open ? (
+        <div id={menuId} className="language-selector__menu elevated" role="radiogroup" aria-label={label}>
+          {options.map((option) => {
+            const isSelected = option.locale === value;
+
+            return (
+              <button
+                key={option.locale}
+                ref={(element) => {
+                  optionRefs.current[option.locale] = element;
+                }}
+                aria-checked={isSelected}
+                className={`language-selector__option focus-ring ${isSelected ? "selected" : ""}`.trim()}
+                onClick={() => selectLocale(option.locale)}
+                role="radio"
+                type="button"
+              >
+                <span className="language-selector__option-copy">
+                  <span className="language-selector__flag" aria-hidden="true">
+                    {option.flag}
+                  </span>
+                  <span className="language-selector__option-text">
+                    <span className="language-selector__option-name">{option.name}</span>
+                    <span className="caption language-selector__option-code">{option.locale.toUpperCase()}</span>
+                  </span>
+                </span>
+                <span className="language-selector__option-check" aria-hidden="true">
+                  {isSelected ? "check" : ""}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
   );
 }
