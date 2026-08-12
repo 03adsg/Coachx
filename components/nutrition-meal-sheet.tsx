@@ -67,6 +67,48 @@ function copyFor(locale: string) {
   );
 }
 
+type NutritionSheetPresentationCopy = {
+  mealLabels: { breakfast: string; lunch: string; snack: string; dinner: string };
+  options: Record<string, { name: string; summary: string }>;
+};
+
+function nutritionSheetPresentationFor(locale: string): NutritionSheetPresentationCopy | null {
+  if (locale !== "es") {
+    return null;
+  }
+
+  return {
+    mealLabels: { breakfast: "Desayuno", lunch: "Comida", snack: "Merienda", dinner: "Cena" },
+    options: {
+      "eggs-avocado-toast": { name: "Tostada de huevos y aguacate", summary: "Desayuno saciante con energía estable." },
+      "greek-yogurt-parfait": { name: "Parfait de yogur griego", summary: "Opción más ligera con proteína y fruta." },
+      "overnight-oats-whey": { name: "Avena nocturna + whey", summary: "Desayuno portátil con un reparto de macros fiable." },
+      "chicken-rice-bowl": { name: "Bol de pollo con arroz", summary: "Proteína magra, arroz jazmín y verduras verdes." },
+      "lean-beef-potato": { name: "Ternera magra + patata", summary: "Combustible de entrenamiento con recalentado fácil." },
+      "turkey-wrap": { name: "Wrap de pavo", summary: "Comida portátil con macros equilibrados." },
+      "chicken-pasta": { name: "Pasta con pollo", summary: "Opción más alta en carbohidratos para la ventana principal de entrenamiento." },
+      "greek-yogurt-whey": { name: "Yogur griego + whey", summary: "Proteína rápida y poco tiempo de preparación." },
+      "cottage-cheese-berries": { name: "Requesón con bayas", summary: "Merienda cremosa con saciedad estable." },
+      "protein-shake-banana": { name: "Batido de proteína + plátano", summary: "La opción con menos fricción cuando te mueves entre sesiones." },
+      "chicken-sweet-potato": { name: "Pollo + boniato", summary: "Cena equilibrada que replica la copia exportada actual." },
+      "salmon-rice": { name: "Salmón + arroz", summary: "Opción de recuperación con más grasa y porcionado sencillo." },
+      "turkey-chili": { name: "Chili de pavo", summary: "Cena batch-friendly con final caliente." },
+      "protein-oats": { name: "Avena proteica", summary: "Avena caliente con un final alto en proteína." },
+      "egg-white-wrap": { name: "Wrap de claras", summary: "Desayuno magro para un día más ligero." },
+      "yogurt-granola-rest": { name: "Yogur + granola", summary: "Opción sencilla con proteína suficiente para la recuperación." },
+      "turkey-potato-rest": { name: "Pavo + patata", summary: "Plato de recuperación sencillo con ingredientes familiares." },
+      "salmon-salad-rest": { name: "Ensalada de salmón", summary: "Comida alta en proteína con menos carga de carbohidratos." },
+      "chicken-bowl-rest": { name: "Bol de pollo", summary: "Bol práctico para la estructura del día de descanso." },
+      "cottage-cheese-rest": { name: "Requesón con bayas", summary: "Merienda alta en proteína y de preparación rápida." },
+      "yogurt-pumpkin-rest": { name: "Yogur + semillas de calabaza", summary: "Merienda fácil con un perfil de carbohidratos más ligero." },
+      "protein-shake-rest": { name: "Batido de proteína", summary: "Opción rápida cuando el día va cargado." },
+      "cod-rice-rest": { name: "Bacalao + arroz", summary: "Cena ligera que mantiene la proteína alta." },
+      "turkey-pasta-rest": { name: "Pasta con pavo", summary: "Cena cómoda para una noche de menor intensidad." },
+      "salmon-veg-rest": { name: "Salmón + verduras", summary: "Cena con más grasa y preparación simple." }
+    }
+  };
+}
+
 export function NutritionMealSheet({
   slot,
   options,
@@ -80,6 +122,7 @@ export function NutritionMealSheet({
   const reducedMotion = useReducedMotion();
   const { locale } = useTranslator();
   const copy = copyFor(locale);
+  const presentation = nutritionSheetPresentationFor(locale);
 
   useEffect(() => {
     setPortalRoot(document.body);
@@ -111,7 +154,7 @@ export function NutritionMealSheet({
   }, [onClose]);
 
   const selectedOption = options.find((option) => option.id === selectedOptionId) ?? null;
-  const slotLabel = copy.mealLabels[slot.id as keyof typeof copy.mealLabels] ?? slot.label;
+  const slotLabel = presentation?.mealLabels[slot.id as keyof typeof presentation.mealLabels] ?? copy.mealLabels[slot.id as keyof typeof copy.mealLabels] ?? slot.label;
 
   if (!portalRoot) {
     return null;
@@ -161,10 +204,10 @@ export function NutritionMealSheet({
                 <div className="nutrition-option-card__top">
                   <div>
                     <div className="body-md" style={{ fontWeight: 700 }}>
-                      {option.name}
+                      {presentation?.options[option.id]?.name ?? option.name}
                     </div>
                     <div className="caption" style={{ marginTop: 4 }}>
-                      {option.summary}
+                      {presentation?.options[option.id]?.summary ?? option.summary}
                     </div>
                   </div>
                   <span className="pill nutrition-option-card__pill" style={{ minHeight: 24 }}>

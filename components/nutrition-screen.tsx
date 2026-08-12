@@ -153,6 +153,152 @@ function nutritionCopyFor(locale: string) {
   );
 }
 
+type NutritionPresentationCopy = {
+  dayTitle: { training: string; rest: string };
+  daySubtitle: { training: string; rest: string };
+  coachNote: string;
+  mealSlots: Record<string, { label: string; description: string }>;
+  options: Record<string, { name: string; summary: string }>;
+};
+
+function nutritionPresentationFor(locale: string): NutritionPresentationCopy | null {
+  if (locale !== "es") {
+    return null;
+  }
+
+  return {
+    dayTitle: {
+      training: "Glúteos + Isquios",
+      rest: "Día de recuperación"
+    },
+    daySubtitle: {
+      training: "Entrenamiento A",
+      rest: "Movilidad + pasos"
+    },
+    coachNote: "Mantén la mayor parte de los carbohidratos alrededor de tu ventana de entrenamiento hoy para maximizar el rendimiento y la recuperación.",
+    mealSlots: {
+      breakfast: {
+        label: "Desayuno",
+        description: "Carga proteína y carbohidratos antes de la sesión de entrenamiento."
+      },
+      lunch: {
+        label: "Comida",
+        description: "Comida principal de entrenamiento con cuatro opciones equivalentes."
+      },
+      snack: {
+        label: "Merienda",
+        description: "Merienda de recuperación sencilla que mantiene el día en objetivo."
+      },
+      dinner: {
+        label: "Cena",
+        description: "Cena de recuperación con una proteína principal y un carbohidrato principal."
+      }
+    },
+    options: {
+      "eggs-avocado-toast": {
+        name: "Tostada de huevos y aguacate",
+        summary: "Desayuno saciante con energía estable."
+      },
+      "greek-yogurt-parfait": {
+        name: "Parfait de yogur griego",
+        summary: "Opción más ligera con proteína y fruta."
+      },
+      "overnight-oats-whey": {
+        name: "Avena nocturna + whey",
+        summary: "Desayuno portátil con un reparto de macros fiable."
+      },
+      "chicken-rice-bowl": {
+        name: "Bol de pollo con arroz",
+        summary: "Proteína magra, arroz jazmín y verduras verdes."
+      },
+      "lean-beef-potato": {
+        name: "Ternera magra + patata",
+        summary: "Combustible de entrenamiento con recalentado fácil."
+      },
+      "turkey-wrap": {
+        name: "Wrap de pavo",
+        summary: "Comida portátil con macros equilibrados."
+      },
+      "chicken-pasta": {
+        name: "Pasta con pollo",
+        summary: "Opción más alta en carbohidratos para la ventana principal de entrenamiento."
+      },
+      "greek-yogurt-whey": {
+        name: "Yogur griego + whey",
+        summary: "Proteína rápida y poco tiempo de preparación."
+      },
+      "cottage-cheese-berries": {
+        name: "Requesón con bayas",
+        summary: "Merienda cremosa con saciedad estable."
+      },
+      "protein-shake-banana": {
+        name: "Batido de proteína + plátano",
+        summary: "La opción con menos fricción cuando te mueves entre sesiones."
+      },
+      "chicken-sweet-potato": {
+        name: "Pollo + boniato",
+        summary: "Cena equilibrada que replica la copia exportada actual."
+      },
+      "salmon-rice": {
+        name: "Salmón + arroz",
+        summary: "Opción de recuperación con más grasa y porcionado sencillo."
+      },
+      "turkey-chili": {
+        name: "Chili de pavo",
+        summary: "Cena batch-friendly con final caliente."
+      },
+      "protein-oats": {
+        name: "Avena proteica",
+        summary: "Avena caliente con un final alto en proteína."
+      },
+      "egg-white-wrap": {
+        name: "Wrap de claras",
+        summary: "Desayuno magro para un día más ligero."
+      },
+      "yogurt-granola-rest": {
+        name: "Yogur + granola",
+        summary: "Opción sencilla con proteína suficiente para la recuperación."
+      },
+      "turkey-potato-rest": {
+        name: "Pavo + patata",
+        summary: "Plato de recuperación sencillo con ingredientes familiares."
+      },
+      "salmon-salad-rest": {
+        name: "Ensalada de salmón",
+        summary: "Comida alta en proteína con menos carga de carbohidratos."
+      },
+      "chicken-bowl-rest": {
+        name: "Bol de pollo",
+        summary: "Bol práctico para la estructura del día de descanso."
+      },
+      "cottage-cheese-rest": {
+        name: "Requesón con bayas",
+        summary: "Merienda alta en proteína y de preparación rápida."
+      },
+      "yogurt-pumpkin-rest": {
+        name: "Yogur + semillas de calabaza",
+        summary: "Merienda fácil con un perfil de carbohidratos más ligero."
+      },
+      "protein-shake-rest": {
+        name: "Batido de proteína",
+        summary: "Opción rápida cuando el día va cargado."
+      },
+      "cod-rice-rest": {
+        name: "Bacalao + arroz",
+        summary: "Cena ligera que mantiene la proteína alta."
+      },
+      "turkey-pasta-rest": {
+        name: "Pasta con pavo",
+        summary: "Cena cómoda para una noche de menor intensidad."
+      },
+      "salmon-veg-rest": {
+        name: "Salmón + verduras",
+        summary: "Cena con más grasa y preparación simple."
+      }
+    }
+  };
+}
+
 function formatMacro(summary: MacroSummary) {
   return `${summary.calories} kcal · ${summary.protein}P / ${summary.carbs}C / ${summary.fat}F`;
 }
@@ -192,10 +338,12 @@ function MealCard({
 }) {
   const { locale } = useTranslator();
   const copy = nutritionCopyFor(locale);
+  const presentation = nutritionPresentationFor(locale);
   const selectedOption = slot.selectedOptionId ? slot.options.find((option) => option.id === slot.selectedOptionId) ?? null : null;
   const safeOptions = getSafeMealOptions(slot, safetyProfile);
   const canChoose = safeOptions.length > 0;
-  const slotLabel = copy.mealLabels[slot.id as keyof typeof copy.mealLabels] ?? slot.label;
+  const localizedSlot = presentation?.mealSlots[slot.id] ?? null;
+  const slotLabel = localizedSlot?.label ?? copy.mealLabels[slot.id as keyof typeof copy.mealLabels] ?? slot.label;
   const statusLabel =
     slot.state === "completed"
       ? copy.completed
@@ -250,7 +398,11 @@ function MealCard({
                   ? selectedOption.name
                   : slotLabel}
           </h3>
-          <p className="caption nutrition-meal-card__subtitle">{selectedOption ? selectedOption.summary : slot.description}</p>
+          <p className="caption nutrition-meal-card__subtitle">
+            {selectedOption
+              ? presentation?.options[selectedOption.id]?.summary ?? selectedOption.summary
+              : localizedSlot?.description ?? slot.description}
+          </p>
         </div>
         <span className="nutrition-meal-card__macro">{slot.target.calories} kcal</span>
       </div>
@@ -290,6 +442,7 @@ function MealCard({
 function NutritionDayContent({ dateKey }: { dateKey: string }) {
   const { t, locale } = useTranslator();
   const copy = nutritionCopyFor(locale);
+  const presentation = nutritionPresentationFor(locale);
   const { day, selectMealOption, markMealEaten, markMealCompleted, addHydration, toggleSupplement } = useNutritionSession();
   const [openSlotId, setOpenSlotId] = useState<string | null>(null);
   const [draftOptionId, setDraftOptionId] = useState<string | null>(null);
@@ -345,7 +498,7 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
           <Card className="nutrition-hero-card p-16 elevated">
             <div className="nutrition-hero-card__badge-row">
               <span className="pill">{copy.dayType[day.dayType]}</span>
-              <span className="nutrition-hero-card__subtitle">{copy.daySubtitle[day.dayType]}</span>
+              <span className="nutrition-hero-card__subtitle">{presentation?.daySubtitle[day.dayType] ?? copy.daySubtitle[day.dayType]}</span>
             </div>
             <div className="nutrition-hero-card__target">
               <span className="metric nutrition-hero-card__calories">{day.target.calories.toLocaleString()}</span>
@@ -431,9 +584,9 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
           </Card>
 
           <Card className="nutrition-support-card p-16">
-            <div className="nutrition-support-card__label">
-              <span className="nutrition-support-card__icon nutrition-support-card__icon--purple" aria-hidden="true">
-                medication
+              <div className="nutrition-support-card__label">
+                <span className="nutrition-support-card__icon nutrition-support-card__icon--purple" aria-hidden="true">
+                  medication
               </span>
               {copy.supplements}
             </div>
@@ -473,7 +626,7 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
               <div className="eyebrow" style={{ marginBottom: 6, color: "var(--accent-primary)" }}>
                 {copy.coachNote}
               </div>
-              <p className="caption nutrition-note-card__copy">{day.coachNote}</p>
+              <p className="caption nutrition-note-card__copy">{presentation?.coachNote ?? day.coachNote}</p>
             </div>
           </Card>
         </section>
