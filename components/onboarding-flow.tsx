@@ -31,7 +31,11 @@ function FlowShell({
   rightLabel?: string;
   rightHref?: string;
 }) {
+  const { locale } = useLocale();
+  const { t } = useTranslator();
   const { startStep } = useOnboardingStore();
+  const sectionWord = locale === "es" ? "SECCIÓN" : locale === "ca" ? "SECCIÓ" : locale === "de" ? "ABSCHNITT" : "SECTION";
+  const ofWord = locale === "de" ? "VON" : locale === "es" || locale === "ca" ? "DE" : "OF";
   const index = step === "entry" ? 1 : [
     "intro",
     "profile",
@@ -60,7 +64,7 @@ function FlowShell({
         <OnboardingStepHeader
           title={title}
           subtitle={subtitle}
-          stepLabel={step === "entry" ? "ENTRY" : `${step.replace(/-/g, " ").toUpperCase()} · SECTION ${index} OF ${total}`}
+          stepLabel={step === "entry" ? t("auth.entryAthleteHeading").toUpperCase() : `${step.replace(/-/g, " ").toUpperCase()} · ${sectionWord} ${index} ${ofWord} ${total}`}
           backHref={backHref}
           rightLabel={rightLabel}
           rightHref={rightHref}
@@ -286,7 +290,7 @@ export function EntryScreen() {
           <section className="section">
             <Card className="p-16 onboarding-callout">
               <div className="stack" style={{ gap: 12 }}>
-                <div className="eyebrow" style={{ color: "#ffd166" }}>SESSION</div>
+                <div className="eyebrow" style={{ color: "#ffd166" }}>{t("auth.entrySession").toUpperCase()}</div>
                 <h2 className="headline-md" style={{ margin: 0 }}>{t("auth.entryBootErrorTitle")}</h2>
                 <p className="caption">{t("auth.entryBootErrorSubtitle")}</p>
                 <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
@@ -330,7 +334,7 @@ export function EntryScreen() {
             <div className="stack" style={{ gap: 16 }}>
               <div className="stack" style={{ gap: 10 }}>
                 <div className="eyebrow">{t("auth.entrySignInHeading")}</div>
-                <p className="caption">{auth.statusLabel}</p>
+                <p className="caption">{auth.isConfigured ? t("auth.entryStatusReady") : t("auth.entryStatusUnavailable")}</p>
                 {status ? <p className="caption" style={{ color: "#ffd166" }}>{status}</p> : null}
               </div>
 

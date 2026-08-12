@@ -445,7 +445,7 @@ function buildVolumeLabel(templateCode: string) {
     case "RECOVERY":
       return "2.4k";
     default:
-      return "â€”";
+      return "—";
   }
 }
 
@@ -789,15 +789,15 @@ export function getProgramDaySummary(bundle: ProgramBundleView, dateKey: string)
       workoutBadge: "Rest Day",
       workoutType: "Recovery and reset",
       duration: "0 min",
-      volume: "â€”",
+      volume: "—",
       sets: "0",
       workoutCount: "0 exercises",
       primaryTarget: "Recovery",
       secondaryTarget: "Hydration",
       coachInsight: "No scheduled workout today. Keep the recovery rhythm steady.",
       nutritionCalories: "2050 kcal",
-      macros: "140P Â· 220C Â· 60F",
-      cardio: "Zone 2 Â· 20 min",
+      macros: "140P · 220C · 60F",
+      cardio: "Zone 2 · 20 min",
       habits: "Daily habits 0/5",
       muscleFocus: ["core"],
       anatomyKey: resolveAnatomyVisual(["core"]).key,
@@ -835,8 +835,8 @@ export function getProgramDaySummary(bundle: ProgramBundleView, dateKey: string)
     secondaryTarget: String(secondaryMuscle).replace(/^[a-z]/, (char) => char.toUpperCase()),
     coachInsight: buildInsight(template?.code ?? "WORKOUT_A"),
     nutritionCalories: "2050 kcal",
-    macros: "140P Â· 220C Â· 60F",
-    cardio: "Zone 2 Â· 20 min",
+    macros: "140P · 220C · 60F",
+    cardio: "Zone 2 · 20 min",
     habits: "Daily habits 0/5",
     muscleFocus: focus,
     anatomyKey: anatomy.key,

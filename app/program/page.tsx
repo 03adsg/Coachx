@@ -41,7 +41,7 @@ export default function ProgramPage() {
         <section className="section">
           <div className="eyebrow">{t("program.myProgram")}</div>
           <h1 className="headline-lg" style={{ marginTop: 6 }}>
-            {program.phaseLabel} Â· {program.status.toUpperCase()}
+            {program.phaseLabel} · {program.status.toUpperCase()}
           </h1>
         </section>
 
@@ -56,9 +56,9 @@ export default function ProgramPage() {
         </section>
 
         <section className="section stack">
-          <SectionCard title={t("program.weeklyStructure")}>{program.weeklyStructure.join(" Â· ")}</SectionCard>
-          <SectionCard title={t("program.workoutTemplates")}>{program.workoutTemplates.join(" Â· ")}</SectionCard>
-          <SectionCard title={t("program.keyMovements")}>{program.keyMovements.join(" Â· ")}</SectionCard>
+          <SectionCard title={t("program.weeklyStructure")}>{program.weeklyStructure.join(" · ")}</SectionCard>
+          <SectionCard title={t("program.workoutTemplates")}>{program.workoutTemplates.join(" · ")}</SectionCard>
+          <SectionCard title={t("program.keyMovements")}>{program.keyMovements.join(" · ")}</SectionCard>
         </section>
 
         <section className="section stack">
@@ -68,7 +68,7 @@ export default function ProgramPage() {
           <SectionCard title={t("program.recovery")}>{program.recovery}</SectionCard>
           <SectionCard title={t("program.habits")}>{program.habits}</SectionCard>
           <SectionCard title={t("program.checkIn")}>{program.checkIn}</SectionCard>
-          <SectionCard title={t("program.reviewTimeline")}>{program.baselineTimeline.join(" Â· ")}</SectionCard>
+          <SectionCard title={t("program.reviewTimeline")}>{program.baselineTimeline.join(" · ")}</SectionCard>
         </section>
 
         <section className="section stack">
