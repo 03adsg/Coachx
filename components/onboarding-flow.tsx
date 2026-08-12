@@ -12,7 +12,7 @@ import { useOnboardingStore } from "@/components/onboarding-provider";
 import { useAuthStore } from "@/components/auth-provider";
 import { type OnboardingStepId, type BaselinePose } from "@/lib/onboarding-data";
 import { LanguageSelector } from "@/components/language-selector";
-import { useLocale } from "@/components/locale-provider";
+import { useLocale, useTranslator } from "@/components/locale-provider";
 
 function FlowShell({
   step,
@@ -193,6 +193,7 @@ export function EntryScreen() {
   const searchParams = useSearchParams();
   const { entryDestination, setProfile } = useOnboardingStore();
   const { locale, setLocale } = useLocale();
+  const { t } = useTranslator();
   const auth = useAuthStore();
   const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
   const [email, setEmail] = useState("");
@@ -211,13 +212,13 @@ export function EntryScreen() {
   useEffect(() => {
     const authNotice = searchParams.get("auth");
     if (authNotice === "password-updated") {
-      setStatus("Password updated. Sign in again with your new password.");
+      setStatus(t("auth.entryPasswordUpdated"));
     } else if (authNotice === "error") {
-      setStatus("The sign-in link could not be completed. Try again.");
+      setStatus(t("auth.entrySignInLinkError"));
     } else if (authNotice === "cancelled") {
-      setStatus("Google sign-in was cancelled. Nothing changed.");
+      setStatus(t("auth.entryGoogleCancelled"));
     }
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -256,20 +257,20 @@ export function EntryScreen() {
       <Screen shellClassName="onboarding-shell" topbar={<header className="topbar center"><BrandLogo variant="full" width={156} alt="AthlexForce" /></header>}>
         <main className="content">
           <section className="section">
-            <div className="eyebrow" style={{ color: "#b6ff00" }}>ATHLETE ENTRY</div>
-            <h1 className="headline-xl" style={{ marginTop: 12 }}>Welcome back</h1>
+            <div className="eyebrow" style={{ color: "#b6ff00" }}>{t("auth.entryAthleteHeading").toUpperCase()}</div>
+            <h1 className="headline-xl" style={{ marginTop: 12 }}>{t("auth.entryWelcomeBack")}</h1>
             <p className="body-lg muted" style={{ marginTop: 12 }}>
-              Restoring your secure session.
+              {t("auth.entryRestoringSession")}
             </p>
           </section>
           <section className="section">
             <Card className="p-16 onboarding-callout">
               <div className="stack" style={{ gap: 12 }}>
-                <div className="eyebrow">Session</div>
+                <div className="eyebrow">{t("auth.entrySession")}</div>
                 <div className="body-md" style={{ fontWeight: 700 }}>
-                  Checking your saved sign-in state.
+                  {t("auth.entryCheckingSession")}
                 </div>
-                <p className="caption">You will be routed to the right place once the session is ready.</p>
+                <p className="caption">{t("auth.entrySessionReady")}</p>
               </div>
             </Card>
           </section>
@@ -286,11 +287,11 @@ export function EntryScreen() {
             <Card className="p-16 onboarding-callout">
               <div className="stack" style={{ gap: 12 }}>
                 <div className="eyebrow" style={{ color: "#ffd166" }}>SESSION</div>
-                <h2 className="headline-md" style={{ margin: 0 }}>We couldn't restore your session.</h2>
-                <p className="caption">Try again, or continue with a fresh sign-in.</p>
+                <h2 className="headline-md" style={{ margin: 0 }}>{t("auth.entryBootErrorTitle")}</h2>
+                <p className="caption">{t("auth.entryBootErrorSubtitle")}</p>
                 <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
                   <button type="button" className="button-secondary focus-ring" onClick={auth.retrySessionRestore}>
-                    Try again
+                    {t("auth.entryBootErrorTryAgain")}
                   </button>
                   <button
                     type="button"
@@ -300,7 +301,7 @@ export function EntryScreen() {
                       setStatus(null);
                     }}
                   >
-                    Sign in
+                    {t("auth.entryBootErrorSignIn")}
                   </button>
                 </div>
               </div>
@@ -309,10 +310,10 @@ export function EntryScreen() {
         ) : null}
 
         <section className="section">
-          <div className="eyebrow" style={{ color: "#b6ff00" }}>ATHLETE ENTRY</div>
-          <h1 className="headline-xl" style={{ marginTop: 12 }}>Welcome back</h1>
+          <div className="eyebrow" style={{ color: "#b6ff00" }}>{t("auth.entryAthleteHeading").toUpperCase()}</div>
+          <h1 className="headline-xl" style={{ marginTop: 12 }}>{t("auth.entryWelcomeBack")}</h1>
           <p className="body-lg muted" style={{ marginTop: 12 }}>
-            Your plan is waiting.
+            {t("auth.entryPlanWaiting")}
           </p>
         </section>
 
@@ -328,30 +329,30 @@ export function EntryScreen() {
           <Card className="p-16 onboarding-callout">
             <div className="stack" style={{ gap: 16 }}>
               <div className="stack" style={{ gap: 10 }}>
-                <div className="eyebrow">Sign in</div>
+                <div className="eyebrow">{t("auth.entrySignInHeading")}</div>
                 <p className="caption">{auth.statusLabel}</p>
                 {status ? <p className="caption" style={{ color: "#ffd166" }}>{status}</p> : null}
               </div>
 
               <PrimaryButton className="focus-ring google-auth-button" onClick={handleGoogleSignIn} disabled={googleLoading || submitting}>
                 <GoogleMark className="google-mark" />
-                <span className="google-auth-button__label">{googleLoading ? "Connecting..." : "Continue with Google"}</span>
+                <span className="google-auth-button__label">{googleLoading ? t("auth.connectingGoogle") : t("auth.continueWithGoogle")}</span>
               </PrimaryButton>
 
               <div className="row" style={{ alignItems: "center", gap: 12 }}>
                 <div className="auth-divider" aria-hidden="true" />
-                <span className="caption" style={{ whiteSpace: "nowrap" }}>or</span>
+                <span className="caption" style={{ whiteSpace: "nowrap" }}>{t("auth.entryDivider")}</span>
                 <div className="auth-divider" aria-hidden="true" />
               </div>
 
               <form className="stack" onSubmit={handleSubmit}>
                 <label className="stack" style={{ gap: 8 }}>
-                  <span className="eyebrow">Email</span>
+                  <span className="eyebrow">{t("auth.email")}</span>
                   <input className="input-field focus-ring" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
                 </label>
 
                 <label className="stack" style={{ gap: 8 }}>
-                  <span className="eyebrow">Password</span>
+                  <span className="eyebrow">{t("auth.password")}</span>
                   <div className="row" style={{ alignItems: "stretch", gap: 8 }}>
                     <input
                       className="input-field focus-ring"
@@ -367,7 +368,7 @@ export function EntryScreen() {
                       className="focus-ring"
                       type="button"
                       style={{ minWidth: 44, paddingInline: 0 }}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
                       onClick={() => setShowPassword((current) => !current)}
                     >
                       <span className="icon" aria-hidden="true">
@@ -385,35 +386,35 @@ export function EntryScreen() {
                     style={{ width: 18, height: 18 }}
                   />
                   <span className="body-md" style={{ fontWeight: 600 }}>
-                    Keep me signed in
+                    {t("auth.entryKeepSignedIn")}
                   </span>
                 </label>
 
                 <PrimaryButton className="focus-ring" type="submit" disabled={submitting}>
-                  {submitting ? "Signing in..." : mode === "sign-in" ? "Sign in" : "Create account"}
+                  {submitting ? t("common.loading") : mode === "sign-in" ? t("auth.entrySignInButton") : t("auth.entryCreateAccount")}
                 </PrimaryButton>
               </form>
 
               <div className="row" style={{ flexWrap: "wrap", justifyContent: "space-between", gap: 12 }}>
                 <button type="button" className="text-button focus-ring" onClick={handleForgotPassword}>
-                  Forgot password?
+                  {t("auth.entryForgotPassword")}
                 </button>
                 {mode === "sign-in" ? (
                   <button type="button" className="auth-inline-action focus-ring" onClick={() => setMode("sign-up")}>
-                    <span className="auth-inline-action__lead">No account yet?</span>
-                    <span className="auth-inline-action__cta">Create account</span>
+                    <span className="auth-inline-action__lead">{t("auth.entryNoAccountYet")}</span>
+                    <span className="auth-inline-action__cta">{t("auth.entryCreateAccount")}</span>
                   </button>
                 ) : (
                   <button type="button" className="text-button focus-ring" onClick={() => setMode("sign-in")}>
-                    Already have an account? Sign in
+                    {t("auth.entryAlreadyHaveAccount")}
                   </button>
                 )}
               </div>
 
               {mode === "sign-up" ? (
-                <p className="caption">Create an account with the same secure Google or email sign-in path.</p>
+                <p className="caption">{t("auth.entrySignUpHelper")}</p>
               ) : (
-                <p className="caption">Email sign-in uses the same secure session route as Google.</p>
+                <p className="caption">{t("auth.entrySignInHelper")}</p>
               )}
             </div>
           </Card>

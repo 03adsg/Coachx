@@ -65,6 +65,36 @@ type MessageTree = {
     signUp: string;
     logout: string;
     signedInAthlete: string;
+    entryWelcomeBack: string;
+    entryRestoringSession: string;
+    entrySession: string;
+    entryCheckingSession: string;
+    entrySessionReady: string;
+    entryPlanWaiting: string;
+    entryBootErrorTitle: string;
+    entryBootErrorSubtitle: string;
+    entryBootErrorTryAgain: string;
+    entryBootErrorSignIn: string;
+    entryAthleteHeading: string;
+    entrySignInHeading: string;
+    continueWithGoogle: string;
+    connectingGoogle: string;
+    entryDivider: string;
+    email: string;
+    password: string;
+    showPassword: string;
+    hidePassword: string;
+    entryKeepSignedIn: string;
+    entrySignInButton: string;
+    entryForgotPassword: string;
+    entryNoAccountYet: string;
+    entryCreateAccount: string;
+    entryAlreadyHaveAccount: string;
+    entrySignUpHelper: string;
+    entrySignInHelper: string;
+    entryPasswordUpdated: string;
+    entrySignInLinkError: string;
+    entryGoogleCancelled: string;
   };
   onboarding: {
     title: string;
@@ -234,7 +264,37 @@ const messages: Record<Locale, MessageTree> = {
       signIn: "Sign in",
       signUp: "Sign up",
       logout: "Logout",
-      signedInAthlete: "Signed in athlete"
+      signedInAthlete: "Signed in athlete",
+      entryWelcomeBack: "Welcome back",
+      entryRestoringSession: "Restoring your secure session.",
+      entrySession: "Session",
+      entryCheckingSession: "Checking your saved sign-in state.",
+      entrySessionReady: "You will be routed to the right place once the session is ready.",
+      entryPlanWaiting: "Your plan is waiting.",
+      entryBootErrorTitle: "We couldn't restore your session.",
+      entryBootErrorSubtitle: "Try again, or continue with a fresh sign-in.",
+      entryBootErrorTryAgain: "Try again",
+      entryBootErrorSignIn: "Sign in",
+      entryAthleteHeading: "Athlete entry",
+      entrySignInHeading: "Sign in",
+      continueWithGoogle: "Continue with Google",
+      connectingGoogle: "Connecting...",
+      entryDivider: "or",
+      email: "Email",
+      password: "Password",
+      showPassword: "Show password",
+      hidePassword: "Hide password",
+      entryKeepSignedIn: "Keep me signed in",
+      entrySignInButton: "Sign in",
+      entryForgotPassword: "Forgot password?",
+      entryNoAccountYet: "No account yet?",
+      entryCreateAccount: "Create account",
+      entryAlreadyHaveAccount: "Already have an account? Sign in",
+      entrySignUpHelper: "Create an account with the same secure Google or email sign-in path.",
+      entrySignInHelper: "Email sign-in uses the same secure session route as Google.",
+      entryPasswordUpdated: "Password updated. Sign in again with your new password.",
+      entrySignInLinkError: "The sign-in link could not be completed. Try again.",
+      entryGoogleCancelled: "Google sign-in was cancelled. Nothing changed."
     },
     onboarding: {
       title: "Onboarding",
@@ -396,7 +456,7 @@ const messages: Record<Locale, MessageTree> = {
     },
     locale: { es: "EspaÃ±ol", ca: "CatalÃ ", en: "InglÃ©s", de: "AlemÃ¡n" },
     nav: { today: "Hoy", calendar: "Calendario", nutrition: "NutriciÃ³n", progress: "Progreso", profile: "Perfil" },
-    auth: { entryTitle: "AthlexForce", entrySubtitle: "Una experiencia premium para atletas y coaches", signIn: "Entrar", signUp: "Crear cuenta", logout: "Salir", signedInAthlete: "Atleta autenticado" },
+    auth: { entryTitle: "AthlexForce", entrySubtitle: "Una experiencia premium para atletas y coaches", signIn: "Entrar", signUp: "Crear cuenta", logout: "Salir", signedInAthlete: "Atleta autenticado", entryWelcomeBack: "Bienvenido de nuevo", entryRestoringSession: "Restaurando tu sesión segura.", entrySession: "Sesión", entryCheckingSession: "Comprobando tu estado de inicio guardado.", entrySessionReady: "Se te llevará al lugar correcto cuando la sesión esté lista.", entryPlanWaiting: "Tu plan te está esperando.", entryBootErrorTitle: "No hemos podido restaurar tu sesión.", entryBootErrorSubtitle: "Inténtalo de nuevo o continúa con un inicio limpio.", entryBootErrorTryAgain: "Probar otra vez", entryBootErrorSignIn: "Entrar", entryAthleteHeading: "Entrada de atleta", entrySignInHeading: "Iniciar sesión", continueWithGoogle: "Continuar con Google", connectingGoogle: "Conectando...", entryDivider: "o", email: "Correo electrónico", password: "Contraseña", showPassword: "Mostrar contraseña", hidePassword: "Ocultar contraseña", entryKeepSignedIn: "Mantener la sesión iniciada", entrySignInButton: "Entrar", entryForgotPassword: "¿Has olvidado la contraseña?", entryNoAccountYet: "¿Todavía no tienes cuenta?", entryCreateAccount: "Crear cuenta", entryAlreadyHaveAccount: "¿Ya tienes cuenta? Inicia sesión", entrySignUpHelper: "Crea una cuenta con la misma ruta segura de Google o correo.", entrySignInHelper: "El correo usa la misma ruta de sesión segura que Google.", entryPasswordUpdated: "Contraseña actualizada. Inicia sesión de nuevo con tu nueva contraseña.", entrySignInLinkError: "No se ha podido completar el enlace de inicio de sesión. Inténtalo de nuevo.", entryGoogleCancelled: "El inicio con Google se ha cancelado. No se ha cambiado nada." },
     onboarding: {
       title: "Onboarding",
       subtitle: "Configura el atleta antes de revelar el plan.",
@@ -557,7 +617,7 @@ const messages: Record<Locale, MessageTree> = {
     },
     locale: { es: "CastellÃ ", ca: "CatalÃ ", en: "AnglÃ¨s", de: "Alemany" },
     nav: { today: "Avui", calendar: "Calendari", nutrition: "NutriciÃ³", progress: "ProgrÃ©s", profile: "Perfil" },
-    auth: { entryTitle: "AthlexForce", entrySubtitle: "Una experiÃ¨ncia premium per a atletes i coaches", signIn: "Inicia sessiÃ³", signUp: "Crea un compte", logout: "Surt", signedInAthlete: "Atleta autenticat" },
+    auth: { entryTitle: "AthlexForce", entrySubtitle: "Una experiència premium per a atletes i coaches", signIn: "Inicia sessió", signUp: "Crea un compte", logout: "Surt", signedInAthlete: "Atleta autenticat", entryWelcomeBack: "Benvingut de nou", entryRestoringSession: "Restaurant la teva sessió segura.", entrySession: "Sessió", entryCheckingSession: "Comprovant l'estat d'inici de sessió guardat.", entrySessionReady: "Se t'enviarà al lloc correcte quan la sessió estigui llesta.", entryPlanWaiting: "El teu pla t'està esperant.", entryBootErrorTitle: "No hem pogut restaurar la sessió.", entryBootErrorSubtitle: "Torna-ho a provar o continua amb un inici net.", entryBootErrorTryAgain: "Torna-ho a provar", entryBootErrorSignIn: "Inicia sessió", entryAthleteHeading: "Entrada d'atleta", entrySignInHeading: "Inicia sessió", continueWithGoogle: "Continua amb Google", connectingGoogle: "Connectant...", entryDivider: "o", email: "Correu electrònic", password: "Contrasenya", showPassword: "Mostra la contrasenya", hidePassword: "Amaga la contrasenya", entryKeepSignedIn: "Manté la sessió iniciada", entrySignInButton: "Inicia sessió", entryForgotPassword: "Has oblidat la contrasenya?", entryNoAccountYet: "Encara no tens compte?", entryCreateAccount: "Crea un compte", entryAlreadyHaveAccount: "Ja tens un compte? Inicia sessió", entrySignUpHelper: "Crea un compte amb la mateixa ruta segura de Google o correu.", entrySignInHelper: "El correu usa la mateixa ruta de sessió segura que Google.", entryPasswordUpdated: "Contrasenya actualitzada. Inicia sessió de nou amb la teva nova contrasenya.", entrySignInLinkError: "No s'ha pogut completar l'enllaç d'inici de sessió. Torna-ho a provar.", entryGoogleCancelled: "L'inici amb Google s'ha cancel·lat. No s'ha canviat res." },
     onboarding: {
       title: "Onboarding",
       subtitle: "Configura l'atleta abans de revelar el pla.",
@@ -718,7 +778,7 @@ const messages: Record<Locale, MessageTree> = {
     },
     locale: { es: "Spanisch", ca: "Katalanisch", en: "Englisch", de: "Deutsch" },
     nav: { today: "Heute", calendar: "Kalender", nutrition: "ErnÃ¤hrung", progress: "Fortschritt", profile: "Profil" },
-    auth: { entryTitle: "AthlexForce", entrySubtitle: "Ein hochwertiges Trainingserlebnis fÃ¼r Athleten und Coaches", signIn: "Anmelden", signUp: "Konto erstellen", logout: "Abmelden", signedInAthlete: "Angemeldeter Athlet" },
+    auth: { entryTitle: "AthlexForce", entrySubtitle: "Ein hochwertiges Trainingserlebnis für Athleten und Coaches", signIn: "Anmelden", signUp: "Konto erstellen", logout: "Abmelden", signedInAthlete: "Angemeldeter Athlet", entryWelcomeBack: "Willkommen zurück", entryRestoringSession: "Wir stellen deine sichere Sitzung wieder her.", entrySession: "Sitzung", entryCheckingSession: "Wir prüfen deinen gespeicherten Anmeldestatus.", entrySessionReady: "Du wirst weitergeleitet, sobald die Sitzung bereit ist.", entryPlanWaiting: "Dein Plan wartet.", entryBootErrorTitle: "Wir konnten deine Sitzung nicht wiederherstellen.", entryBootErrorSubtitle: "Versuche es erneut oder fahre mit einer frischen Anmeldung fort.", entryBootErrorTryAgain: "Erneut versuchen", entryBootErrorSignIn: "Anmelden", entryAthleteHeading: "Athleten-Start", entrySignInHeading: "Anmelden", continueWithGoogle: "Mit Google fortfahren", connectingGoogle: "Verbinden...", entryDivider: "oder", email: "E-Mail", password: "Passwort", showPassword: "Passwort anzeigen", hidePassword: "Passwort verbergen", entryKeepSignedIn: "Angemeldet bleiben", entrySignInButton: "Anmelden", entryForgotPassword: "Passwort vergessen?", entryNoAccountYet: "Noch kein Konto?", entryCreateAccount: "Konto erstellen", entryAlreadyHaveAccount: "Schon ein Konto? Anmelden", entrySignUpHelper: "Erstelle ein Konto über denselben sicheren Google- oder E-Mail-Weg.", entrySignInHelper: "Die E-Mail-Anmeldung nutzt denselben sicheren Sitzungsweg wie Google.", entryPasswordUpdated: "Passwort aktualisiert. Melde dich mit deinem neuen Passwort erneut an.", entrySignInLinkError: "Der Anmeldelink konnte nicht abgeschlossen werden. Versuche es erneut.", entryGoogleCancelled: "Die Google-Anmeldung wurde abgebrochen. Es wurde nichts geändert." },
     onboarding: {
       title: "Onboarding",
       subtitle: "Lege das Athleten-Setup fest, bevor der Plan angezeigt wird.",
