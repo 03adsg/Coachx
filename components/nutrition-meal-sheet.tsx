@@ -20,6 +20,7 @@ function copyFor(locale: string) {
   return (
     {
       en: {
+        mealLabels: { breakfast: "Breakfast", lunch: "Lunch", snack: "Snack", dinner: "Dinner" },
         chooseOption: "Choose option",
         close: "Close meal chooser",
         cancel: "Cancel",
@@ -28,6 +29,7 @@ function copyFor(locale: string) {
         target: "target"
       },
       es: {
+        mealLabels: { breakfast: "Desayuno", lunch: "Comida", snack: "Merienda", dinner: "Cena" },
         chooseOption: "Elegir opción",
         close: "Cerrar selector",
         cancel: "Cancelar",
@@ -36,6 +38,7 @@ function copyFor(locale: string) {
         target: "objetivo"
       },
       ca: {
+        mealLabels: { breakfast: "Esmorzar", lunch: "Dinar", snack: "Berenar", dinner: "Sopar" },
         chooseOption: "Tria opció",
         close: "Tanca el selector",
         cancel: "Cancel·la",
@@ -44,6 +47,7 @@ function copyFor(locale: string) {
         target: "objectiu"
       },
       de: {
+        mealLabels: { breakfast: "Frühstück", lunch: "Mittagessen", snack: "Snack", dinner: "Abendessen" },
         chooseOption: "Option wählen",
         close: "Auswahl schließen",
         cancel: "Abbrechen",
@@ -52,6 +56,7 @@ function copyFor(locale: string) {
         target: "Ziel"
       }
     }[locale as "en" | "es" | "ca" | "de"] ?? {
+      mealLabels: { breakfast: "Breakfast", lunch: "Lunch", snack: "Snack", dinner: "Dinner" },
       chooseOption: "Choose option",
       close: "Close meal chooser",
       cancel: "Cancel",
@@ -106,6 +111,7 @@ export function NutritionMealSheet({
   }, [onClose]);
 
   const selectedOption = options.find((option) => option.id === selectedOptionId) ?? null;
+  const slotLabel = copy.mealLabels[slot.id as keyof typeof copy.mealLabels] ?? slot.label;
 
   if (!portalRoot) {
     return null;
@@ -128,7 +134,7 @@ export function NutritionMealSheet({
               {copy.chooseOption}
             </div>
             <h3 className="headline-md" id="nutrition-meal-sheet-title">
-              {slot.label}
+              {slotLabel}
             </h3>
             <p className="caption" style={{ marginTop: 6 }}>
               {slot.target.calories} kcal {copy.target} · {slot.target.protein}P / {slot.target.carbs}C / {slot.target.fat}F

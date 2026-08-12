@@ -8,7 +8,6 @@ import { useTranslator } from "@/components/locale-provider";
 import { NutritionMealSheet } from "@/components/nutrition-meal-sheet";
 import { NutritionProvider, useNutritionSession } from "@/components/nutrition-provider";
 import {
-  getMealSlotStatusLabel,
   getNutritionDay,
   getSafeMealOptions,
   type MacroSummary,
@@ -21,6 +20,137 @@ type NutritionScreenMode = "ready" | "loading" | "empty" | "error";
 interface NutritionScreenProps {
   dateKey: string;
   mode: NutritionScreenMode;
+}
+
+function nutritionCopyFor(locale: string) {
+  return (
+    {
+      en: {
+        dayType: { training: "TRAINING DAY", rest: "REST DAY" },
+        daySubtitle: { training: "Workout A", rest: "Mobility + steps" },
+        mealLabels: { breakfast: "Breakfast", lunch: "Lunch", snack: "Snack", dinner: "Dinner" },
+        target: "TARGET",
+        dailyProgress: "PROGRESS",
+        today: "TODAY",
+        hydration: "HYDRATION",
+        supplements: "SUPPLEMENTS",
+        coachNote: "COACH NOTE",
+        calories: "Calories",
+        protein: "PROTEIN",
+        carbs: "CARBS",
+        fat: "FAT",
+        viewOptions: "VIEW OPTIONS",
+        markEaten: "MARK EATEN",
+        markComplete: "MARK COMPLETE",
+        chooseMeal: "CHOOSE MEAL",
+        completed: "COMPLETED",
+        next: "NEXT",
+        noSafeOptions: "No safe options available",
+        planned: "PLANNED",
+        selected: "SELECTED",
+        eaten: "EATEN"
+      },
+      es: {
+        dayType: { training: "DÍA DE ENTRENAMIENTO", rest: "DÍA DE DESCANSO" },
+        daySubtitle: { training: "Entrenamiento A", rest: "Movilidad + pasos" },
+        mealLabels: { breakfast: "Desayuno", lunch: "Comida", snack: "Merienda", dinner: "Cena" },
+        target: "OBJETIVO",
+        dailyProgress: "PROGRESO",
+        today: "HOY",
+        hydration: "HIDRATACIÓN",
+        supplements: "SUPLEMENTOS",
+        coachNote: "NOTA DEL COACH",
+        calories: "Calorías",
+        protein: "PROTEÍNA",
+        carbs: "CARBOHIDRATOS",
+        fat: "GRASA",
+        viewOptions: "VER OPCIONES",
+        markEaten: "MARCAR COMO COMIDO",
+        markComplete: "MARCAR COMO COMPLETADO",
+        chooseMeal: "ELEGIR COMIDA",
+        completed: "COMPLETADO",
+        next: "SIGUIENTE",
+        noSafeOptions: "No hay opciones seguras",
+        planned: "PLANIFICADO",
+        selected: "SELECCIONADO",
+        eaten: "COMIDO"
+      },
+      ca: {
+        dayType: { training: "DIA D'ENTRENAMENT", rest: "DIA DE DESCANS" },
+        daySubtitle: { training: "Entrenament A", rest: "Mobilitat + passos" },
+        mealLabels: { breakfast: "Esmorzar", lunch: "Dinar", snack: "Berenar", dinner: "Sopar" },
+        target: "OBJECTIU",
+        dailyProgress: "PROGRÉS",
+        today: "AVUI",
+        hydration: "HIDRATACIÓ",
+        supplements: "SUPLEMENTS",
+        coachNote: "NOTA DEL COACH",
+        calories: "Calories",
+        protein: "PROTEÏNA",
+        carbs: "HIDRATS DE CARBONI",
+        fat: "GREIX",
+        viewOptions: "VEURE OPCIONS",
+        markEaten: "MARCAR COM MENJAT",
+        markComplete: "MARCAR COM COMPLETAT",
+        chooseMeal: "TRIAR ÀPAT",
+        completed: "COMPLETAT",
+        next: "SEGÜENT",
+        noSafeOptions: "No hi ha opcions segures",
+        planned: "PLANIFICAT",
+        selected: "SELECCIONAT",
+        eaten: "MENJAT"
+      },
+      de: {
+        dayType: { training: "TRAININGSTAG", rest: "RUHETAG" },
+        daySubtitle: { training: "Workout A", rest: "Mobilität + Schritte" },
+        mealLabels: { breakfast: "Frühstück", lunch: "Mittagessen", snack: "Snack", dinner: "Abendessen" },
+        target: "ZIEL",
+        dailyProgress: "FORTSCHRITT",
+        today: "HEUTE",
+        hydration: "HYDRATION",
+        supplements: "SUPPLEMENTS",
+        coachNote: "COACH-NOTIZ",
+        calories: "Kalorien",
+        protein: "PROTEIN",
+        carbs: "KOHLENHYDRATE",
+        fat: "FETT",
+        viewOptions: "OPTIONEN ANSEHEN",
+        markEaten: "ALS GEGESSEN MARKIEREN",
+        markComplete: "ALS ABGESCHLOSSEN MARKIEREN",
+        chooseMeal: "MAHLZEIT WÄHLEN",
+        completed: "ABGESCHLOSSEN",
+        next: "NÄCHSTE",
+        noSafeOptions: "Keine sicheren Optionen verfügbar",
+        planned: "GEPLANT",
+        selected: "AUSGEWÄHLT",
+        eaten: "GEGESSEN"
+      }
+    }[locale as "en" | "es" | "ca" | "de"] ?? {
+      dayType: { training: "TRAINING DAY", rest: "REST DAY" },
+      daySubtitle: { training: "Workout A", rest: "Mobility + steps" },
+      mealLabels: { breakfast: "Breakfast", lunch: "Lunch", snack: "Snack", dinner: "Dinner" },
+      target: "TARGET",
+      dailyProgress: "PROGRESS",
+      today: "TODAY",
+      hydration: "HYDRATION",
+      supplements: "SUPPLEMENTS",
+      coachNote: "COACH NOTE",
+      calories: "Calories",
+      protein: "PROTEIN",
+      carbs: "CARBS",
+      fat: "FAT",
+      viewOptions: "VIEW OPTIONS",
+      markEaten: "MARK EATEN",
+      markComplete: "MARK COMPLETE",
+      chooseMeal: "CHOOSE MEAL",
+      completed: "COMPLETED",
+      next: "NEXT",
+      noSafeOptions: "No safe options available",
+      planned: "PLANNED",
+      selected: "SELECTED",
+      eaten: "EATEN"
+    }
+  );
 }
 
 function formatMacro(summary: MacroSummary) {
@@ -60,24 +190,20 @@ function MealCard({
   onMarkEaten: (slotId: string) => void;
   onMarkCompleted: (slotId: string) => void;
 }) {
+  const { locale } = useTranslator();
+  const copy = nutritionCopyFor(locale);
   const selectedOption = slot.selectedOptionId ? slot.options.find((option) => option.id === slot.selectedOptionId) ?? null : null;
   const safeOptions = getSafeMealOptions(slot, safetyProfile);
   const canChoose = safeOptions.length > 0;
-  const copy = {
-    viewOptions: "VIEW OPTIONS",
-    markEaten: "MARK EATEN",
-    markComplete: "MARK COMPLETE",
-    chooseMeal: "CHOOSE MEAL",
-    completed: "COMPLETED",
-    next: "NEXT",
-    noSafeOptions: "No safe options available",
-    target: "TARGET",
-    dailyProgress: "PROGRESS",
-    today: "TODAY",
-    hydration: "HYDRATION",
-    supplements: "SUPPLEMENTS",
-    coachNote: "COACH NOTE"
-  };
+  const slotLabel = copy.mealLabels[slot.id as keyof typeof copy.mealLabels] ?? slot.label;
+  const statusLabel =
+    slot.state === "completed"
+      ? copy.completed
+      : slot.state === "selected"
+        ? copy.selected
+        : slot.state === "eaten"
+          ? copy.eaten
+          : copy.planned;
   const actionLabel =
     slot.state === "completed"
       ? copy.viewOptions
@@ -111,18 +237,18 @@ function MealCard({
         <div className="nutrition-meal-card__copy">
           <div className="nutrition-meal-card__label-row">
             <span className={`pill nutrition-meal-card__pill ${slot.state === "completed" ? "nutrition-meal-card__pill--complete" : ""}`}>
-              {slot.state === "completed" ? copy.completed : slot.isNext ? `${copy.next}: ${slot.label.toUpperCase()}` : slot.label.toUpperCase()}
+              {slot.state === "completed" ? copy.completed : slot.isNext ? `${copy.next}: ${slotLabel.toUpperCase()}` : slotLabel.toUpperCase()}
             </span>
-            <span className="caption nutrition-meal-card__status">{getMealSlotStatusLabel(slot)}</span>
+            <span className="caption nutrition-meal-card__status">{statusLabel}</span>
           </div>
           <h3 className={`headline-md nutrition-meal-card__title ${slot.state === "completed" ? "nutrition-meal-card__title--complete" : ""}`.trim()}>
             {slot.state === "completed" && selectedOption
               ? selectedOption.name
               : slot.isNext
                 ? copy.chooseMeal
-                : slot.label === "Breakfast" && selectedOption
+                : slot.id === "breakfast" && selectedOption
                   ? selectedOption.name
-                  : slot.label}
+                  : slotLabel}
           </h3>
           <p className="caption nutrition-meal-card__subtitle">{selectedOption ? selectedOption.summary : slot.description}</p>
         </div>
@@ -130,7 +256,7 @@ function MealCard({
       </div>
 
       <div className="nutrition-meal-card__media">
-        {slot.label === "Breakfast" && selectedOption?.image ? (
+        {slot.id === "breakfast" && selectedOption?.image ? (
           <img alt={selectedOption.name} className="nutrition-meal-thumb" src={selectedOption.image} width={64} height={64} />
         ) : slot.isNext ? (
           <div className="nutrition-meal-card__thumb-row" aria-hidden="true">
@@ -163,17 +289,10 @@ function MealCard({
 
 function NutritionDayContent({ dateKey }: { dateKey: string }) {
   const { t, locale } = useTranslator();
+  const copy = nutritionCopyFor(locale);
   const { day, selectMealOption, markMealEaten, markMealCompleted, addHydration, toggleSupplement } = useNutritionSession();
   const [openSlotId, setOpenSlotId] = useState<string | null>(null);
   const [draftOptionId, setDraftOptionId] = useState<string | null>(null);
-  const copy = {
-    target: "TARGET",
-    dailyProgress: "PROGRESS",
-    today: "TODAY",
-    hydration: "HYDRATION",
-    supplements: "SUPPLEMENTS",
-    coachNote: "COACH NOTE"
-  };
 
   const activeSlot = day.mealSlots.find((slot) => slot.id === openSlotId) ?? null;
   const safeOptions = activeSlot ? getSafeMealOptions(activeSlot, day.safetyProfile) : [];
@@ -225,8 +344,8 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
         <section className="section">
           <Card className="nutrition-hero-card p-16 elevated">
             <div className="nutrition-hero-card__badge-row">
-              <span className="pill">{day.target.label}</span>
-              <span className="nutrition-hero-card__subtitle">{day.subtitle}</span>
+              <span className="pill">{copy.dayType[day.dayType]}</span>
+              <span className="nutrition-hero-card__subtitle">{copy.daySubtitle[day.dayType]}</span>
             </div>
             <div className="nutrition-hero-card__target">
               <span className="metric nutrition-hero-card__calories">{day.target.calories.toLocaleString()}</span>
@@ -237,15 +356,15 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
             <div className="nutrition-hero-card__macros">
               <div className="nutrition-hero-card__macro">
                 <span className="headline-md">{day.target.protein}</span>
-                <span className="eyebrow">PROTEIN</span>
+                <span className="eyebrow">{copy.protein}</span>
               </div>
               <div className="nutrition-hero-card__macro nutrition-hero-card__macro--divider">
                 <span className="headline-md">{day.target.carbs}</span>
-                <span className="eyebrow">CARBS</span>
+                <span className="eyebrow">{copy.carbs}</span>
               </div>
               <div className="nutrition-hero-card__macro">
                 <span className="headline-md">{day.target.fat}</span>
-                <span className="eyebrow">FAT</span>
+                <span className="eyebrow">{copy.fat}</span>
               </div>
             </div>
           </Card>
@@ -254,11 +373,11 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
         <section className="section">
           <div className="nutrition-section-label">{copy.dailyProgress}</div>
           <Card className="nutrition-progress-card p-16">
-            <MetricBar label="Calories" current={day.progress.calories} target={day.target.calories} />
+            <MetricBar label={copy.calories} current={day.progress.calories} target={day.target.calories} />
             <div className="nutrition-progress-grid">
-              <MetricBar label="Protein" current={day.progress.protein} target={day.target.protein} />
-              <MetricBar label="Carbs" current={day.progress.carbs} target={day.target.carbs} />
-              <MetricBar label="Fat" current={day.progress.fat} target={day.target.fat} />
+              <MetricBar label={copy.protein} current={day.progress.protein} target={day.target.protein} />
+              <MetricBar label={copy.carbs} current={day.progress.carbs} target={day.target.carbs} />
+              <MetricBar label={copy.fat} current={day.progress.fat} target={day.target.fat} />
             </div>
           </Card>
         </section>
