@@ -1476,6 +1476,11 @@ img {
   gap: 0;
 }
 
+.nutrition-progress-row > .row {
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
 .nutrition-progress-track {
   height: 8px;
   border-radius: 9999px;
@@ -4480,6 +4485,14 @@ body:has(.bottom-nav) .feedback-tray {
   .nutrition-hero-card__summary,
   .nutrition-sheet__comparison {
     grid-template-columns: 1fr;
+  }
+
+  .nutrition-progress-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nutrition-progress-row > .row {
+    align-items: flex-start;
   }
 
   .nutrition-sheet__media,
