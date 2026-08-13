@@ -47,7 +47,7 @@ function RestDayHero({ athleteName, day, nextWorkout }: { athleteName: string; d
             <Link
               aria-label={t("common.startWorkout")}
               className="tap-target focus-ring"
-              href={`/workout/${day.scheduledWorkoutId}`}
+              href={`/workout/${nextWorkout.scheduledWorkoutId}`}
               style={{ background: "var(--accent-primary)", borderRadius: 9999 }}
             >
               <span className="icon filled" style={{ color: "var(--background-deep)" }} aria-hidden="true">
