@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
-import { Hanken_Grotesk, Plus_Jakarta_Sans } from "next/font/google";
+import { Hanken_Grotesk } from "next/font/google";
 import type { ReactNode } from "react";
 import { AppProviders } from "./providers";
 import { getInitialLocale } from "@/lib/i18n";
@@ -9,12 +9,6 @@ import "./globals.css";
 const hankenGrotesk = Hanken_Grotesk({
   subsets: ["latin"],
   variable: "--font-hanken-grotesk"
-});
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["800"],
-  variable: "--font-plus-jakarta-sans"
 });
 
 export const metadata: Metadata = {
@@ -57,7 +51,7 @@ export default async function RootLayout({
   const locale = getInitialLocale(cookieStore.get("athlexforce-locale")?.value);
 
   return (
-    <html lang={locale} className={`${hankenGrotesk.variable} ${plusJakartaSans.variable}`}>
+    <html lang={locale} className={hankenGrotesk.variable}>
       <body>
         <AppProviders>{children}</AppProviders>
       </body>

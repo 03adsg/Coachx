@@ -1,28 +1,31 @@
-# COACHX Agent Routing
+# AthlexForce Agent Routing
 
 ## Common Tasks
 
-- `Implement Calendar from Stitch` -> `frontend-stitch` + `visual-qa` + `qa-testing`
+- `Implement Calendar from Stitch` -> `architecture-typescript` + `frontend-stitch` + `visual-qa` + `qa-testing`
 - `Audit mobile visual drift` -> `visual-qa`
 - `Refactor shared models` -> `architecture-typescript`
 - `Fix build errors` -> `qa-testing` + `architecture-typescript` if the failure is structural
-- `Add or adjust screen transitions` -> `frontend-stitch` + `visual-qa`
-- `Design feedback / confirmations / undo` -> `feedback-interaction-ux` + `frontend-stitch`
+- `Add or adjust screen transitions` -> `cinematic-frontend-gsap` + `frontend-stitch` + `visual-qa`
+- `Design feedback / confirmations / undo` -> `feedback-interaction-ux` + `frontend-stitch` + `visual-qa`
 - `Auth / session / recovery UX` -> `auth-security-ux` + `architecture-typescript` + `frontend-stitch` + `qa-testing`
-- `Identity / role / relationship gateway` -> `identity-role-security-architect` + `architecture-typescript` + `qa-testing`
+- `Identity / role / relationship gateway` -> `identity-role-security-architect` + `athlete-flow-architect` + `architecture-typescript` + `qa-testing`
+- `Workout state machine / active flow motion` -> `workout-active-flow-motion` + `cinematic-frontend-gsap` + `frontend-stitch` + `visual-qa` + `qa-testing`
+- `Exercise detail / alternatives / swap UX` -> `frontend-stitch` + `visual-qa` + `workout-active-flow-motion`
 - `Performance analytics / motion visualization` -> `data-visualization-motion` + `frontend-stitch` + `visual-qa` + `qa-testing`
 - `Immersive progress / achievements` -> `motivational-immersion-ux` + `frontend-stitch` + `visual-qa` + `qa-testing`
+- `I18n / locale QA` -> `i18n-exhaustive-auditor` + `language-selector-ux-auditor` + `visual-qa` + `qa-testing`
+- `Live browser audit` -> `live-product-flow-audit` + `qa-testing`
 
 ## Collaboration Order
 
 1. `architecture-typescript` verifies boundaries and data contracts.
 2. `frontend-stitch` implements or updates the UI.
-3. `visual-qa` checks Stitch fidelity and motion.
-4. `qa-testing` validates lint, typecheck, and build.
+3. `visual-qa` checks fidelity, spacing, and motion drift.
+4. `qa-testing` validates lint, typecheck, build, and route smoke.
 
-## Not Yet Created
+## Routing Notes
 
-- No Supabase, OpenAI, Apple Health, Apple Watch, or admin agents for the current phase.
-- Feedback/interaction memory work routes to `feedback-interaction-ux`.
-- Immersive progress and achievement work routes to `motivational-immersion-ux`.
-- Auth security and session UX work routes to `auth-security-ux`.
+- There is no separate redundant agent file for `exercise-detail-swap-ux`; route that work through the agents above.
+- Feedback, immersive progress, and live audit work already have dedicated agent coverage in `.agents/`.
+- All routes must respect the canonical production security, design, and roadmap order.
