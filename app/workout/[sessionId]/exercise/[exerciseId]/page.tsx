@@ -631,6 +631,12 @@ export default function ActiveExercisePage() {
                       <p className="body-md" style={{ marginTop: 6, color: "rgba(247,247,247,0.88)" }}>
                         {copy.primary}: {primaryMuscle} · {copy.secondary}: {secondaryMuscle}
                       </p>
+                      <Link
+                        className="button-secondary focus-ring workout-active-hero__detail-link"
+                        href={`/workout/${workoutId}/exercise/${exercise.id}/detail`}
+                      >
+                        {copy.previewExercise}
+                      </Link>
                     </div>
                   </div>
                 </div>
