@@ -19,6 +19,7 @@ import {
   type SessionExercise,
   type WorkoutSessionState
 } from "@/lib/workout-data";
+import { buildWorkoutWorkflowState, getRestSecondsRemaining } from "@/lib/workout-live-state";
 
 interface WorkoutStoreValue {
   session: WorkoutSessionState;
@@ -32,6 +33,8 @@ interface WorkoutStoreValue {
   selectAdjustmentTime: (minutes: "20 min" | "30 min" | "45 min") => void;
   applyAdjustment: () => void;
   updateSafety: (patch: Partial<WorkoutSessionState["safety"]>) => void;
+  pauseWorkout: () => void;
+  resumeWorkout: () => void;
   finishWorkout: () => Promise<void>;
   resetDemoWorkout: () => void;
 }
@@ -59,7 +62,35 @@ function computeRestTimer(exerciseId: string, setNumber: number, seconds: number
     exerciseId,
     setNumber,
     secondsRemaining: seconds,
-    active: true
+    active: true,
+    endsAt: new Date(Date.now() + seconds * 1000).toISOString()
+  };
+}
+
+function normalizeWorkoutSessionState(nextSession: WorkoutSessionState): WorkoutSessionState {
+  const restTimer = nextSession.restTimer
+    ? {
+        ...nextSession.restTimer,
+        endsAt:
+          nextSession.restTimer.active && !nextSession.restTimer.endsAt
+            ? new Date(Date.now() + nextSession.restTimer.secondsRemaining * 1000).toISOString()
+            : nextSession.restTimer.endsAt ?? null
+      }
+    : null;
+  const baseWorkflow = buildWorkoutWorkflowState({
+    ...nextSession,
+    restTimer
+  });
+
+  return {
+    ...nextSession,
+    restTimer,
+    workflow: {
+      ...baseWorkflow,
+      pausedAt: nextSession.workflow?.pausedAt ?? null,
+      pauseAccumulatedMs: nextSession.workflow?.pauseAccumulatedMs ?? 0,
+      restEndsAt: restTimer?.endsAt ?? nextSession.workflow?.restEndsAt ?? null
+    }
   };
 }
 
@@ -155,7 +186,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
 
     const key = getStorageKey(auth.isConfigured && auth.user ? auth.user.id : null);
     const cached = typeof window === "undefined" ? null : window.localStorage.getItem(key);
-    const revived = reviveSession(cached);
+    const revived = normalizeWorkoutSessionState(reviveSession(cached));
     setSession(revived);
     sessionRef.current = revived;
   }, [auth.isConfigured, auth.ready, auth.user?.id, locale]);
@@ -170,35 +201,47 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
   }, [auth.isConfigured, auth.ready, auth.user?.id, session, locale]);
 
   useEffect(() => {
-    if (!session.restTimer?.active) {
+    if (!session.restTimer?.active || !session.restTimer.endsAt) {
       return;
     }
 
-    const interval = window.setInterval(() => {
+    const tick = () => {
       setSession((current) => {
-        if (!current.restTimer?.active) {
+        if (!current.restTimer?.active || !current.restTimer.endsAt) {
           return current;
         }
 
-        const nextRemaining = Math.max(0, current.restTimer.secondsRemaining - 1);
-        return {
-          ...current,
-          restTimer: {
-            ...current.restTimer,
-            secondsRemaining: nextRemaining,
-            active: nextRemaining > 0
-          }
-        };
+        const nextRemaining = getRestSecondsRemaining(current);
+        return nextRemaining > 0
+          ? {
+              ...current,
+              restTimer: {
+                ...current.restTimer,
+                secondsRemaining: nextRemaining,
+                active: true
+              }
+            }
+          : {
+              ...current,
+              restTimer: null
+            };
       });
+    };
+
+    tick();
+
+    const interval = window.setInterval(() => {
+      tick();
     }, 1000);
 
     return () => window.clearInterval(interval);
-  }, [session.restTimer?.active, locale]);
+  }, [session.restTimer?.active, session.restTimer?.endsAt, session.workflow?.pauseAccumulatedMs, session.workflow?.pausedAt, locale]);
 
   const value = useMemo<WorkoutStoreValue>(() => {
     const hydrateSession: WorkoutStoreValue["hydrateSession"] = (nextSession) => {
-      setSession(nextSession);
-      sessionRef.current = nextSession;
+      const normalized = normalizeWorkoutSessionState(nextSession);
+      setSession(normalized);
+      sessionRef.current = normalized;
     };
 
     const updateSetDraft: WorkoutStoreValue["updateSetDraft"] = (exerciseId, setNumber, patch) => {
@@ -212,7 +255,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       const savedWorkoutSessionExerciseId = currentExercise.sessionExerciseId ?? currentExercise.id;
 
       setSession((current) => ({
-        ...markCompletedSetOnSession(current, exerciseId, setNumber, payload),
+        ...normalizeWorkoutSessionState(markCompletedSetOnSession(current, exerciseId, setNumber, payload)),
         saveState: "pending",
         saveError: null
       }));
@@ -231,7 +274,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         });
 
         publishFeedbackSuccess("workout.set", "Set completed", "Your reps and load are saved.");
-        setSession((current) => ({
+        setSession((current) => normalizeWorkoutSessionState({
           ...current,
           saveState: "saved",
           saveError: null,
@@ -335,23 +378,26 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     };
 
     const startRestTimer: WorkoutStoreValue["startRestTimer"] = (exerciseId, setNumber, seconds) => {
-      setSession((current) => ({
-        ...current,
-        restTimer: computeRestTimer(exerciseId, setNumber, seconds)
-      }));
+      setSession((current) =>
+        normalizeWorkoutSessionState({
+          ...current,
+          restTimer: computeRestTimer(exerciseId, setNumber, seconds)
+        })
+      );
     };
 
     const addThirtySeconds: WorkoutStoreValue["addThirtySeconds"] = () => {
       setSession((current) =>
         current.restTimer
-          ? {
+          ? normalizeWorkoutSessionState({
               ...current,
               restTimer: {
                 ...current.restTimer,
-                secondsRemaining: current.restTimer.secondsRemaining + 30,
-                active: true
+                secondsRemaining: getRestSecondsRemaining(current) + 15,
+                active: true,
+                endsAt: new Date(Date.now() + (getRestSecondsRemaining(current) + 15) * 1000).toISOString()
               }
-            }
+            })
           : current
       );
     };
@@ -359,10 +405,10 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     const skipRestTimer: WorkoutStoreValue["skipRestTimer"] = () => {
       setSession((current) =>
         current.restTimer
-          ? {
+          ? normalizeWorkoutSessionState({
               ...current,
               restTimer: null
-            }
+            })
           : current
       );
     };
@@ -395,6 +441,42 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
           ...patch
         }
       }));
+    };
+
+    const pauseWorkout: WorkoutStoreValue["pauseWorkout"] = () => {
+      setSession((current) => {
+        if (current.workflow?.pausedAt) {
+          return current;
+        }
+
+        return normalizeWorkoutSessionState({
+          ...current,
+          workflow: {
+            ...(current.workflow ?? buildWorkoutWorkflowState(current)),
+            pausedAt: new Date().toISOString(),
+            pauseAccumulatedMs: current.workflow?.pauseAccumulatedMs ?? 0
+          }
+        });
+      });
+    };
+
+    const resumeWorkout: WorkoutStoreValue["resumeWorkout"] = () => {
+      setSession((current) => {
+        const pausedAt = current.workflow?.pausedAt;
+        if (!pausedAt) {
+          return current;
+        }
+
+        const pausedForMs = Math.max(0, Date.now() - Date.parse(pausedAt));
+        return normalizeWorkoutSessionState({
+          ...current,
+          workflow: {
+            ...(current.workflow ?? buildWorkoutWorkflowState(current)),
+            pausedAt: null,
+            pauseAccumulatedMs: (current.workflow?.pauseAccumulatedMs ?? 0) + pausedForMs
+          }
+        });
+      });
     };
 
     const finishWorkout: WorkoutStoreValue["finishWorkout"] = async () => {
@@ -471,6 +553,8 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
       selectAdjustmentTime,
       applyAdjustment,
       updateSafety,
+      pauseWorkout,
+      resumeWorkout,
       finishWorkout,
       resetDemoWorkout
     };

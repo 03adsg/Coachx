@@ -64,6 +64,7 @@ async function transpileLibraryChain() {
     "auth/auth-errors.ts",
     "athlete-service.ts",
     "workout-session-service.ts",
+    "workout-live-state.ts",
     "motivational-immersion.ts"
   ];
 
@@ -107,6 +108,8 @@ const authNavigation = await import(pathToFileURL(path.join(tempDir, "auth/navig
 const athleteService = await import(pathToFileURL(path.join(tempDir, "athlete-service.mjs")).href);
 const progressService = await import(pathToFileURL(path.join(tempDir, "progress-service.mjs")).href);
 const workoutSessionService = await import(pathToFileURL(path.join(tempDir, "workout-session-service.mjs")).href);
+const workoutData = await import(pathToFileURL(path.join(tempDir, "workout-data.mjs")).href);
+const workoutLiveState = await import(pathToFileURL(path.join(tempDir, "workout-live-state.mjs")).href);
 const programService = await import(pathToFileURL(path.join(tempDir, "program-service.mjs")).href);
 const checkinData = await import(pathToFileURL(path.join(tempDir, "checkin-data.mjs")).href);
 const checkinService = await import(pathToFileURL(path.join(tempDir, "checkin-service.mjs")).href);
@@ -2153,6 +2156,162 @@ test("workout completion persists through the RPC boundary", async () => {
   assert.equal(completed.status, "completed");
   assert.equal(client.state.workout_sessions[0].status, "completed");
   assert.equal(client.state.workout_sessions[0].duration_seconds, 3600);
+});
+
+test("workout live snapshot derives elapsed time and rest countdown from durable timestamps", () => {
+  const session = structuredClone(workoutData.createDemoWorkoutSession());
+  session.startedAt = "2026-08-13T10:00:00.000Z";
+  session.status = "in_progress";
+  session.restTimer = {
+    exerciseId: session.exercises[0].id,
+    setNumber: 1,
+    secondsRemaining: 90,
+    active: true,
+    endsAt: "2026-08-13T10:01:30.000Z"
+  };
+  session.workflow = {
+    activeExerciseId: session.exercises[0].id,
+    activeSetNumber: 1,
+    restEndsAt: "2026-08-13T10:01:30.000Z",
+    pausedAt: null,
+    pauseAccumulatedMs: 0
+  };
+
+  const snapshot = workoutLiveState.getWorkoutLiveSnapshot(session, Date.parse("2026-08-13T10:01:00.000Z"));
+
+  assert.equal(snapshot.phase, "resting");
+  assert.equal(snapshot.elapsedSeconds, 60);
+  assert.equal(snapshot.restSecondsRemaining, 30);
+  assert.equal(snapshot.activeExercise.id, session.exercises[0].id);
+});
+
+test("remote workout summary exposes real volume and set counts", async () => {
+  const bundle = programService.createDemoProgramBundle("00000000-0000-4000-8000-000000000099");
+  const scheduledWorkout = bundle.scheduledWorkouts[0];
+  const day = programService.getProgramDaySummary(bundle, scheduledWorkout.scheduled_date);
+  assert.ok(day);
+  assert.ok(day.scheduledWorkoutId);
+
+  const templateRow = bundle.templates.find((template) => template.code === day.templateCode) ?? bundle.templates[0];
+  const templateExercises = bundle.templateExercises
+    .filter((exercise) => exercise.workout_template_id === templateRow.id)
+    .sort((left, right) => left.sort_order - right.sort_order)
+    .map((exercise) => ({
+      id: exercise.id,
+      exerciseKey: exercise.exercise_key,
+      sortOrder: exercise.sort_order,
+      sets: exercise.sets,
+      repMin: exercise.rep_min,
+      repMax: exercise.rep_max,
+      rirMin: exercise.rir_min,
+      rirMax: exercise.rir_max,
+      restSeconds: exercise.rest_seconds,
+      notes: exercise.notes ?? ""
+    }));
+
+  const client = createFakeWorkoutClient({
+    workout_sessions: [
+      {
+        id: "00000000-0000-4000-8000-000000000001",
+        user_id: "00000000-0000-4000-8000-000000000099",
+        scheduled_workout_id: scheduledWorkout.id,
+        workout_template_id: templateRow.id,
+        status: "in_progress",
+        started_at: "2026-08-13T10:00:00.000Z",
+        completed_at: null,
+        duration_seconds: null,
+        notes: null,
+        session_metadata: {},
+        created_at: "2026-08-13T10:00:00.000Z",
+        updated_at: "2026-08-13T10:00:00.000Z"
+      }
+    ],
+    workout_session_exercises: [
+      {
+        id: "00000000-0000-4000-8000-000000000010",
+        workout_session_id: "00000000-0000-4000-8000-000000000001",
+        prescribed_template_exercise_id: templateExercises[0].id,
+        prescribed_exercise_key: templateExercises[0].exerciseKey,
+        performed_exercise_key: templateExercises[0].exerciseKey,
+        sort_order: 1,
+        target_sets: templateExercises[0].sets,
+        rep_min: templateExercises[0].repMin,
+        rep_max: templateExercises[0].repMax,
+        rir_min: templateExercises[0].rirMin,
+        rir_max: templateExercises[0].rirMax,
+        rest_seconds: templateExercises[0].restSeconds,
+        notes: null,
+        swap_reason: null,
+        status: "planned",
+        started_at: null,
+        completed_at: null,
+        created_at: "2026-08-13T10:00:00.000Z",
+        updated_at: "2026-08-13T10:00:00.000Z"
+      }
+    ],
+    workout_sets: [
+      {
+        id: "00000000-0000-4000-8000-000000000020",
+        workout_session_exercise_id: "00000000-0000-4000-8000-000000000010",
+        set_number: 1,
+        status: "completed",
+        weight_kg: 80,
+        reps: 10,
+        rir: 2,
+        completed_at: "2026-08-13T10:05:00.000Z",
+        notes: null,
+        created_at: "2026-08-13T10:05:00.000Z",
+        updated_at: "2026-08-13T10:05:00.000Z"
+      },
+      {
+        id: "00000000-0000-4000-8000-000000000021",
+        workout_session_exercise_id: "00000000-0000-4000-8000-000000000010",
+        set_number: 2,
+        status: "completed",
+        weight_kg: 82.5,
+        reps: 9,
+        rir: 1,
+        completed_at: "2026-08-13T10:08:00.000Z",
+        notes: null,
+        created_at: "2026-08-13T10:08:00.000Z",
+        updated_at: "2026-08-13T10:08:00.000Z"
+      }
+    ]
+  });
+
+  const seed = {
+    routeSessionId: "00000000-0000-4000-8000-000000000001",
+    userId: "00000000-0000-4000-8000-000000000099",
+    scheduledWorkout,
+    day,
+    template: {
+      id: templateRow.id,
+      code: templateRow.code,
+      name: templateRow.name,
+      focus: templateRow.focus,
+      estimatedDurationMinutes: templateRow.estimated_duration_minutes,
+      sortOrder: templateRow.sort_order,
+      exercises: templateExercises.map((exercise) => ({
+        exerciseKey: exercise.exerciseKey,
+        sortOrder: exercise.sortOrder,
+        sets: exercise.sets,
+        repMin: exercise.repMin,
+        repMax: exercise.repMax,
+        rirMin: exercise.rirMin,
+        rirMax: exercise.rirMax,
+        restSeconds: exercise.restSeconds,
+        notes: exercise.notes
+      }))
+    },
+    templateExercises
+  };
+
+  const loaded = await workoutSessionService.getOrCreateWorkoutSession(client, seed);
+
+  assert.match(loaded.session.summary.totalVolume, /kg$/);
+  assert.match(loaded.session.summary.exercisesCompleted, /^\d+ \/ \d+$/);
+  assert.match(loaded.session.summary.setsCompleted, /^\d+$/);
+  assert.equal(loaded.session.summary.averageRir == null || typeof loaded.session.summary.averageRir === "string", true);
 });
 
 await rm(tempDir, { recursive: true, force: true });

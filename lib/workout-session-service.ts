@@ -14,6 +14,7 @@ import type {
   WorkoutSetsUpdate
 } from "@/lib/supabase/database.types";
 import { buildWorkoutSessionFromDaySummary, type ProgramDaySummary, type ProgramTemplateExercise, type ProgramTemplateView } from "@/lib/program-service";
+import { buildWorkoutWorkflowState } from "@/lib/workout-live-state";
 import { getExerciseDefinition, type CompletedSet, type SessionExercise, type WorkoutSessionState } from "@/lib/workout-data";
 
 const workoutSessionStatusValues = ["in_progress", "completed", "abandoned"] as const;
@@ -163,6 +164,16 @@ function computeVolume(setRows: WorkoutSetsRow[]) {
   return setRows.reduce((total, setRow) => total + (setRow.weight_kg ?? 0) * (setRow.reps ?? 0), 0);
 }
 
+function computeAverageRir(setRows: WorkoutSetsRow[]) {
+  const completedRir = setRows.filter((setRow) => setRow.status === "completed" && setRow.rir != null).map((setRow) => setRow.rir as number);
+  if (completedRir.length === 0) {
+    return null;
+  }
+
+  const average = completedRir.reduce((total, value) => total + value, 0) / completedRir.length;
+  return Number.isInteger(average) ? String(average) : average.toFixed(1).replace(/\.0$/, "");
+}
+
 function computeSummaryDuration(sessionRow: WorkoutSessionsRow, fallbackDuration: string) {
   if (sessionRow.duration_seconds == null) {
     return fallbackDuration;
@@ -219,6 +230,7 @@ function buildWorkoutSummary(
     exercisesCompleted: `${completeExerciseCount} / ${exerciseRows.length}`,
     setsCompleted: String(completedSetRows.length),
     totalVolume: `${Math.round(computeVolume(completedSetRows)).toLocaleString(getCurrentLocale())} kg`,
+    averageRir: computeAverageRir(completedSetRows),
     insight: historyEntries.length > 0 ? "Workout history is now stored remotely and can power the next progression step." : fallbackSummary.insight,
     nextTime:
       historyEntries.length > 0
@@ -512,7 +524,7 @@ function buildWorkoutSessionState(
     .filter((item): item is WorkoutHistoryPerformance => Boolean(item))
     .sort((left, right) => new Date(right.completedAt).getTime() - new Date(left.completedAt).getTime());
 
-  return {
+  const sessionState: WorkoutSessionState = {
     ...base,
     id: sessionRow.id,
     workoutSessionId: sessionRow.id,
@@ -543,6 +555,11 @@ function buildWorkoutSessionState(
     totalExercises: nextExercises.length,
     totalSets: nextExercises.reduce((total, exercise) => total + exercise.totalSets, 0),
     summary: buildWorkoutSummary(sessionRow, base.summary.duration, exerciseRows, setRows, historyEntries, base.summary)
+  };
+
+  return {
+    ...sessionState,
+    workflow: buildWorkoutWorkflowState(sessionState)
   };
 }
 

@@ -24,6 +24,14 @@ export interface CompletedSet {
   performedAt: string;
 }
 
+export interface WorkoutWorkflowState {
+  activeExerciseId: string | null;
+  activeSetNumber: number | null;
+  restEndsAt: string | null;
+  pausedAt: string | null;
+  pauseAccumulatedMs: number;
+}
+
 export interface ExerciseDefinition {
   id: string;
   name: string;
@@ -83,6 +91,7 @@ export interface RestTimerState {
   setNumber: number;
   secondsRemaining: number;
   active: boolean;
+  endsAt?: string | null;
 }
 
 export interface SessionAdjustmentState {
@@ -105,6 +114,7 @@ export interface WorkoutSummaryState {
   exercisesCompleted: string;
   setsCompleted: string;
   totalVolume: string;
+  averageRir?: string | null;
   insight: string;
   nextTime: Array<{ label: string; detail: string }>;
   feedback: Array<"Too Easy" | "Good" | "Challenging">;
@@ -135,6 +145,7 @@ export interface WorkoutSessionState {
   durationSeconds?: number | null;
   notes?: string | null;
   sessionMetadata?: Record<string, unknown> | null;
+  workflow?: WorkoutWorkflowState;
   saveState?: "idle" | "pending" | "saved" | "error";
   saveError?: string | null;
   source?: "demo" | "remote" | "cache";
@@ -592,6 +603,13 @@ export function createDemoWorkoutSession(): WorkoutSessionState {
       }
     ],
     restTimer: null,
+    workflow: {
+      activeExerciseId: "hip-thrust",
+      activeSetNumber: 1,
+      restEndsAt: null,
+      pausedAt: null,
+      pauseAccumulatedMs: 0
+    },
     adjustment: {
       reason: "I can't train today",
       selectedTime: "30 min",
@@ -610,6 +628,7 @@ export function createDemoWorkoutSession(): WorkoutSessionState {
       exercisesCompleted: "6 / 6",
       setsCompleted: "19",
       totalVolume: "4,820 kg",
+      averageRir: "1.6",
       insight: "Strong session. You increased Hip Thrust load while staying inside the target rep range.",
       nextTime: [
         { label: "HIP THRUST: 85 kg", detail: "Target: 10 reps across all sets" },

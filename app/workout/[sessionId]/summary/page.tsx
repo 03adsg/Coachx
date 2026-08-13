@@ -1,18 +1,35 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import { Screen } from "@/components/screen";
 import { Card } from "@/components/ui";
 import { AnatomyPreview } from "@/components/anatomy-preview";
 import { useTranslator } from "@/components/locale-provider";
 import { useWorkoutStore } from "@/components/workout-provider";
-import { coachxDemoState } from "@/lib/coachx-data";
-import { getExerciseDefinition } from "@/lib/workout-data";
+import { getExerciseDefinition, type SessionExercise } from "@/lib/workout-data";
+
+function formatBestSet(exercise: SessionExercise) {
+  const bestSet = exercise.completedSets
+    .slice()
+    .sort((left, right) => {
+      const leftVolume = left.kilograms * left.reps;
+      const rightVolume = right.kilograms * right.reps;
+      return rightVolume - leftVolume;
+    })[0];
+
+  if (!bestSet) {
+    return null;
+  }
+
+  const load = bestSet.kilograms > 0 ? `${bestSet.kilograms} kg` : "BW";
+  const rir = bestSet.rir != null ? ` · RIR ${bestSet.rir}` : "";
+  return `${load} × ${bestSet.reps}${rir}`;
+}
 
 export default function WorkoutSummaryPage() {
   const { session } = useWorkoutStore();
   const { locale } = useTranslator();
-  const focusExercise = getExerciseDefinition(session.exercises[0].performedExerciseId);
 
   const copy = {
     en: {
@@ -21,17 +38,16 @@ export default function WorkoutSummaryPage() {
       exercises: "Exercises",
       workingSets: "Working Sets",
       totalVolume: "Total Volume",
+      averageRir: "Average RIR",
       insight: "AthlexForce Insight",
-      todayFocus: "Today&apos;s Focus",
-      todayPerformance: "Today&apos;s Performance",
-      newBest: "New best",
+      focus: "Workout Focus",
+      performance: "Exercise Breakdown",
       nextTime: "Next Time",
       feel: "How did that session feel?",
-      thisWeek: "This Week",
-      phaseWeek: "Phase 1 · Week 1 of 8",
-      summaryItems: ["Hip Thrust — 80 → 85 kg (+5 kg)", "Romanian Deadlift — 30 kg | Target completed", "Bulgarian Split Squat — +2 reps vs last session"],
+      newBest: "Top set",
       done: "Done",
-      viewProgress: "View Progress"
+      viewProgress: "View Progress",
+      sets: "sets"
     },
     es: {
       complete: "Entrenamiento completado",
@@ -39,17 +55,16 @@ export default function WorkoutSummaryPage() {
       exercises: "Ejercicios",
       workingSets: "Series efectivas",
       totalVolume: "Volumen total",
+      averageRir: "RIR medio",
       insight: "Insight de AthlexForce",
-      todayFocus: "Enfoque de hoy",
-      todayPerformance: "Rendimiento de hoy",
-      newBest: "Nuevo mejor",
+      focus: "Enfoque del entrenamiento",
+      performance: "Desglose por ejercicio",
       nextTime: "Próxima vez",
       feel: "¿Cómo te sentiste en esa sesión?",
-      thisWeek: "Esta semana",
-      phaseWeek: "Fase 1 · Semana 1 de 8",
-      summaryItems: ["Hip Thrust — 80 → 85 kg (+5 kg)", "Peso muerto rumano — 30 kg | Objetivo completado", "Sentadilla búlgara — +2 repeticiones vs la última sesión"],
+      newBest: "Mejor serie",
       done: "Listo",
-      viewProgress: "Ver progreso"
+      viewProgress: "Ver progreso",
+      sets: "series"
     },
     ca: {
       complete: "Entrenament completat",
@@ -57,17 +72,16 @@ export default function WorkoutSummaryPage() {
       exercises: "Exercicis",
       workingSets: "Sèries de treball",
       totalVolume: "Volum total",
+      averageRir: "RIR mitjà",
       insight: "Insight d'AthlexForce",
-      todayFocus: "Focus d'avui",
-      todayPerformance: "Rendiment d'avui",
-      newBest: "Nou millor",
+      focus: "Focus de l'entrenament",
+      performance: "Desglossament per exercici",
       nextTime: "La propera vegada",
       feel: "Com t'has sentit en aquesta sessió?",
-      thisWeek: "Aquesta setmana",
-      phaseWeek: "Fase 1 · Setmana 1 de 8",
-      summaryItems: ["Hip Thrust — 80 → 85 kg (+5 kg)", "Romanian Deadlift — 30 kg | Objectiu completat", "Bulgarian Split Squat — +2 repeticions respecte a l'última sessió"],
+      newBest: "Millor sèrie",
       done: "Fet",
-      viewProgress: "Veure progrés"
+      viewProgress: "Veure progrés",
+      sets: "sèries"
     },
     de: {
       complete: "Training abgeschlossen",
@@ -75,17 +89,16 @@ export default function WorkoutSummaryPage() {
       exercises: "Übungen",
       workingSets: "Arbeitssätze",
       totalVolume: "Gesamtvolumen",
+      averageRir: "Durchschn. RIR",
       insight: "AthlexForce-Einblick",
-      todayFocus: "Heutiger Fokus",
-      todayPerformance: "Heutige Leistung",
-      newBest: "Neue Bestleistung",
+      focus: "Trainingsfokus",
+      performance: "Übungsübersicht",
       nextTime: "Nächstes Mal",
       feel: "Wie hat sich die Einheit angefühlt?",
-      thisWeek: "Diese Woche",
-      phaseWeek: "Phase 1 · Woche 1 von 8",
-      summaryItems: ["Hip Thrust — 80 → 85 kg (+5 kg)", "Rumänisches Kreuzheben — 30 kg | Ziel erreicht", "Bulgarian Split Squat — +2 Wiederholungen vs. letzte Einheit"],
+      newBest: "Top-Satz",
       done: "Fertig",
-      viewProgress: "Fortschritt ansehen"
+      viewProgress: "Fortschritt ansehen",
+      sets: "Sätze"
     }
   }[locale as "en" | "es" | "ca" | "de"] ?? {
     complete: "Workout Complete",
@@ -93,18 +106,31 @@ export default function WorkoutSummaryPage() {
     exercises: "Exercises",
     workingSets: "Working Sets",
     totalVolume: "Total Volume",
+    averageRir: "Average RIR",
     insight: "AthlexForce Insight",
-    todayFocus: "Today's Focus",
-    todayPerformance: "Today's Performance",
-    newBest: "New best",
+    focus: "Workout Focus",
+    performance: "Exercise Breakdown",
     nextTime: "Next Time",
     feel: "How did that session feel?",
-    thisWeek: "This Week",
-    phaseWeek: "Phase 1 · Week 1 of 8",
-    summaryItems: ["Hip Thrust — 80 → 85 kg (+5 kg)", "Romanian Deadlift — 30 kg | Target completed", "Bulgarian Split Squat — +2 reps vs last session"],
+    newBest: "Top set",
     done: "Done",
-    viewProgress: "View Progress"
+    viewProgress: "View Progress",
+    sets: "sets"
   };
+
+  const focusExercise = getExerciseDefinition(session.exercises[0].performedExerciseId);
+  const breakdown = useMemo(() => {
+    return session.exercises.map((exercise) => {
+      const definition = getExerciseDefinition(exercise.performedExerciseId);
+      return {
+        exercise,
+        definition,
+        bestSet: formatBestSet(exercise)
+      };
+    });
+  }, [session.exercises]);
+
+  const averageRir = session.summary.averageRir ?? null;
 
   return (
     <Screen
@@ -118,7 +144,7 @@ export default function WorkoutSummaryPage() {
       }
     >
       <main className="content tight">
-        <section className="section workout-summary-hero">
+        <section className="section workout-summary-hero" data-workout-motion="complete-hero">
           <div className="workout-summary-hero__icon">
             <span className="icon filled" aria-hidden="true">
               check_circle
@@ -135,12 +161,13 @@ export default function WorkoutSummaryPage() {
           </p>
         </section>
 
-        <section className="grid-2 section">
+        <section className="grid-2 section" data-workout-motion="complete-kpis">
           {[
             [copy.duration, session.summary.duration],
             [copy.exercises, session.summary.exercisesCompleted],
             [copy.workingSets, session.summary.setsCompleted],
-            [copy.totalVolume, session.summary.totalVolume]
+            [copy.totalVolume, session.summary.totalVolume],
+            ...(averageRir ? ([[copy.averageRir, averageRir]] as Array<[string, string]>) : [])
           ].map(([label, value]) => (
             <Card key={label} className="workout-summary-tile">
               <div className="eyebrow" style={{ margin: 0 }}>
@@ -173,38 +200,43 @@ export default function WorkoutSummaryPage() {
 
         <section className="section">
           <div className="eyebrow" style={{ marginBottom: 12 }}>
-            {copy.todayFocus}
+            {copy.focus}
           </div>
           <Card className="workout-focus-card">
-            <AnatomyPreview focus={coachxDemoState.day.muscleFocus} />
+            <AnatomyPreview focus={focusExercise.primaryMuscles} />
           </Card>
         </section>
 
-        <section className="section">
+        <section className="section" data-workout-motion="complete-breakdown">
           <div className="eyebrow" style={{ marginBottom: 12 }}>
-            {copy.todayPerformance}
+            {copy.performance}
           </div>
-          <Card className="workout-performance-card">
-            <div className="row">
-              <div>
-                <div className="workout-status-pill workout-status-pill--match">{copy.newBest}</div>
-                <div className="headline-md" style={{ marginTop: 10 }}>
-                  {focusExercise.name}
+          <div className="stack">
+            {breakdown.map(({ exercise, definition, bestSet }) => (
+              <Card key={exercise.id} className="workout-performance-card">
+                <div className="row">
+                  <div>
+                    <div className="workout-status-pill workout-status-pill--match">{copy.newBest}</div>
+                    <div className="headline-md" style={{ marginTop: 10, textTransform: "uppercase" }}>
+                      {definition.name}
+                    </div>
+                  </div>
+                  <div className="headline-md" style={{ textAlign: "right" }}>
+                    {exercise.completedSets.length} {copy.sets}
+                  </div>
                 </div>
-              </div>
-              <div className="headline-md" style={{ textAlign: "right" }}>
-                85 kg × 10
-              </div>
-            </div>
-            <div className="workout-divider" />
-            <div className="stack">
-              {copy.summaryItems.map((item) => (
-                <div key={item} className="caption" style={{ color: "var(--text-primary)" }}>
-                  {item}
+                <div className="workout-divider" />
+                <div className="stack">
+                  <div className="caption" style={{ color: "var(--text-primary)" }}>
+                    {bestSet ?? session.summary.nextTime[0]?.detail ?? "No completed sets yet"}
+                  </div>
+                  <div className="caption" style={{ color: "var(--text-secondary)" }}>
+                    {exercise.lastComparableSession}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </Card>
+              </Card>
+            ))}
+          </div>
         </section>
 
         <section className="section">
@@ -234,23 +266,6 @@ export default function WorkoutSummaryPage() {
               </button>
             ))}
           </div>
-        </section>
-
-        <section className="section">
-          <Card className="workout-week-card">
-            <div className="row">
-              <div>
-                <div className="eyebrow">{copy.thisWeek}</div>
-                <div className="body-md" style={{ marginTop: 6 }}>
-                  {copy.phaseWeek}
-                </div>
-              </div>
-              <div className="headline-md">3 / 4</div>
-            </div>
-            <div className="progress-track" style={{ marginTop: 16 }}>
-              <div className="progress-fill" style={{ width: "75%" }} />
-            </div>
-          </Card>
         </section>
 
         <div className="stack">

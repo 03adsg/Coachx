@@ -322,7 +322,9 @@ export default function WorkoutOverviewPage() {
         </section>
 
         <div className="sticky-action">
-          <PrimaryButton href={`/workout/${session.id}/exercise/${session.exercises[0].id}`}>{copy.startSession}</PrimaryButton>
+          <PrimaryButton href={`/workout/${session.id}/exercise/${session.exercises[0].id}`}>
+            {session.status === "in_progress" ? "Resume Workout" : copy.startSession}
+          </PrimaryButton>
         </div>
       </main>
     </Screen>
