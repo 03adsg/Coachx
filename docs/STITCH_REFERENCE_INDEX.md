@@ -48,6 +48,14 @@ This document records the supplied Stitch reference screens without dumping prot
 | Fullscreen Media | `app/exercises/[exerciseId]/page.tsx` | Future | This is the screen most affected by malformed Stitch crops. |
 | No-Media Fallback | `app/exercises/[exerciseId]/page.tsx` | Future | Use a neutral semantic placeholder, not a decorative fake. |
 
+## Slice 24 Reference Index
+
+| Reference screen | Production target | Status | Known artifact |
+| --- | --- | --- | --- |
+| Daily Nutrition 2.0 | `app/nutrition/page.tsx` + `components/nutrition-screen.tsx` | In progress | Prototype hero blocks were too large and needed a compact daily summary. |
+| Meal Detail / Options | `components/nutrition-meal-sheet.tsx` | In progress | Use a single sheet for detail, preview, and replacement confirmation. |
+| Hydration / Supplements | `components/nutrition-screen.tsx` | In progress | Keep compact and avoid a generic calorie tracker look. |
+
 ## Usage Rule
 
 - Treat this index as a reference map only.

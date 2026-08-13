@@ -1560,6 +1560,82 @@ test("nutrition snapshots survive serialize and revive without changing the sour
   assert.equal(nutritionService.buildNutritionDayView(roundTrip).dateKey, "2026-08-09");
 });
 
+test("nutrition next meal and ui state resolution stay truthful", () => {
+  const demoBundle = programService.createDemoProgramBundle("00000000-0000-4000-8000-000000000018");
+  const bundleView = programService.createProgramBundleFromRows(
+    demoBundle.program,
+    demoBundle.phase,
+    demoBundle.templates,
+    demoBundle.templateExercises,
+    demoBundle.scheduledWorkouts
+  );
+  const summary = programService.getProgramDaySummary(bundleView, "2026-08-08");
+  const initial = nutritionService.createNutritionStoreSnapshot(
+    "2026-08-08",
+    summary,
+    "00000000-0000-4000-8000-000000000019",
+    bundleView.activeProgram?.id ?? null
+  );
+  const view = nutritionService.buildNutritionDayView(initial);
+  const nextSlot = nutritionService.getNutritionNextMeal(initial);
+
+  assert.equal(nutritionService.resolveNutritionMealUiState(view.mealSlots[0]), "completed");
+  assert.equal(nutritionService.resolveNutritionMealUiState(view.mealSlots[1]), "next");
+  assert.equal(nextSlot?.id, "lunch");
+});
+
+test("nutrition progress summary reflects real persistence values", () => {
+  const demoBundle = programService.createDemoProgramBundle("00000000-0000-4000-8000-000000000020");
+  const bundleView = programService.createProgramBundleFromRows(
+    demoBundle.program,
+    demoBundle.phase,
+    demoBundle.templates,
+    demoBundle.templateExercises,
+    demoBundle.scheduledWorkouts
+  );
+  const summary = programService.getProgramDaySummary(bundleView, "2026-08-08");
+  const initial = nutritionService.createNutritionStoreSnapshot(
+    "2026-08-08",
+    summary,
+    "00000000-0000-4000-8000-000000000021",
+    bundleView.activeProgram?.id ?? null
+  );
+  const selected = nutritionService.applyMealSelection(initial, "lunch", "chicken-rice-bowl");
+  const completed = nutritionService.markMealCompleted(selected, "lunch");
+  const hydrated = nutritionService.addHydration(completed, 500);
+  const progress = nutritionService.buildNutritionProgressSummary(hydrated);
+
+  assert.equal(progress.consumed.calories, 450 + 648);
+  assert.equal(progress.mealsCompleted >= 2, true);
+  assert.equal(progress.hydrationMl, initial.hydrationLogs.reduce((total, entry) => total + entry.amountMl, 0) + 500);
+  assert.equal(progress.hydrationRemainingMl, progress.hydrationTargetMl - progress.hydrationMl);
+});
+
+test("nutrition option ranking stays deterministic", () => {
+  const demoBundle = programService.createDemoProgramBundle("00000000-0000-4000-8000-000000000022");
+  const bundleView = programService.createProgramBundleFromRows(
+    demoBundle.program,
+    demoBundle.phase,
+    demoBundle.templates,
+    demoBundle.templateExercises,
+    demoBundle.scheduledWorkouts
+  );
+  const summary = programService.getProgramDaySummary(bundleView, "2026-08-08");
+  const initial = nutritionService.createNutritionStoreSnapshot(
+    "2026-08-08",
+    summary,
+    "00000000-0000-4000-8000-000000000023",
+    bundleView.activeProgram?.id ?? null
+  );
+  const slot = nutritionService.buildNutritionDayView(initial).mealSlots.find((mealSlot) => mealSlot.id === "lunch");
+
+  assert.ok(slot);
+  const ranked = nutritionService.rankMealOptions(slot, slot.options);
+  assert.equal(ranked[0]?.label, "BEST MATCH");
+  assert.equal(ranked.length, slot.options.length);
+  assert.equal(ranked[0].score <= ranked[1].score, true);
+});
+
 test("progress payloads keep weight separate from centimeter measurements", () => {
   const state = progressData.createProgressDemoState();
   state.measurement.definitions = state.measurement.definitions.map((definition) =>

@@ -14,7 +14,7 @@
 | 21 | COMPLETE | Athlete Flow Architecture is complete. |
 | 22 | COMPLETE | Live Workout Experience is complete and established as the production HEAD baseline. |
 | 23 | DESIGN COMPLETE / IMPLEMENTATION NEXT | Exercise Detail + Alternatives is documented, but implementation remains next. |
-| 24 | NEXT | Nutrition UX 2.0. |
+| 24 | DESIGN COMPLETE / IMPLEMENTATION IN PROGRESS | Nutrition UX 2.0. |
 | 25 | NEXT | Media System. |
 | 26 | NEXT | Feedback + Motion polish. |
 | 27 | NEXT | Inputs and intensity refinement. |

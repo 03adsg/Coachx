@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton } from "@/components/ui";
 import { useTranslator } from "@/components/locale-provider";
@@ -14,6 +14,7 @@ import {
   type MealSlot,
   type NutritionSafetyProfile
 } from "@/lib/nutrition-data";
+import { resolveNutritionMealUiState } from "@/lib/nutrition-service";
 
 type NutritionScreenMode = "ready" | "loading" | "empty" | "error";
 
@@ -32,6 +33,13 @@ function nutritionCopyFor(locale: string) {
         target: "TARGET",
         dailyProgress: "PROGRESS",
         today: "TODAY",
+        consumed: "Consumed",
+        remaining: "Remaining",
+        nextMeal: "NEXT MEAL",
+        openMeal: "OPEN MEAL",
+        mealDetail: "MEAL DETAIL",
+        ingredients: "Ingredients",
+        preparation: "Preparation",
         hydration: "HYDRATION",
         supplements: "SUPPLEMENTS",
         coachNote: "COACH NOTE",
@@ -48,7 +56,20 @@ function nutritionCopyFor(locale: string) {
         noSafeOptions: "No safe options available",
         planned: "PLANNED",
         selected: "SELECTED",
-        eaten: "EATEN"
+        eaten: "EATEN",
+        nutritionComplete: "NUTRITION COMPLETE",
+        partialDay: "PARTIAL DAY",
+        noNutritionPlan: "NO NUTRITION PLAN TODAY",
+        couldntSave: "COULDN'T SAVE",
+        tryAgain: "TRY AGAIN",
+        mealUpdated: "MEAL UPDATED",
+        waterRemaining: "Water remaining",
+        supplementsRemaining: "Supplements remaining",
+        replaceMeal: "REPLACE MEAL",
+        requestAlternative: "REQUEST ALTERNATIVE",
+        coachManagedUnavailable: "Coach-managed replacement is handled outside this flow.",
+        current: "Current",
+        new: "New"
       },
       es: {
         dayType: { training: "DÍA DE ENTRENAMIENTO", rest: "DÍA DE DESCANSO" },
@@ -132,6 +153,13 @@ function nutritionCopyFor(locale: string) {
       target: "TARGET",
       dailyProgress: "PROGRESS",
       today: "TODAY",
+      consumed: "Consumed",
+      remaining: "Remaining",
+      nextMeal: "NEXT MEAL",
+      openMeal: "OPEN MEAL",
+      mealDetail: "MEAL DETAIL",
+      ingredients: "Ingredients",
+      preparation: "Preparation",
       hydration: "HYDRATION",
       supplements: "SUPPLEMENTS",
       coachNote: "COACH NOTE",
@@ -148,7 +176,20 @@ function nutritionCopyFor(locale: string) {
       noSafeOptions: "No safe options available",
       planned: "PLANNED",
       selected: "SELECTED",
-      eaten: "EATEN"
+      eaten: "EATEN",
+      nutritionComplete: "NUTRITION COMPLETE",
+      partialDay: "PARTIAL DAY",
+      noNutritionPlan: "NO NUTRITION PLAN TODAY",
+      couldntSave: "COULDN'T SAVE",
+      tryAgain: "TRY AGAIN",
+      mealUpdated: "MEAL UPDATED",
+      waterRemaining: "Water remaining",
+      supplementsRemaining: "Supplements remaining",
+      replaceMeal: "REPLACE MEAL",
+      requestAlternative: "REQUEST ALTERNATIVE",
+      coachManagedUnavailable: "Coach-managed replacement is handled outside this flow.",
+      current: "Current",
+      new: "New"
     }
   );
 }
@@ -349,13 +390,16 @@ function MealCard({
   const localizedSlot = presentation?.mealSlots[slot.id] ?? null;
   const slotLabel = localizedSlot?.label ?? copy.mealLabels[slot.id as keyof typeof copy.mealLabels] ?? slot.label;
   const selectedOptionName = selectedOption ? presentation?.options[selectedOption.id]?.name ?? selectedOption.name : null;
+  const uiState = resolveNutritionMealUiState(slot);
   const statusLabel =
-    slot.state === "completed"
+    uiState === "completed"
       ? copy.completed
       : slot.state === "selected"
         ? copy.selected
         : slot.state === "eaten"
           ? copy.eaten
+        : uiState === "next"
+          ? copy.next
           : copy.planned;
   const actionLabel =
     slot.state === "completed"
@@ -364,7 +408,7 @@ function MealCard({
         ? copy.markEaten
         : slot.state === "eaten"
           ? copy.markComplete
-          : slot.isNext
+          : uiState === "next"
             ? copy.chooseMeal
             : copy.viewOptions;
 
@@ -385,19 +429,19 @@ function MealCard({
   };
 
   return (
-    <Card className={`nutrition-meal-card p-16 ${slot.isNext ? "nutrition-meal-card--next" : ""} ${slot.state === "completed" ? "nutrition-meal-card--completed" : ""}`.trim()}>
+    <Card className={`nutrition-meal-card p-16 ${uiState === "next" ? "nutrition-meal-card--next" : ""} ${slot.state === "completed" ? "nutrition-meal-card--completed" : ""}`.trim()}>
       <div className="nutrition-meal-card__header">
         <div className="nutrition-meal-card__copy">
           <div className="nutrition-meal-card__label-row">
             <span className={`pill nutrition-meal-card__pill ${slot.state === "completed" ? "nutrition-meal-card__pill--complete" : ""}`}>
-              {slot.state === "completed" ? copy.completed : slot.isNext ? `${copy.next}: ${slotLabel.toUpperCase()}` : slotLabel.toUpperCase()}
+              {slot.state === "completed" ? copy.completed : uiState === "next" ? `${copy.next}: ${slotLabel.toUpperCase()}` : slotLabel.toUpperCase()}
             </span>
             <span className="caption nutrition-meal-card__status">{statusLabel}</span>
           </div>
           <h3 className={`headline-md nutrition-meal-card__title ${slot.state === "completed" ? "nutrition-meal-card__title--complete" : ""}`.trim()}>
             {slot.state === "completed" && selectedOptionName
               ? selectedOptionName
-              : slot.isNext
+              : uiState === "next"
                 ? copy.chooseMeal
                 : slot.id === "breakfast" && selectedOptionName
                   ? selectedOptionName
@@ -413,9 +457,9 @@ function MealCard({
       </div>
 
       <div className="nutrition-meal-card__media">
-        {slot.id === "breakfast" && selectedOption?.image ? (
+        {selectedOption?.image ? (
           <img alt={selectedOption.name} className="nutrition-meal-thumb" src={selectedOption.image} width={64} height={64} />
-        ) : slot.isNext ? (
+        ) : uiState === "next" ? (
           <div className="nutrition-meal-card__thumb-row" aria-hidden="true">
             <div className="nutrition-meal-thumb nutrition-meal-thumb--skeleton" />
             <div className="nutrition-meal-thumb nutrition-meal-thumb--skeleton" />
@@ -447,13 +491,23 @@ function MealCard({
 function NutritionDayContent({ dateKey }: { dateKey: string }) {
   const { t, locale } = useTranslator();
   const copy = nutritionCopyFor(locale);
+  const uiCopy = copy as typeof copy & Record<string, string>;
   const presentation = nutritionPresentationFor(locale);
-  const { day, selectMealOption, markMealEaten, markMealCompleted, addHydration, toggleSupplement } = useNutritionSession();
+  const { day, managementMode, selectMealOption, markMealEaten, markMealCompleted, addHydration, toggleSupplement } = useNutritionSession();
   const [openSlotId, setOpenSlotId] = useState<string | null>(null);
   const [draftOptionId, setDraftOptionId] = useState<string | null>(null);
 
   const activeSlot = day.mealSlots.find((slot) => slot.id === openSlotId) ?? null;
   const safeOptions = activeSlot ? getSafeMealOptions(activeSlot, day.safetyProfile) : [];
+  const nextMeal = useMemo(() => day.mealSlots.find((slot) => resolveNutritionMealUiState(slot) === "next") ?? day.mealSlots.find((slot) => slot.state !== "completed") ?? null, [day.mealSlots]);
+  const completedMeals = useMemo(() => day.mealSlots.filter((slot) => slot.state === "completed").length, [day.mealSlots]);
+  const totalMeals = day.mealSlots.length;
+  const remainingCalories = Math.max(0, day.target.calories - day.progress.calories);
+  const remainingProtein = Math.max(0, day.target.protein - day.progress.protein);
+  const remainingCarbs = Math.max(0, day.target.carbs - day.progress.carbs);
+  const remainingFat = Math.max(0, day.target.fat - day.progress.fat);
+  const hydrationRemaining = Math.max(0, day.hydration.targetMl - day.hydration.currentMl);
+  const completeDay = totalMeals > 0 && completedMeals === totalMeals;
 
   const openChooser = (slot: MealSlot) => {
     const options = getSafeMealOptions(slot, day.safetyProfile);
@@ -497,31 +551,65 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
           <span className="nutrition-topbar__spacer" aria-hidden="true" />
         </header>
       }
-    >
+      >
       <main className="content tight">
         <section className="section">
           <Card className="nutrition-hero-card p-16 elevated">
             <div className="nutrition-hero-card__badge-row">
               <span className="pill">{copy.dayType[day.dayType]}</span>
-              <span className="nutrition-hero-card__subtitle">{presentation?.daySubtitle[day.dayType] ?? copy.daySubtitle[day.dayType]}</span>
+              <span className="nutrition-hero-card__subtitle">{day.dateLabel}</span>
             </div>
-            <div className="nutrition-hero-card__target">
-              <span className="metric nutrition-hero-card__calories">{day.target.calories.toLocaleString()}</span>
-              <span className="eyebrow" style={{ margin: 0 }}>
-                {copy.target}
-              </span>
+            <div className="nutrition-hero-card__summary">
+              <div>
+                <div className="eyebrow" style={{ marginBottom: 4 }}>
+                  {uiCopy.consumed ?? copy.target}
+                </div>
+                <div className="headline-lg nutrition-hero-card__summary-value">
+                  {day.progress.calories.toLocaleString()} / {day.target.calories.toLocaleString()} kcal
+                </div>
+              </div>
+              <div>
+                <div className="eyebrow" style={{ marginBottom: 4 }}>
+                  {uiCopy.remaining ?? copy.target}
+                </div>
+                <div className="headline-lg nutrition-hero-card__summary-value nutrition-hero-card__summary-value--accent">
+                  {remainingCalories.toLocaleString()} kcal
+                </div>
+              </div>
+            </div>
+            <div className="nutrition-hero-card__next">
+              <div className="eyebrow" style={{ color: "var(--accent-primary)" }}>
+                {uiCopy.nextMeal ?? copy.next}
+              </div>
+              {nextMeal ? (
+                <>
+                  <div className="body-md" style={{ fontWeight: 700, textTransform: "uppercase" }}>
+                    {nextMeal.timeLabel} · {nextMeal.label}
+                  </div>
+                  <div className="headline-md" style={{ marginTop: 6 }}>
+                    {nextMeal.selectedOptionId ? nextMeal.options.find((option) => option.id === nextMeal.selectedOptionId)?.name ?? nextMeal.label : nextMeal.label}
+                  </div>
+                  <p className="caption" style={{ marginTop: 6 }}>
+                    {nextMeal.description}
+                  </p>
+                </>
+              ) : (
+                <div className="body-md" style={{ fontWeight: 700 }}>
+                  {uiCopy.nutritionComplete ?? copy.completed}
+                </div>
+              )}
             </div>
             <div className="nutrition-hero-card__macros">
               <div className="nutrition-hero-card__macro">
-                <span className="headline-md">{day.target.protein}</span>
+                <span className="headline-md">{day.progress.protein}</span>
                 <span className="eyebrow">{copy.protein}</span>
               </div>
               <div className="nutrition-hero-card__macro nutrition-hero-card__macro--divider">
-                <span className="headline-md">{day.target.carbs}</span>
+                <span className="headline-md">{day.progress.carbs}</span>
                 <span className="eyebrow">{copy.carbs}</span>
               </div>
               <div className="nutrition-hero-card__macro">
-                <span className="headline-md">{day.target.fat}</span>
+                <span className="headline-md">{day.progress.fat}</span>
                 <span className="eyebrow">{copy.fat}</span>
               </div>
             </div>
@@ -639,6 +727,8 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
 
       {activeSlot ? (
         <NutritionMealSheet
+          currentOptionId={activeSlot?.selectedOptionId ?? null}
+          managementMode={managementMode}
           onClose={closeChooser}
           onConfirm={confirmChoice}
           onSelectOption={(optionId) => setDraftOptionId(optionId)}

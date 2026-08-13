@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createNutritionDayForDate, type FoodItem, type MacroSummary, type MealDifficulty, type MealOption, type NutritionDay, type NutritionDayType, type NutritionSafetyProfile, type NutritionTarget } from "@/lib/nutrition-data";
+import { createNutritionDayForDate, type FoodItem, type MacroSummary, type MealDifficulty, type MealOption, type MealSlot, type NutritionDay, type NutritionDayType, type NutritionSafetyProfile, type NutritionTarget } from "@/lib/nutrition-data";
 import type { ProgramDaySummary } from "@/lib/program-service";
 import type {
   Database,
@@ -145,6 +145,30 @@ export interface NutritionAdherenceSummary {
   supplementsTotal: number;
 }
 
+export type NutritionMealUiState = "next" | "upcoming" | "completed" | "past_incomplete";
+
+export interface NutritionProgressSummary {
+  target: MacroSummary;
+  consumed: MacroSummary;
+  remaining: MacroSummary;
+  mealsCompleted: number;
+  mealsTotal: number;
+  mealsRemaining: number;
+  hydrationMl: number;
+  hydrationTargetMl: number;
+  hydrationRemainingMl: number;
+  supplementsCompleted: number;
+  supplementsTotal: number;
+  nextMealSlot: MealSlot | null;
+}
+
+export interface RankedMealOption {
+  option: MealOption;
+  score: number;
+  label: "BEST MATCH" | "QUICK OPTION" | "ALTERNATIVE";
+  reason: string;
+}
+
 export interface NutritionDayContext {
   dateKey: string;
   dayType: NutritionDayType;
@@ -218,6 +242,22 @@ function calculateCompletedMealMacros(snapshot: NutritionStoreSnapshot) {
     },
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
   );
+}
+
+function parsePrepMinutes(prepTime: string) {
+  const match = prepTime.match(/(\d+)/);
+  return match ? Number(match[1]) : 0;
+}
+
+function optionMacroDistance(slot: MealSlot, option: MealOption) {
+  return Math.abs(option.macro.calories - slot.target.calories) / 25 + Math.abs(option.macro.protein - slot.target.protein) / 5 + Math.abs(option.macro.carbs - slot.target.carbs) / 10 + Math.abs(option.macro.fat - slot.target.fat) / 5;
+}
+
+function optionSelectionScore(slot: MealSlot, option: MealOption) {
+  const macroScore = optionMacroDistance(slot, option);
+  const prepScore = parsePrepMinutes(option.prepTime) / 12;
+  const difficultyScore = option.difficulty === "easy" ? 0 : option.difficulty === "moderate" ? 0.35 : 0.7;
+  return Number((macroScore + prepScore + difficultyScore).toFixed(2));
 }
 
 export function createNutritionPlanSnapshot(userId: string, day: NutritionDay, programId: string | null): NutritionPlanSnapshot {
@@ -333,6 +373,7 @@ export function buildNutritionDayView(snapshot: NutritionStoreSnapshot): Nutriti
     };
   });
   const hydrationTotal = hydrationTotalFromLogs(snapshot.hydrationLogs);
+  const progress = calculateCompletedMealMacros(snapshot);
   const supplements = day.supplements.map((reminder) => {
     const log = snapshot.supplementLogs.find((entry) => entry.supplementId === reminder.id);
     return {
@@ -343,7 +384,7 @@ export function buildNutritionDayView(snapshot: NutritionStoreSnapshot): Nutriti
 
   return {
     ...day,
-      target: { ...snapshot.day.target },
+    target: { ...snapshot.day.target },
     title: snapshot.day.title,
     subtitle: snapshot.day.subtitle,
     coachNote: snapshot.day.coachNote,
@@ -358,7 +399,7 @@ export function buildNutritionDayView(snapshot: NutritionStoreSnapshot): Nutriti
       variety: [...snapshot.day.safetyProfile.variety]
     },
     mealSlots: selectedSlots,
-    progress: { ...day.progress },
+    progress,
     hydration: {
       currentMl: hydrationTotal,
       targetMl: snapshot.day.hydrationTargetMl,
@@ -500,6 +541,79 @@ export function summarizeNutritionDay(snapshot: NutritionStoreSnapshot): Nutriti
     supplementsCompleted: view.supplements.filter((supplement) => supplement.checked).length,
     supplementsTotal: view.supplements.length
   };
+}
+
+export function resolveNutritionMealUiState(slot: MealSlot): NutritionMealUiState {
+  if (slot.state === "completed") {
+    return "completed";
+  }
+
+  if (slot.state === "selected" || slot.state === "eaten") {
+    return "past_incomplete";
+  }
+
+  return slot.isNext ? "next" : "upcoming";
+}
+
+export function getNutritionNextMeal(snapshot: NutritionStoreSnapshot) {
+  const view = buildNutritionDayView(snapshot);
+  return view.mealSlots.find((slot) => resolveNutritionMealUiState(slot) === "next") ?? view.mealSlots.find((slot) => slot.state !== "completed") ?? null;
+}
+
+export function buildNutritionProgressSummary(snapshot: NutritionStoreSnapshot): NutritionProgressSummary {
+  const summary = summarizeNutritionDay(snapshot);
+  const nextMealSlot = getNutritionNextMeal(snapshot);
+  return {
+    target: snapshot.day.target,
+    consumed: {
+      calories: summary.caloriesConsumed,
+      protein: summary.proteinConsumed,
+      carbs: summary.carbsConsumed,
+      fat: summary.fatConsumed
+    },
+    remaining: {
+      calories: Math.max(0, summary.caloriesTarget - summary.caloriesConsumed),
+      protein: Math.max(0, snapshot.day.target.protein - summary.proteinConsumed),
+      carbs: Math.max(0, snapshot.day.target.carbs - summary.carbsConsumed),
+      fat: Math.max(0, snapshot.day.target.fat - summary.fatConsumed)
+    },
+    mealsCompleted: summary.completedMeals,
+    mealsTotal: summary.plannedMeals,
+    mealsRemaining: Math.max(0, summary.plannedMeals - summary.completedMeals),
+    hydrationMl: summary.hydrationMl,
+    hydrationTargetMl: summary.hydrationTargetMl,
+    hydrationRemainingMl: Math.max(0, summary.hydrationTargetMl - summary.hydrationMl),
+    supplementsCompleted: summary.supplementsCompleted,
+    supplementsTotal: summary.supplementsTotal,
+    nextMealSlot
+  };
+}
+
+export function rankMealOptions(slot: MealSlot, options: MealOption[]): RankedMealOption[] {
+  const ranked = options
+    .map((option) => ({
+      option,
+      score: optionSelectionScore(slot, option)
+    }))
+    .sort((left, right) => left.score - right.score || parsePrepMinutes(left.option.prepTime) - parsePrepMinutes(right.option.prepTime) || left.option.name.localeCompare(right.option.name));
+
+  if (ranked.length === 0) {
+    return [];
+  }
+
+  const quickIndex = ranked.findIndex((entry) => entry.option.prepTime === ranked.slice().sort((left, right) => parsePrepMinutes(left.option.prepTime) - parsePrepMinutes(right.option.prepTime))[0]?.option.prepTime);
+
+  return ranked.map((entry, index) => ({
+    option: entry.option,
+    score: entry.score,
+    label: index === 0 ? "BEST MATCH" : index === quickIndex ? "QUICK OPTION" : "ALTERNATIVE",
+    reason:
+      index === 0
+        ? "Closest to the target macro shape."
+        : index === quickIndex
+          ? "Fastest preparation time."
+          : "Balanced fallback with a transparent score."
+  }));
 }
 
 export function nutritionStorageKey(userId: string | null, dateKey: string) {

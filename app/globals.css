@@ -1398,6 +1398,36 @@ img {
   gap: 12px;
 }
 
+.nutrition-hero-card__summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.nutrition-hero-card__summary > div {
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--border-quiet);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.nutrition-hero-card__summary-value {
+  font-size: 18px;
+  line-height: 26px;
+  letter-spacing: -0.03em;
+}
+
+.nutrition-hero-card__summary-value--accent {
+  color: var(--accent-primary);
+}
+
+.nutrition-hero-card__next {
+  display: grid;
+  gap: 4px;
+  padding-top: 2px;
+  border-top: 1px solid var(--border-quiet);
+}
+
 .nutrition-hero-card__subtitle {
   font-size: 14px;
   line-height: 20px;
@@ -1647,6 +1677,13 @@ img {
   font-size: 12px;
 }
 
+.nutrition-day-teaser {
+  display: grid;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-quiet);
+}
+
 .nutrition-supplement-list {
   display: grid;
   gap: 10px;
@@ -1778,6 +1815,85 @@ img {
   overflow: auto;
   overscroll-behavior: contain;
   padding-right: 2px;
+}
+
+.nutrition-sheet__detail {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid var(--border-quiet);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.nutrition-sheet__media {
+  min-height: 152px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #171717;
+}
+
+.nutrition-sheet__hero-image {
+  width: 100%;
+  height: 100%;
+  min-height: 152px;
+  object-fit: cover;
+  display: block;
+}
+
+.nutrition-sheet__hero-fallback {
+  min-height: 152px;
+  display: grid;
+  place-items: center;
+  color: var(--accent-primary);
+  background: radial-gradient(circle at center, rgba(182, 255, 0, 0.1), transparent 62%);
+}
+
+.nutrition-sheet__detail-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.nutrition-sheet__macro-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+}
+
+.nutrition-sheet__preview {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(182, 255, 0, 0.24);
+  background: rgba(182, 255, 0, 0.06);
+}
+
+.nutrition-sheet__comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.nutrition-sheet__comparison > div {
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.nutrition-option-card__label-stack {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+}
+
+.nutrition-option-card__choice.selected {
+  color: var(--accent-primary);
 }
 
 .nutrition-option-card {
@@ -4359,6 +4475,17 @@ body:has(.bottom-nav) .feedback-tray {
   .workout-active-hero__detail-link {
     width: 100%;
     justify-content: center;
+  }
+
+  .nutrition-hero-card__summary,
+  .nutrition-sheet__comparison {
+    grid-template-columns: 1fr;
+  }
+
+  .nutrition-sheet__media,
+  .nutrition-sheet__hero-image,
+  .nutrition-sheet__hero-fallback {
+    min-height: 128px;
   }
 
   .exercise-detail-grid,

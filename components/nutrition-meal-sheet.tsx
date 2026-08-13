@@ -10,9 +10,12 @@ import { useReducedMotion } from "@/motion/useReducedMotion";
 interface NutritionMealSheetProps {
   slot: MealSlot;
   options: MealOption[];
+  currentOptionId: string | null;
   selectedOptionId: string | null;
+  managementMode: "self_managed" | "coach_managed";
   onSelectOption: (optionId: string) => void;
   onConfirm: () => void;
+  onRequestAlternative?: () => void;
   onClose: () => void;
 }
 
@@ -22,45 +25,85 @@ function copyFor(locale: string) {
       en: {
         mealLabels: { breakfast: "Breakfast", lunch: "Lunch", snack: "Snack", dinner: "Dinner" },
         chooseOption: "Choose option",
+        mealDetail: "Meal detail",
         close: "Close meal chooser",
         cancel: "Cancel",
         confirm: "Confirm selection",
+        replaceMeal: "Replace meal",
+        requestAlternative: "Request alternative",
+        coachManagedUnavailable: "Coach-managed replacement is handled outside this flow.",
+        current: "Current",
+        new: "New",
+        ingredients: "Ingredients",
+        preparation: "Preparation",
         noSafeOptions: "No safe options available",
         target: "target"
       },
       es: {
         mealLabels: { breakfast: "Desayuno", lunch: "Comida", snack: "Merienda", dinner: "Cena" },
         chooseOption: "Elegir opción",
+        mealDetail: "Detalle del plato",
         close: "Cerrar selector",
         cancel: "Cancelar",
         confirm: "Confirmar selección",
+        replaceMeal: "Reemplazar comida",
+        requestAlternative: "Solicitar alternativa",
+        coachManagedUnavailable: "El reemplazo gestionado por el coach se gestiona fuera de este flujo.",
+        current: "Actual",
+        new: "Nuevo",
+        ingredients: "Ingredientes",
+        preparation: "Preparación",
         noSafeOptions: "No hay opciones seguras",
         target: "objetivo"
       },
       ca: {
         mealLabels: { breakfast: "Esmorzar", lunch: "Dinar", snack: "Berenar", dinner: "Sopar" },
         chooseOption: "Tria opció",
+        mealDetail: "Detall del plat",
         close: "Tanca el selector",
         cancel: "Cancel·la",
         confirm: "Confirma la selecció",
+        replaceMeal: "Substitueix l'àpat",
+        requestAlternative: "Demana una alternativa",
+        coachManagedUnavailable: "La substitució gestionada pel coach es gestiona fora d'aquest flux.",
+        current: "Actual",
+        new: "Nou",
+        ingredients: "Ingredients",
+        preparation: "Preparació",
         noSafeOptions: "No hi ha opcions segures",
         target: "objectiu"
       },
       de: {
         mealLabels: { breakfast: "Frühstück", lunch: "Mittagessen", snack: "Snack", dinner: "Abendessen" },
         chooseOption: "Option wählen",
+        mealDetail: "Details zur Mahlzeit",
         close: "Auswahl schließen",
         cancel: "Abbrechen",
         confirm: "Auswahl bestätigen",
+        replaceMeal: "Mahlzeit ersetzen",
+        requestAlternative: "Alternative anfragen",
+        coachManagedUnavailable: "Die durch den Coach verwaltete Ersetzung erfolgt außerhalb dieses Ablaufs.",
+        current: "Aktuell",
+        new: "Neu",
+        ingredients: "Zutaten",
+        preparation: "Zubereitung",
         noSafeOptions: "Keine sicheren Optionen verfügbar",
         target: "Ziel"
       }
     }[locale as "en" | "es" | "ca" | "de"] ?? {
       mealLabels: { breakfast: "Breakfast", lunch: "Lunch", snack: "Snack", dinner: "Dinner" },
       chooseOption: "Choose option",
+      mealDetail: "Meal detail",
       close: "Close meal chooser",
       cancel: "Cancel",
       confirm: "Confirm selection",
+      replaceMeal: "Replace meal",
+      requestAlternative: "Request alternative",
+      coachManagedUnavailable: "Coach-managed replacement is handled outside this flow.",
+      current: "Current",
+      new: "New",
+      ingredients: "Ingredients",
+      preparation: "Preparation",
       noSafeOptions: "No safe options available",
       target: "target"
     }
@@ -112,9 +155,12 @@ function nutritionSheetPresentationFor(locale: string): NutritionSheetPresentati
 export function NutritionMealSheet({
   slot,
   options,
+  currentOptionId,
   selectedOptionId,
+  managementMode,
   onSelectOption,
   onConfirm,
+  onRequestAlternative,
   onClose
 }: NutritionMealSheetProps) {
   const sheetRef = useRef<HTMLDivElement | null>(null);
@@ -122,6 +168,7 @@ export function NutritionMealSheet({
   const reducedMotion = useReducedMotion();
   const { locale } = useTranslator();
   const copy = copyFor(locale);
+  const extendedCopy = copy as typeof copy & Record<string, string>;
   const presentation = nutritionSheetPresentationFor(locale);
 
   useEffect(() => {
@@ -154,6 +201,7 @@ export function NutritionMealSheet({
   }, [onClose]);
 
   const selectedOption = options.find((option) => option.id === selectedOptionId) ?? null;
+  const currentOption = options.find((option) => option.id === currentOptionId) ?? options[0] ?? null;
   const slotLabel = presentation?.mealLabels[slot.id as keyof typeof presentation.mealLabels] ?? copy.mealLabels[slot.id as keyof typeof copy.mealLabels] ?? slot.label;
 
   if (!portalRoot) {
@@ -173,9 +221,7 @@ export function NutritionMealSheet({
         <div className="nutrition-sheet__grabber" aria-hidden="true" />
         <div className="nutrition-sheet__header">
           <div>
-            <div className="eyebrow" style={{ marginBottom: 4 }}>
-              {copy.chooseOption}
-            </div>
+            <div className="eyebrow" style={{ marginBottom: 4 }}>{extendedCopy.mealDetail ?? copy.chooseOption}</div>
             <h3 className="headline-md" id="nutrition-meal-sheet-title">
               {slotLabel}
             </h3>
@@ -188,6 +234,63 @@ export function NutritionMealSheet({
               close
             </span>
           </button>
+        </div>
+
+        <div className="nutrition-sheet__detail">
+          <div className="nutrition-sheet__media">
+            {currentOption?.image ? (
+              <img alt={currentOption.name} className="nutrition-sheet__hero-image" src={currentOption.image} />
+            ) : (
+              <div className="nutrition-sheet__hero-fallback" aria-hidden="true">
+                <span className="icon filled" aria-hidden="true">
+                  restaurant
+                </span>
+              </div>
+            )}
+          </div>
+
+          {currentOption ? (
+            <div className="nutrition-sheet__detail-copy">
+              <div className="row start">
+                <div>
+                  <div className="eyebrow" style={{ marginBottom: 4 }}>
+                    {copy.current}
+                  </div>
+                  <div className="body-md" style={{ fontWeight: 700 }}>
+                    {presentation?.options[currentOption.id]?.name ?? currentOption.name}
+                  </div>
+                </div>
+                <span className="pill nutrition-option-card__pill" style={{ minHeight: 24 }}>
+                  {currentOption.prepTime}
+                </span>
+              </div>
+              <p className="caption" style={{ marginTop: 8 }}>
+                {presentation?.options[currentOption.id]?.summary ?? currentOption.summary}
+              </p>
+              <div className="nutrition-sheet__macro-row">
+                <span>{currentOption.macro.calories} kcal</span>
+                <span>{currentOption.macro.protein}P</span>
+                <span>{currentOption.macro.carbs}C</span>
+                <span>{currentOption.macro.fat}F</span>
+              </div>
+              <div className="eyebrow" style={{ marginTop: 14, marginBottom: 6 }}>
+                {copy.ingredients}
+              </div>
+              <div className="nutrition-food-list">
+                {currentOption.portions.map((portion) => (
+                  <div key={`${currentOption.id}-${portion.name}`} className="nutrition-food-row">
+                    <span>{portion.name}</span>
+                    <span>
+                      {portion.amount}
+                      {portion.note ? ` · ${portion.note}` : ""}
+                      {" "}
+                      <span className="nutrition-food-row__state">({portion.preparation})</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="nutrition-sheet__body">
@@ -210,9 +313,14 @@ export function NutritionMealSheet({
                       {presentation?.options[option.id]?.summary ?? option.summary}
                     </div>
                   </div>
-                  <span className="pill nutrition-option-card__pill" style={{ minHeight: 24 }}>
-                    {option.prepTime}
-                  </span>
+                  <div className="nutrition-option-card__label-stack">
+                    <span className="pill nutrition-option-card__pill" style={{ minHeight: 24 }}>
+                      {option.prepTime}
+                    </span>
+                    <span className={`caption nutrition-option-card__choice ${isSelected ? "selected" : ""}`.trim()}>
+                      {isSelected ? copy.new : copy.current}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="nutrition-option-card__macro">
@@ -237,13 +345,53 @@ export function NutritionMealSheet({
           })}
         </div>
 
+        {selectedOption ? (
+          <div className="nutrition-sheet__preview">
+            <div className="eyebrow" style={{ marginBottom: 6 }}>
+              {copy.new}
+            </div>
+            <div className="nutrition-sheet__comparison">
+              <div>
+                <div className="caption">{copy.current}</div>
+                <div className="body-md" style={{ fontWeight: 700, marginTop: 4 }}>
+                  {presentation?.options[currentOption?.id ?? ""]?.name ?? currentOption?.name ?? slot.label}
+                </div>
+                <div className="caption" style={{ marginTop: 4 }}>
+                  {currentOption ? `${currentOption.macro.calories} kcal · ${currentOption.macro.protein}P / ${currentOption.macro.carbs}C / ${currentOption.macro.fat}F` : "—"}
+                </div>
+              </div>
+              <div>
+                <div className="caption">{copy.new}</div>
+                <div className="body-md" style={{ fontWeight: 700, marginTop: 4 }}>
+                  {presentation?.options[selectedOption.id]?.name ?? selectedOption.name}
+                </div>
+                <div className="caption" style={{ marginTop: 4 }}>
+                  {`${selectedOption.macro.calories} kcal · ${selectedOption.macro.protein}P / ${selectedOption.macro.carbs}C / ${selectedOption.macro.fat}F`}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         <div className="nutrition-sheet__footer">
           <button className="button-secondary focus-ring nutrition-sheet__secondary" onClick={onClose} type="button">
             {copy.cancel}
           </button>
-          <button className="button-primary focus-ring nutrition-sheet__primary" disabled={!selectedOption} onClick={onConfirm} type="button">
-            {copy.confirm}
-          </button>
+          {managementMode === "coach_managed" ? (
+            onRequestAlternative ? (
+              <button className="button-primary focus-ring nutrition-sheet__primary" onClick={onRequestAlternative} type="button">
+                {extendedCopy.requestAlternative ?? copy.confirm}
+              </button>
+            ) : (
+              <div className="nutrition-sheet__coach-note caption" style={{ alignSelf: "center", color: "var(--text-muted)" }}>
+                {extendedCopy.coachManagedUnavailable ?? copy.confirm}
+              </div>
+            )
+          ) : (
+            <button className="button-primary focus-ring nutrition-sheet__primary" disabled={!selectedOption} onClick={onConfirm} type="button">
+              {extendedCopy.replaceMeal ?? copy.confirm}
+            </button>
+          )}
         </div>
       </div>
     </div>,

@@ -5,6 +5,7 @@ import { useAuthStore } from "@/components/auth-provider";
 import { useLocale } from "@/components/locale-provider";
 import { useProgramStore } from "@/components/program-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { loadIdentityResolution, type ManagementMode } from "@/lib/auth/identity-resolver";
 import {
   applyMealSelection,
   addHydration,
@@ -24,6 +25,7 @@ import type { NutritionDay } from "@/lib/nutrition-data";
 
 interface NutritionStoreValue {
   day: NutritionDay;
+  managementMode: ManagementMode;
   selectMealOption: (slotId: string, optionId: string) => void;
   markMealEaten: (slotId: string) => void;
   markMealCompleted: (slotId: string) => void;
@@ -42,6 +44,7 @@ export function NutritionProvider({ children, dateKey }: { children: ReactNode; 
   const programStoreRef = useRef(programStore);
   const hydratedRef = useRef(false);
   const remoteReadyRef = useRef(false);
+  const [managementMode, setManagementMode] = useState<ManagementMode>("self_managed");
   const [snapshot, setSnapshot] = useState<NutritionStoreSnapshot>(() =>
     createNutritionStoreSnapshot(dateKey, programStore.getDaySummary(dateKey), auth.user?.id ?? "demo-user", programStore.activeProgram?.id ?? null)
   );
@@ -69,6 +72,7 @@ export function NutritionProvider({ children, dateKey }: { children: ReactNode; 
 
     hydratedRef.current = false;
     remoteReadyRef.current = false;
+    setManagementMode("self_managed");
 
     const currentAuth = authRef.current;
     const currentProgram = programStoreRef.current;
@@ -96,6 +100,13 @@ export function NutritionProvider({ children, dateKey }: { children: ReactNode; 
 
     async function hydrateRemote() {
       try {
+        if (currentAuth.user && client) {
+          const identity = await loadIdentityResolution(client, currentAuth.user.id).catch(() => null);
+          if (active && identity) {
+            setManagementMode(identity.managementMode);
+          }
+        }
+
         const result = await loadOrCreateNutritionStoreSnapshot(
           client!,
           userId,
@@ -207,6 +218,7 @@ export function NutritionProvider({ children, dateKey }: { children: ReactNode; 
 
     return {
       day,
+      managementMode,
       selectMealOption,
       markMealEaten: markMealEatenAction,
       markMealCompleted: markMealCompletedAction,
@@ -214,7 +226,7 @@ export function NutritionProvider({ children, dateKey }: { children: ReactNode; 
       toggleSupplement: toggleSupplementAction,
       resetNutritionDemo
     };
-  }, [day, dateKey, locale]);
+  }, [day, dateKey, locale, managementMode]);
 
   return <NutritionStoreContext.Provider value={value}>{children}</NutritionStoreContext.Provider>;
 }

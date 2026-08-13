@@ -19,7 +19,7 @@ This map ties the canonical design system to the real repository code.
 | Workout Summary | `app/workout/[sessionId]/summary/page.tsx` + `motion/workout.ts` | Live verified | Summarizes the real completed session. |
 | Exercise Alternatives | `app/workout/[sessionId]/exercise/[exerciseId]/alternatives/page.tsx` + `lib/workout-data.ts` | Implemented / partial | Offers swaps that preserve movement intent. |
 | Exercise Safety | `app/workout/[sessionId]/exercise/[exerciseId]/safety/page.tsx` + subroutes | Implemented | Handles discomfort and safety responses. |
-| Nutrition | `app/nutrition/page.tsx` + `components/nutrition-screen.tsx` + `components/nutrition-provider.tsx` + `lib/nutrition-service.ts` | Implemented | Answers "What do I need to eat or complete today?" |
+| Nutrition | `app/nutrition/page.tsx` + `app/day/[date]/nutrition/page.tsx` + `components/nutrition-screen.tsx` + `components/nutrition-meal-sheet.tsx` + `components/nutrition-provider.tsx` + `lib/nutrition-service.ts` | Implemented / upgrading | Answers "What do I need to eat or complete today?" |
 | Progress | `app/progress/page.tsx` + `app/progress/*` + `components/progress-*.tsx` + `lib/progress-*.ts` | Implemented | Answers "How am I progressing?" |
 | Check-in | `app/progress/check-in/page.tsx` + `app/progress/check-in/completion/page.tsx` + `components/checkin-flow.tsx` | Implemented | Answers "How am I responding?" |
 | Profile / Settings | `app/profile/page.tsx` + `app/profile/preferences/*` + `components/profile-settings-flow.tsx` + `components/profile-settings-provider.tsx` | Implemented | Identity, preferences, account, and locale management. |
@@ -37,6 +37,16 @@ This map ties the canonical design system to the real repository code.
 | Alternatives preview and replace confirmation | `app/workout/[sessionId]/exercise/[exerciseId]/alternatives/page.tsx` | Next | Preserve actual history vs prescription history. |
 | Coach request / change proposal flow | `components/program-change-proposal-panel.tsx` + `app/api/program-change-proposals/*` | Next | Coach intent must remain authorization-free on the client. |
 | No-media fallback | `app/exercises/[exerciseId]/page.tsx` | Next | Use a neutral semantic placeholder, not a fake muscle map. |
+
+## Slice 24 Nutrition Targets
+
+| Next target | Code path(s) | Status | Notes |
+| --- | --- | --- | --- |
+| Daily Nutrition shell | `app/nutrition/page.tsx` + `components/nutrition-screen.tsx` | In progress | Compact daily totals, next meal, hydration, and supplements. |
+| Nutrition detail / options sheet | `components/nutrition-meal-sheet.tsx` | In progress | Detail, option preview, and replacement confirmation live here. |
+| Nutrition progress calculation | `lib/nutrition-service.ts` | In progress | Snapshot-derived totals must stay truthful after refresh. |
+| Nutrition identity gating | `components/nutrition-provider.tsx` + `lib/auth/identity-resolver.ts` | Implemented / in use | Coach-managed vs self-managed behavior should be explicit. |
+| Today nutrition teaser | `app/page.tsx` | Next | Keep it concise and derived from real nutrition state. |
 
 ## Architecture Invariants
 

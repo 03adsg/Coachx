@@ -10,10 +10,82 @@ import { RemoteAvatar } from "@/components/remote-avatar";
 import { useTranslator } from "@/components/locale-provider";
 import { useProfileSettingsStore } from "@/components/profile-settings-provider";
 import { useProgramStore } from "@/components/program-provider";
+import { NutritionProvider, useNutritionSession } from "@/components/nutrition-provider";
 import { Screen } from "@/components/screen";
 import { Card, IconButton, PrimaryButton, Section, StatTile } from "@/components/ui";
 import { useCurrentLocalDateKey } from "@/components/use-current-local-date-key";
+import { resolveNutritionMealUiState } from "@/lib/nutrition-service";
 import type { ProgramDaySummary } from "@/lib/program-service";
+
+function nutritionTeaserCopyFor(locale: string) {
+  return (
+    {
+      en: { nextMeal: "NEXT MEAL", complete: "NUTRITION COMPLETE" },
+      es: { nextMeal: "PRÓXIMA COMIDA", complete: "NUTRICIÓN COMPLETA" },
+      ca: { nextMeal: "SEGÜENT ÀPAT", complete: "NUTRICIÓ COMPLETA" },
+      de: { nextMeal: "NÄCHSTE MAHLZEIT", complete: "ERNÄHRUNG ABGESCHLOSSEN" }
+    }[locale as "en" | "es" | "ca" | "de"] ?? { nextMeal: "NEXT MEAL", complete: "NUTRITION COMPLETE" }
+  );
+}
+
+function TodayNutritionSummaryContent({ dateKey }: { dateKey: string }) {
+  const { t, locale } = useTranslator();
+  const { day } = useNutritionSession();
+  const teaserCopy = nutritionTeaserCopyFor(locale);
+  const nextMeal = day.mealSlots.find((slot) => resolveNutritionMealUiState(slot) === "next") ?? day.mealSlots.find((slot) => slot.state !== "completed") ?? null;
+  const completedMeals = day.mealSlots.filter((slot) => slot.state === "completed").length;
+  const remainingCalories = Math.max(0, day.target.calories - day.progress.calories);
+
+  return (
+    <Section title={t("common.nutrition")} meta={day.calendarLabel}>
+      <Card className="p-16 elevated" style={{ background: "var(--background-charcoal)" }}>
+        <div className="row start" style={{ marginBottom: 16 }}>
+          <div>
+            <div className="eyebrow" style={{ marginBottom: 6 }}>
+              {completedMeals} / {day.mealSlots.length} meals
+            </div>
+            <div className="headline-md">
+              {day.progress.calories.toLocaleString()} / {day.target.calories.toLocaleString()} kcal
+            </div>
+            <div className="caption" style={{ marginTop: 6 }}>
+              {remainingCalories.toLocaleString()} kcal remaining
+            </div>
+          </div>
+          <Link
+            href={`/nutrition?date=${dateKey}`}
+            className="tap-target focus-ring"
+            style={{ background: "var(--accent-primary)", borderRadius: 9999 }}
+            aria-label={t("common.nutrition")}
+          >
+            <span className="icon filled" style={{ color: "var(--background-deep)" }} aria-hidden="true">
+              restaurant
+            </span>
+          </Link>
+        </div>
+        <div className="nutrition-day-teaser">
+          <div className="eyebrow" style={{ marginBottom: 6, color: "var(--accent-primary)" }}>
+            {teaserCopy.nextMeal}
+          </div>
+          <div className="body-md" style={{ fontWeight: 700 }}>
+            {nextMeal ? `${nextMeal.timeLabel} · ${nextMeal.label}` : teaserCopy.complete}
+          </div>
+          {nextMeal ? <p className="caption" style={{ marginTop: 6 }}>{nextMeal.selectedOptionId ? nextMeal.options.find((option) => option.id === nextMeal.selectedOptionId)?.name ?? nextMeal.label : nextMeal.description}</p> : null}
+          <p className="caption" style={{ marginTop: 8 }}>
+            Hydration {day.hydration.currentMl} / {day.hydration.targetMl} ml
+          </p>
+        </div>
+      </Card>
+    </Section>
+  );
+}
+
+function TodayNutritionSummary({ dateKey }: { dateKey: string }) {
+  return (
+    <NutritionProvider dateKey={dateKey}>
+      <TodayNutritionSummaryContent dateKey={dateKey} />
+    </NutritionProvider>
+  );
+}
 
 function RestDayHero({ athleteName, day, nextWorkout }: { athleteName: string; day: ProgramDaySummary; nextWorkout: ProgramDaySummary | null }) {
   const { t } = useTranslator();
@@ -166,6 +238,8 @@ function TodayContent() {
                 </div>
               </Card>
             </Section>
+
+            <TodayNutritionSummary dateKey={day.dateKey} />
 
             <Section title={t("today.movements")} meta={day.workoutCount}>
               <div className="stack">
