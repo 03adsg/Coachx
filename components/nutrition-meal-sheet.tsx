@@ -2,11 +2,11 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { gsap } from "gsap";
 import { AthlexMedia } from "@/components/athlex-media";
 import { useTranslator } from "@/components/locale-provider";
 import type { MealOption, MealSlot } from "@/lib/nutrition-data";
 import { resolveMealHeroMedia } from "@/lib/media";
+import { buildConfirmationSheetTimeline } from "@/motion/feedback";
 import { useReducedMotion } from "@/motion/useReducedMotion";
 
 interface NutritionMealSheetProps {
@@ -184,9 +184,7 @@ export function NutritionMealSheet({
       return;
     }
 
-    const context = gsap.context(() => {
-      gsap.fromTo(sheet, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.28, ease: "power2.out" });
-    }, sheet);
+    const context = buildConfirmationSheetTimeline({ root: sheet, reducedMotion }, "[data-feedback-sheet]");
 
     return () => context.revert();
   }, [portalRoot, reducedMotion, slot.id]);
@@ -225,6 +223,7 @@ export function NutritionMealSheet({
         aria-labelledby="nutrition-meal-sheet-title"
         aria-modal="true"
         className="nutrition-sheet card elevated"
+        data-feedback-sheet="true"
         role="dialog"
         onClick={(event) => event.stopPropagation()}
       >

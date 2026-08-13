@@ -110,3 +110,25 @@ Do not copy long Stitch prototype delays blindly.
 - If a transition is already implemented and safe, keep it.
 - If a documented transition is not yet implemented, mark it future instead of inventing it.
 - Do not let Stitch prototype timing override the working product.
+
+## Slice 26 Motion Delta
+
+Slice 26 adds a shared feedback layer on top of the existing motion language.
+
+### Added runtime helpers
+
+- `motion/feedback.ts`
+
+### Canonical behavior
+
+- Keep feedback motion interruptible.
+- Prefer compact contextual success over full-screen overlays.
+- Use the same canonical easing family already defined here.
+- Do not introduce playful easing or new timing families.
+- Keep reduced-motion end states identical.
+
+### Scope note
+
+- This slice centralizes confirmation-sheet, contextual success, KPI update, and preparing-workout choreography.
+- It does not replace the existing workout motion system.
+- It does not change production architecture beyond shared feedback centralization.

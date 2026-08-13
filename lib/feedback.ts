@@ -3,6 +3,7 @@ import type { Locale } from "@/lib/i18n";
 export type FeedbackKind = "success" | "info" | "warning" | "error" | "pending";
 export type FeedbackPlacement = "inline" | "toast" | "hero" | "dialog";
 export type FeedbackIntensity = 0 | 1 | 2 | 3 | 4;
+export type FeedbackLevel = "L1" | "L2" | "L3" | "L4";
 
 export type FeedbackActionId =
   | "auth.sign-in"
@@ -139,7 +140,7 @@ const feedbackActionDefaults: Record<FeedbackActionId, Pick<FeedbackNotice, "kin
   "auth.sign-up": { kind: "success", placement: "toast", intensity: 2, reversible: false, needsConfirmation: false },
   "auth.sign-out": { kind: "info", placement: "toast", intensity: 1, reversible: false, needsConfirmation: false },
   "auth.session-expired": { kind: "warning", placement: "dialog", intensity: 4, reversible: false, needsConfirmation: true },
-  "onboarding.save": { kind: "success", placement: "toast", intensity: 2, reversible: true, needsConfirmation: false },
+  "onboarding.save": { kind: "success", placement: "inline", intensity: 2, reversible: true, needsConfirmation: false },
   "onboarding.complete": { kind: "success", placement: "hero", intensity: 4, reversible: false, needsConfirmation: false },
   "workout.set": { kind: "success", placement: "inline", intensity: 1, reversible: true, needsConfirmation: false },
   "workout.swap": { kind: "warning", placement: "inline", intensity: 2, reversible: true, needsConfirmation: true },
@@ -147,8 +148,8 @@ const feedbackActionDefaults: Record<FeedbackActionId, Pick<FeedbackNotice, "kin
   "nutrition.meal": { kind: "success", placement: "inline", intensity: 1, reversible: true, needsConfirmation: false },
   "nutrition.water": { kind: "info", placement: "inline", intensity: 1, reversible: true, needsConfirmation: false },
   "nutrition.supplement": { kind: "info", placement: "inline", intensity: 1, reversible: true, needsConfirmation: false },
-  "progress.measurement": { kind: "success", placement: "toast", intensity: 2, reversible: true, needsConfirmation: false },
-  "progress.photo": { kind: "success", placement: "toast", intensity: 2, reversible: true, needsConfirmation: false },
+  "progress.measurement": { kind: "success", placement: "inline", intensity: 2, reversible: true, needsConfirmation: false },
+  "progress.photo": { kind: "success", placement: "inline", intensity: 2, reversible: true, needsConfirmation: false },
   "progress.photo-remove": { kind: "warning", placement: "dialog", intensity: 4, reversible: false, needsConfirmation: true },
   "checkin.answer": { kind: "success", placement: "inline", intensity: 1, reversible: true, needsConfirmation: false },
   "checkin.submit": { kind: "success", placement: "hero", intensity: 4, reversible: false, needsConfirmation: true },
@@ -158,12 +159,28 @@ const feedbackActionDefaults: Record<FeedbackActionId, Pick<FeedbackNotice, "kin
   "program-change.proposal": { kind: "info", placement: "toast", intensity: 2, reversible: false, needsConfirmation: false },
   "program-change.apply": { kind: "success", placement: "hero", intensity: 4, reversible: false, needsConfirmation: true },
   "program-change.reject": { kind: "warning", placement: "toast", intensity: 2, reversible: false, needsConfirmation: true },
-  "profile.save": { kind: "success", placement: "toast", intensity: 2, reversible: true, needsConfirmation: false },
-  "profile.locale": { kind: "success", placement: "toast", intensity: 2, reversible: true, needsConfirmation: false },
-  "profile.notifications": { kind: "success", placement: "toast", intensity: 2, reversible: true, needsConfirmation: false },
+  "profile.save": { kind: "success", placement: "inline", intensity: 2, reversible: true, needsConfirmation: false },
+  "profile.locale": { kind: "success", placement: "inline", intensity: 2, reversible: true, needsConfirmation: false },
+  "profile.notifications": { kind: "success", placement: "inline", intensity: 2, reversible: true, needsConfirmation: false },
   "coach.review": { kind: "info", placement: "toast", intensity: 2, reversible: false, needsConfirmation: false },
   "coach.decision": { kind: "success", placement: "toast", intensity: 2, reversible: false, needsConfirmation: false }
 };
+
+export function resolveFeedbackLevel(placement: FeedbackPlacement, intensity: FeedbackIntensity): FeedbackLevel {
+  if (placement === "hero" || placement === "dialog" || intensity >= 4) {
+    return "L4";
+  }
+
+  if (placement === "toast" || intensity === 3) {
+    return "L3";
+  }
+
+  if (placement === "inline" || intensity === 2) {
+    return "L2";
+  }
+
+  return "L1";
+}
 
 function createId() {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;

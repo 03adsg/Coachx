@@ -1,5 +1,7 @@
 # AthlexForce Feedback System
 
+> Slice 26 extends this document with the canonical interaction hierarchy in `docs/INTERACTION_FEEDBACK_SYSTEM.md`.
+
 ## Purpose
 
 AthlexForce must always answer the user with a predictable result for every meaningful action. The feedback system standardizes:

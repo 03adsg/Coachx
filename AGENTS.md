@@ -15,6 +15,7 @@
 - `language-selector-ux-auditor.md` - language selector hierarchy and locale persistence QA.
 - `live-product-flow-audit.md` - live-browser route discovery and gap registration.
 - `feedback-interaction-ux.md` - feedback, confirmations, undo, and interaction memory.
+- `feedback-motion-system.md` - global feedback hierarchy, contextual success, and GSAP motion centralization.
 - `data-visualization-motion.md` - analytics, charts, and motion-safe progress surfaces.
 - `motivational-immersion-ux.md` - restrained achievement and progress immersion.
 
@@ -27,7 +28,7 @@
 5. `workout-active-flow-motion` and `cinematic-frontend-gsap` for motion-heavy UI.
 6. `visual-qa` for fidelity and drift review.
 7. `i18n-exhaustive-auditor` and `language-selector-ux-auditor` for locale work.
-8. `feedback-interaction-ux`, `data-visualization-motion`, and `motivational-immersion-ux` for their domains.
+8. `feedback-interaction-ux`, `feedback-motion-system`, `data-visualization-motion`, and `motivational-immersion-ux` for their domains.
 9. `live-product-flow-audit` for live browser verification.
 10. `qa-testing` for lint, typecheck, build, and regression checks.
 

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { gsap } from "gsap";
 import { Card } from "@/components/ui";
+import { buildKpiUpdateTimeline } from "@/motion/feedback";
 import { useReducedMotion } from "@/motion/useReducedMotion";
 import type { PerformanceAnalyticsSeries } from "@/lib/performance-analytics";
 import type { ProgressIntensityLevel } from "@/lib/motivational-immersion";
@@ -81,26 +81,13 @@ export function AnalyticsChartCard({ title, subtitle, unit, series, pointsLabel,
       return;
     }
 
-    const context = gsap.context(() => {
-      const svgPath = root.querySelector<SVGPathElement>("[data-analytics-line]");
-      if (svgPath) {
-        const length = svgPath.getTotalLength();
-        gsap.fromTo(
-          svgPath,
-          { strokeDasharray: length, strokeDashoffset: length, opacity: 0.55 },
-          { strokeDashoffset: 0, opacity: 1, duration: 1.1, ease: "power2.out" }
-        );
+    const context = buildKpiUpdateTimeline(
+      { root, reducedMotion },
+      {
+        lineSelector: "[data-analytics-line]",
+        pointSelector: "[data-analytics-point]"
       }
-
-      const circles = root.querySelectorAll<SVGCircleElement>("[data-analytics-point]");
-      if (circles.length > 0) {
-        gsap.fromTo(
-          circles,
-          { autoAlpha: 0, scale: 0.5 },
-          { autoAlpha: 1, scale: 1, duration: 0.35, ease: "back.out(1.8)", stagger: 0.04 }
-        );
-      }
-    }, root);
+    );
 
     return () => context.revert();
   }, [reducedMotion, series.id, series.points.length]);
@@ -182,6 +169,7 @@ export function AnalyticsChartCard({ title, subtitle, unit, series, pointsLabel,
           <path d="M0,100 L0,100 L100,100 Z" fill={`url(#chart-gradient-${series.id})`} opacity="0.35" />
           <path
             data-analytics-line
+            data-feedback-kpi-line
             d={path}
             fill="none"
             stroke={targetValue != null ? targetStroke : series.accent}
@@ -212,6 +200,7 @@ export function AnalyticsChartCard({ title, subtitle, unit, series, pointsLabel,
               <g key={`${series.id}-${point.dateKey}-${index}`}>
                 <circle
                   data-analytics-point
+                  data-feedback-kpi-point
                   cx={position.x}
                   cy={position.y}
                   r={isActive ? 3.6 : 2.6}

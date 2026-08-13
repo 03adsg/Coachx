@@ -15,6 +15,7 @@
 - `Media System` -> `media-system-architect` + `frontend-stitch` + `visual-qa` + `qa-testing`
 - `Performance analytics / motion visualization` -> `data-visualization-motion` + `frontend-stitch` + `visual-qa` + `qa-testing`
 - `Immersive progress / achievements` -> `motivational-immersion-ux` + `frontend-stitch` + `visual-qa` + `qa-testing`
+- `Global feedback / motion polish` -> `feedback-motion-system` + `frontend-stitch` + `visual-qa` + `qa-testing`
 - `I18n / locale QA` -> `i18n-exhaustive-auditor` + `language-selector-ux-auditor` + `visual-qa` + `qa-testing`
 - `Live browser audit` -> `live-product-flow-audit` + `qa-testing`
 

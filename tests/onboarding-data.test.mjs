@@ -198,6 +198,18 @@ test("feedback memory can clear stale auth sign-in notices without affecting oth
   assert.equal(Object.hasOwn(nextMemory.lastByAction, "workout.set"), true);
 });
 
+test("feedback hierarchy resolves canonical levels", () => {
+  assert.equal(feedbackLibrary.resolveFeedbackLevel("inline", 1), "L2");
+  assert.equal(feedbackLibrary.resolveFeedbackLevel("toast", 2), "L3");
+  assert.equal(feedbackLibrary.resolveFeedbackLevel("hero", 4), "L4");
+});
+
+test("canonical feedback defaults favor visible local states", () => {
+  assert.equal(feedbackLibrary.getFeedbackActionDefaults("profile.save").placement, "inline");
+  assert.equal(feedbackLibrary.getFeedbackActionDefaults("progress.measurement").placement, "inline");
+  assert.equal(feedbackLibrary.getFeedbackActionDefaults("workout.finish").placement, "hero");
+});
+
 test("i18n dictionaries stay in parity across supported locales", () => {
   const referencePaths = flattenMessagePaths(i18n.i18nMessages.en).sort();
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useReducedMotion } from "@/motion/useReducedMotion";
 import { useLocale } from "@/components/locale-provider";
 import {
@@ -12,6 +12,7 @@ import {
   getFeedbackActionLabel,
   reviveFeedbackMemory,
   serializeFeedbackMemory,
+  resolveFeedbackLevel,
   type FeedbackActionId,
   type FeedbackIntent,
   type FeedbackMemoryState,
@@ -22,6 +23,7 @@ interface FeedbackStoreValue {
   memory: FeedbackMemoryState;
   recent: FeedbackNotice[];
   emitFeedback: (intent: FeedbackIntent) => string;
+  emitPending: (actionId: FeedbackActionId, title: string, detail?: string | null) => string;
   emitSuccess: (actionId: FeedbackActionId, title: string, detail?: string | null) => string;
   emitError: (actionId: FeedbackActionId, title: string, detail?: string | null) => string;
   clearFeedback: () => void;
@@ -42,6 +44,8 @@ function hasWindow() {
 export function FeedbackProvider({ children }: { children: ReactNode }) {
   const { locale } = useLocale();
   const reducedMotion = useReducedMotion();
+  const dismissTimersRef = useRef(new Map<string, number>());
+  const recentRef = useRef<FeedbackNotice[]>([]);
   const [memory, setMemory] = useState<FeedbackMemoryState>(() => {
     if (!hasWindow()) {
       return createInitialFeedbackMemory();
@@ -58,6 +62,10 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
 
     window.sessionStorage.setItem(feedbackMemoryStorageKey(), serializeFeedbackMemory(memory));
   }, [memory]);
+
+  useEffect(() => {
+    recentRef.current = memory.recent;
+  }, [memory.recent]);
 
   const enqueueNotice = useCallback(
     (notice: FeedbackNotice) => {
@@ -77,10 +85,12 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
         return [notice, ...deduped].slice(0, 3);
       });
 
-      if (!reducedMotion) {
-        window.setTimeout(() => {
+      if (!reducedMotion && hasWindow()) {
+        const timerId = window.setTimeout(() => {
           setQueue((current) => current.filter((entry) => entry.id !== notice.id));
+          dismissTimersRef.current.delete(notice.id);
         }, notice.placement === "hero" ? HERO_DISPLAY_MS : DEFAULT_DISPLAY_MS);
+        dismissTimersRef.current.set(notice.id, timerId);
       }
     },
     [reducedMotion]
@@ -119,6 +129,13 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
       const actionId = customEvent.detail.actionId;
       setMemory((current) => clearFeedbackMemoryForAction(current, actionId));
       setQueue((current) => current.filter((entry) => entry.actionId !== actionId));
+      for (const notice of recentRef.current.filter((entry) => entry.actionId === actionId)) {
+        const timerId = dismissTimersRef.current.get(notice.id);
+        if (timerId) {
+          window.clearTimeout(timerId);
+          dismissTimersRef.current.delete(notice.id);
+        }
+      }
     };
 
     window.addEventListener(FEEDBACK_CLEAR_EVENT_NAME, handleClearFeedback as EventListener);
@@ -141,6 +158,13 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     [emitFeedback]
   );
 
+  const emitPending = useCallback(
+    (actionId: FeedbackActionId, title: string, detail?: string | null) => {
+      return emitFeedback({ actionId, title, detail, kind: "pending" });
+    },
+    [emitFeedback]
+  );
+
   const emitError = useCallback(
     (actionId: FeedbackActionId, title: string, detail?: string | null) => {
       return emitFeedback({ actionId, title, detail, kind: "error" });
@@ -150,15 +174,30 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
 
   const dismissFeedback = useCallback((id: string) => {
     setQueue((current) => current.filter((entry) => entry.id !== id));
+    const timerId = dismissTimersRef.current.get(id);
+    if (timerId) {
+      window.clearTimeout(timerId);
+      dismissTimersRef.current.delete(id);
+    }
   }, []);
 
   const clearFeedbackForAction = useCallback((actionId: FeedbackActionId) => {
     setMemory((current) => clearFeedbackMemoryForAction(current, actionId));
     setQueue((current) => current.filter((entry) => entry.actionId !== actionId));
+    for (const [noticeId, timerId] of dismissTimersRef.current.entries()) {
+      if (recentRef.current.some((notice) => notice.id === noticeId && notice.actionId === actionId)) {
+        window.clearTimeout(timerId);
+        dismissTimersRef.current.delete(noticeId);
+      }
+    }
   }, []);
 
   const clearFeedback = useCallback(() => {
     setQueue([]);
+    for (const timerId of dismissTimersRef.current.values()) {
+      window.clearTimeout(timerId);
+    }
+    dismissTimersRef.current.clear();
   }, []);
 
   const value = useMemo<FeedbackStoreValue>(
@@ -166,55 +205,71 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
       memory,
       recent: queue,
       emitFeedback,
+      emitPending,
       emitSuccess,
       emitError,
       clearFeedback,
       clearFeedbackForAction,
       dismissFeedback
     }),
-    [clearFeedback, clearFeedbackForAction, dismissFeedback, emitError, emitFeedback, emitSuccess, memory, queue]
+    [clearFeedback, clearFeedbackForAction, dismissFeedback, emitError, emitFeedback, emitPending, emitSuccess, memory, queue]
   );
 
   return (
     <FeedbackContext.Provider value={value}>
       {children}
-      <FeedbackTray notices={queue} onDismiss={dismissFeedback} />
+      <FeedbackTray notices={queue.filter((notice) => notice.placement === "hero")} onDismiss={dismissFeedback} variant="hero" />
+      <FeedbackTray notices={queue.filter((notice) => notice.placement !== "hero")} onDismiss={dismissFeedback} variant="tray" />
     </FeedbackContext.Provider>
   );
 }
 
-function FeedbackTray({ notices, onDismiss }: { notices: FeedbackNotice[]; onDismiss: (id: string) => void }) {
+function FeedbackTray({
+  notices,
+  onDismiss,
+  variant
+}: {
+  notices: FeedbackNotice[];
+  onDismiss: (id: string) => void;
+  variant: "tray" | "hero";
+}) {
   if (notices.length === 0) {
     return null;
   }
 
   return (
-    <div className="feedback-tray" aria-live="polite" aria-relevant="additions removals">
-      {notices.map((notice) => (
-        <article
-          key={notice.id}
-          className={`feedback-toast feedback-toast--${notice.kind} feedback-toast--${notice.placement}`}
-          role={notice.ariaLive === "assertive" ? "alert" : "status"}
-        >
-          <div className="feedback-toast__icon" aria-hidden="true">
-            {notice.kind === "error" ? "error" : notice.kind === "warning" ? "warning" : notice.kind === "pending" ? "progress_activity" : "check_circle"}
-          </div>
-          <div className="feedback-toast__content">
-            <div className="feedback-toast__title">{notice.title}</div>
-            {notice.detail ? <p className="feedback-toast__detail">{notice.detail}</p> : null}
-          </div>
-          <div className="feedback-toast__actions">
-            {notice.reversible && notice.undoLabel ? (
-              <button className="feedback-toast__undo focus-ring" type="button" onClick={() => onDismiss(notice.id)}>
-                {notice.undoLabel}
+    <div className={`feedback-tray feedback-tray--${variant}`.trim()} aria-live="polite" aria-relevant="additions removals">
+      {notices.map((notice) => {
+        const feedbackLevel = resolveFeedbackLevel(notice.placement, notice.intensity);
+
+        return (
+          <article
+            key={notice.id}
+            className={`feedback-toast feedback-toast--${notice.kind} feedback-toast--${notice.placement} feedback-toast--${feedbackLevel.toLowerCase()}`}
+            role={notice.ariaLive === "assertive" ? "alert" : "status"}
+            data-feedback-level={feedbackLevel}
+            data-feedback-kind={notice.kind}
+          >
+            <div className="feedback-toast__icon" aria-hidden="true">
+              {notice.kind === "error" ? "error" : notice.kind === "warning" ? "warning" : notice.kind === "pending" ? "progress_activity" : "check_circle"}
+            </div>
+            <div className="feedback-toast__content">
+              <div className="feedback-toast__title">{notice.title}</div>
+              {notice.detail ? <p className="feedback-toast__detail">{notice.detail}</p> : null}
+            </div>
+            <div className="feedback-toast__actions">
+              {notice.reversible && notice.undoLabel ? (
+                <button className="feedback-toast__undo focus-ring" type="button" onClick={() => onDismiss(notice.id)}>
+                  {notice.undoLabel}
+                </button>
+              ) : null}
+              <button className="feedback-toast__close focus-ring" type="button" aria-label="Dismiss feedback" onClick={() => onDismiss(notice.id)}>
+                ×
               </button>
-            ) : null}
-            <button className="feedback-toast__close focus-ring" type="button" aria-label="Dismiss feedback" onClick={() => onDismiss(notice.id)}>
-              ×
-            </button>
-          </div>
-        </article>
-      ))}
+            </div>
+          </article>
+        );
+      })}
     </div>
   );
 }
@@ -246,6 +301,10 @@ export function publishFeedbackClear(actionId: FeedbackActionId) {
 
 export function publishFeedbackError(actionId: FeedbackActionId, title: string, detail?: string | null) {
   publishFeedback({ actionId, title, detail, kind: "error" });
+}
+
+export function publishFeedbackPending(actionId: FeedbackActionId, title: string, detail?: string | null) {
+  publishFeedback({ actionId, title, detail, kind: "pending" });
 }
 
 export function publishFeedbackSuccess(actionId: FeedbackActionId, title: string, detail?: string | null) {

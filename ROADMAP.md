@@ -16,7 +16,7 @@
 | 23 | DESIGN COMPLETE / IMPLEMENTATION NEXT | Exercise Detail + Alternatives is documented, but implementation remains next. |
 | 24 | DESIGN COMPLETE / IMPLEMENTATION IN PROGRESS | Nutrition UX 2.0. |
 | 25 | DESIGN COMPLETE / IMPLEMENTATION IN PROGRESS | Media System. |
-| 26 | NEXT | Feedback + Motion polish. |
+| 26 | DESIGN COMPLETE / IMPLEMENTATION IN PROGRESS | Feedback + Motion polish. |
 | 27 | NEXT | Inputs and intensity refinement. |
 | 28 | NEXT | Web/PWA notifications where reliable. |
 | 29 | NEXT | Athlete Private Alpha final certification. |
