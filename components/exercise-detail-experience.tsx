@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AthlexMedia } from "@/components/athlex-media";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { AnatomyPreview } from "@/components/anatomy-preview";
@@ -15,6 +16,12 @@ import {
   getWorkoutExercise,
   type ExerciseAlternative
 } from "@/lib/workout-data";
+import {
+  resolveExerciseEndMedia,
+  resolveExerciseFullscreenMedia,
+  resolveExerciseStartMedia,
+  resolveExerciseThumbnailMedia
+} from "@/lib/media";
 import {
   buildAlternativePreviewTimeline,
   buildAlternativesEnterTimeline,
@@ -205,41 +212,6 @@ function capitalizeWords(value: string) {
     .join(" ");
 }
 
-function ExerciseMedia({
-  src,
-  alt,
-  label,
-  mode
-}: {
-  src: string;
-  alt: string;
-  label: string;
-  mode: MediaSide;
-}) {
-  const [mediaSrc, setMediaSrc] = useState(src);
-
-  useEffect(() => {
-    setMediaSrc(src);
-  }, [src]);
-
-  return (
-    <div className={`exercise-detail-media exercise-detail-media--${mode}`.trim()}>
-      <img
-        className="exercise-detail-media__image"
-        src={mediaSrc}
-        alt={alt}
-        onError={() => {
-          if (mediaSrc !== "/exercise-placeholder.svg") {
-            setMediaSrc("/exercise-placeholder.svg");
-          }
-        }}
-      />
-      <div className="exercise-detail-media__fade" />
-      <div className="exercise-detail-media__badge">{label}</div>
-    </div>
-  );
-}
-
 function AlternativeCard({
   alternative,
   definition,
@@ -260,7 +232,15 @@ function AlternativeCard({
     <Card className={`exercise-alt-card ${selected ? "selected" : ""}`.trim()}>
       <div className="row start">
         <div className="exercise-alt-card__thumb">
-          <img alt={definition.name} src={definition.thumbnail ?? definition.heroImage ?? "/exercise-placeholder.svg"} />
+          <AthlexMedia
+            resolution={resolveExerciseThumbnailMedia({
+              exerciseKey: definition.id,
+              exerciseName: definition.name,
+              primaryMuscles: definition.primaryMuscles,
+              secondaryMuscles: definition.secondaryMuscles,
+              equipment: definition.equipment
+            })}
+          />
         </div>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div className="workout-status-pill workout-status-pill--match">{alternative.label}</div>
@@ -327,8 +307,20 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
     [alternatives, selectedAlternativeId]
   );
 
-  const startMedia = definition.heroImage ?? definition.thumbnail ?? "/exercise-placeholder.svg";
-  const endMedia = definition.thumbnail ?? definition.heroImage ?? "/exercise-placeholder.svg";
+  const mediaContext = useMemo(
+    () => ({
+      exerciseKey: definition.id,
+      exerciseName: definition.name,
+      primaryMuscles: definition.primaryMuscles,
+      secondaryMuscles: definition.secondaryMuscles,
+      equipment: definition.equipment
+    }),
+    [definition.equipment, definition.id, definition.name, definition.primaryMuscles, definition.secondaryMuscles]
+  );
+
+  const startMedia = useMemo(() => resolveExerciseStartMedia(mediaContext), [mediaContext]);
+  const endMedia = useMemo(() => resolveExerciseEndMedia(mediaContext), [mediaContext]);
+  const fullscreenMedia = useMemo(() => resolveExerciseFullscreenMedia(mediaContext), [mediaContext]);
 
   useLayoutEffect(() => {
     const root = motionRootRef.current;
@@ -386,6 +378,16 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
     }
   }, [swapSuccessOpen, reducedMotion]);
 
+  useEffect(() => {
+    const nextMedia = mediaSide === "start" ? endMedia : startMedia;
+    if (!nextMedia.asset?.src || nextMedia.asset.src === (mediaSide === "start" ? startMedia.asset?.src : endMedia.asset?.src)) {
+      return;
+    }
+
+    const preload = new window.Image();
+    preload.src = nextMedia.asset.src;
+  }, [endMedia, mediaSide, startMedia]);
+
   const primaryMuscles = definition.primaryMuscles.map((muscle) => capitalizeWords(muscle));
   const secondaryMuscles = definition.secondaryMuscles.map((muscle) => capitalizeWords(muscle));
   const returnLabel = source === "workout" ? copy.returnWorkout : copy.returnLibrary;
@@ -424,7 +426,9 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
         <section className="section" data-workout-motion="exercise-detail-hero">
           <Card className="exercise-detail-hero">
             <div className="exercise-detail-hero__media">
-              <ExerciseMedia src={mediaSide === "start" ? startMedia : endMedia} alt={definition.name} label={mediaSide === "start" ? copy.startLabel : copy.endLabel} mode={mediaSide} />
+              <AthlexMedia resolution={mediaSide === "start" ? startMedia : endMedia} />
+              <div className="exercise-detail-media__fade" />
+              <div className="exercise-detail-media__badge">{mediaSide === "start" ? copy.startLabel : copy.endLabel}</div>
             </div>
             <div className="exercise-detail-hero__content">
               <div className="row start">
@@ -735,7 +739,7 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
               <span className="tap-target" aria-hidden="true" />
             </div>
             <div className="exercise-detail-fullscreen__media">
-              <ExerciseMedia src={mediaSide === "start" ? startMedia : endMedia} alt={definition.name} label={mediaSide === "start" ? copy.startLabel : copy.endLabel} mode={mediaSide} />
+              <AthlexMedia resolution={fullscreenMedia} />
             </div>
           </section>
         ) : null}

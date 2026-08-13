@@ -61,3 +61,11 @@ This document records the supplied Stitch reference screens without dumping prot
 - Treat this index as a reference map only.
 - Do not copy prototype defects into the production app.
 - Use the canonical design and motion docs when there is any conflict.
+
+## Slice 25 Reference Index
+
+| Reference screen | Production target | Status | Known artifact |
+| --- | --- | --- | --- |
+| Exercise Media Families | `lib/media/*` | In progress | Stitch boards are art direction only; no prototype URLs or HTML should ship. |
+| Exercise Fallback | `components/athlex-media.tsx` | In progress | Fallback must remain branded and intentional, not like a broken image. |
+| Meal Media Families | `lib/media/*` + `components/nutrition-screen.tsx` + `components/nutrition-meal-sheet.tsx` | In progress | Meal media must preserve identity and avoid recipe drift. |

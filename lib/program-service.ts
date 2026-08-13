@@ -20,6 +20,7 @@ import { createOnboardingDemoState, type ProgramState } from "@/lib/onboarding-d
 import { formatDate, getCurrentLocale } from "@/lib/i18n";
 import { getExerciseDefinition, type SessionAdjustmentState, type WorkoutSessionState } from "@/lib/workout-data";
 import { resolveAnatomyVisual } from "@/lib/anatomy";
+import { resolveExerciseThumbnailMedia } from "@/lib/media";
 import type { MuscleGroup } from "@/lib/coachx-data";
 
 export interface ProgramTemplateExercise {
@@ -842,12 +843,19 @@ export function getProgramDaySummary(bundle: ProgramBundleView, dateKey: string)
     anatomyKey: anatomy.key,
     movements: templateExerciseRows.map((exercise) => {
       const definition = getExerciseDefinition(exercise.exercise_key);
+      const media = resolveExerciseThumbnailMedia({
+        exerciseKey: exercise.exercise_key,
+        exerciseName: definition.name,
+        primaryMuscles: definition.primaryMuscles,
+        secondaryMuscles: definition.secondaryMuscles,
+        equipment: definition.equipment
+      });
       const repRange = exercise.rep_min === exercise.rep_max ? `${exercise.rep_min}` : `${exercise.rep_min}-${exercise.rep_max}`;
       return {
         name: definition.name,
         prescription: `${exercise.sets} sets x ${repRange} reps`,
         icon: "fitness_center",
-        thumbnail: definition.thumbnail
+        thumbnail: media.asset?.src
       };
     }),
     scheduledWorkoutId: scheduledWorkout.id,

@@ -4451,6 +4451,137 @@ body:has(.bottom-nav) .feedback-tray {
   place-items: center;
 }
 
+.athlex-media {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.athlex-media__image {
+  width: 100%;
+  height: 100%;
+}
+
+.athlex-media__fallback {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  align-content: end;
+  gap: 10px;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(182, 255, 0, 0.16), transparent 26%),
+    linear-gradient(180deg, rgba(18, 18, 18, 0.98) 0%, rgba(5, 5, 5, 0.98) 100%);
+}
+
+.athlex-media__fallback.compact {
+  align-content: center;
+  justify-items: center;
+  gap: 0;
+  padding: 10px;
+}
+
+.athlex-media__fallback-ambient {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 25% 30%, rgba(182, 255, 0, 0.2), transparent 26%),
+    radial-gradient(circle at 72% 68%, rgba(202, 255, 74, 0.12), transparent 22%);
+  opacity: 0.9;
+}
+
+.athlex-media__fallback-icon {
+  position: relative;
+  z-index: 1;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: rgba(182, 255, 0, 0.12);
+  color: var(--accent-primary);
+  box-shadow: inset 0 0 0 1px rgba(182, 255, 0, 0.16);
+}
+
+.athlex-media__fallback-icon.compact {
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+}
+
+.athlex-media__fallback-copy {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.athlex-media__fallback-title {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.athlex-media__fallback-title.compact {
+  display: none;
+}
+
+.athlex-media__fallback-subtitle,
+.athlex-media__fallback-hint {
+  color: var(--text-muted);
+}
+
+.workout-next-preview__image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  border: 1px solid var(--border-quiet);
+  overflow: hidden;
+  background: #101010;
+}
+
+.exercise-alt-card__thumb {
+  position: relative;
+  width: 86px;
+  height: 86px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--border-quiet);
+  background: #101010;
+  flex: 0 0 auto;
+}
+
+.exercise-detail-fullscreen__media {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.nutrition-meal-thumb {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #202020;
+  flex: 0 0 auto;
+}
+
+.nutrition-sheet__media {
+  position: relative;
+  min-height: 152px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #171717;
+}
+
+.library-item__thumb,
+.workout-alternative-current__thumb {
+  position: relative;
+  overflow: hidden;
+  background: #101010;
+}
+
 @media (max-width: 480px) {
   .workout-active-topbar {
     gap: 8px;

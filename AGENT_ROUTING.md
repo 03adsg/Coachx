@@ -12,6 +12,7 @@
 - `Identity / role / relationship gateway` -> `identity-role-security-architect` + `athlete-flow-architect` + `architecture-typescript` + `qa-testing`
 - `Workout state machine / active flow motion` -> `workout-active-flow-motion` + `cinematic-frontend-gsap` + `frontend-stitch` + `visual-qa` + `qa-testing`
 - `Exercise detail / alternatives / swap UX` -> `frontend-stitch` + `visual-qa` + `workout-active-flow-motion`
+- `Media System` -> `media-system-architect` + `frontend-stitch` + `visual-qa` + `qa-testing`
 - `Performance analytics / motion visualization` -> `data-visualization-motion` + `frontend-stitch` + `visual-qa` + `qa-testing`
 - `Immersive progress / achievements` -> `motivational-immersion-ux` + `frontend-stitch` + `visual-qa` + `qa-testing`
 - `I18n / locale QA` -> `i18n-exhaustive-auditor` + `language-selector-ux-auditor` + `visual-qa` + `qa-testing`

@@ -3,8 +3,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { gsap } from "gsap";
+import { AthlexMedia } from "@/components/athlex-media";
 import { useTranslator } from "@/components/locale-provider";
 import type { MealOption, MealSlot } from "@/lib/nutrition-data";
+import { resolveMealHeroMedia } from "@/lib/media";
 import { useReducedMotion } from "@/motion/useReducedMotion";
 
 interface NutritionMealSheetProps {
@@ -203,6 +205,14 @@ export function NutritionMealSheet({
   const selectedOption = options.find((option) => option.id === selectedOptionId) ?? null;
   const currentOption = options.find((option) => option.id === currentOptionId) ?? options[0] ?? null;
   const slotLabel = presentation?.mealLabels[slot.id as keyof typeof presentation.mealLabels] ?? copy.mealLabels[slot.id as keyof typeof copy.mealLabels] ?? slot.label;
+  const currentMedia = currentOption
+    ? resolveMealHeroMedia({
+        mealKey: currentOption.id,
+        mealName: currentOption.name,
+        macroHint: `${currentOption.macro.calories} kcal · ${currentOption.macro.protein}P / ${currentOption.macro.carbs}C / ${currentOption.macro.fat}F`,
+        prepTimeHint: currentOption.prepTime
+      })
+    : null;
 
   if (!portalRoot) {
     return null;
@@ -238,15 +248,7 @@ export function NutritionMealSheet({
 
         <div className="nutrition-sheet__detail">
           <div className="nutrition-sheet__media">
-            {currentOption?.image ? (
-              <img alt={currentOption.name} className="nutrition-sheet__hero-image" src={currentOption.image} />
-            ) : (
-              <div className="nutrition-sheet__hero-fallback" aria-hidden="true">
-                <span className="icon filled" aria-hidden="true">
-                  restaurant
-                </span>
-              </div>
-            )}
+            {currentMedia ? <AthlexMedia resolution={currentMedia} /> : null}
           </div>
 
           {currentOption ? (

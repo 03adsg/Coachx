@@ -171,7 +171,6 @@ function buildTrainingDay(locale: Locale) {
           prepTime: "10 min",
           difficulty: "easy",
           tags: ["breakfast", "eggs", "toast"],
-          image: "/stitch-assets/nutrition-breakfast.png",
           portions: [
             { name: "Whole eggs", amount: "3 eggs", preparation: "prepared", note: "Scrambled or fried" },
             { name: "Sourdough toast", amount: "2 slices", preparation: "prepared" },

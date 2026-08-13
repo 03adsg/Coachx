@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { AthlexMedia } from "@/components/athlex-media";
 import { Screen } from "@/components/screen";
 import { Card } from "@/components/ui";
 import { useLocale } from "@/components/locale-provider";
 import { useWorkoutStore } from "@/components/workout-provider";
 import { getExerciseDefinition, getWorkoutAlternativeCards, getWorkoutExercise } from "@/lib/workout-data";
+import { resolveExerciseThumbnailMedia } from "@/lib/media";
 
 function copyFor(locale: string) {
   return (
@@ -134,7 +136,15 @@ export default function ExerciseAlternativesPage() {
           <Card className="workout-alternative-current">
             <div className="row start">
               <div className="workout-alternative-current__thumb">
-                <img alt={performedDefinition.name} src={performedDefinition.thumbnail ?? performedDefinition.heroImage ?? "/coachx-icon.svg"} />
+                <AthlexMedia
+                  resolution={resolveExerciseThumbnailMedia({
+                    exerciseKey: performedDefinition.id,
+                    exerciseName: performedDefinition.name,
+                    primaryMuscles: performedDefinition.primaryMuscles,
+                    secondaryMuscles: performedDefinition.secondaryMuscles,
+                    equipment: performedDefinition.equipment
+                  })}
+                />
               </div>
               <div style={{ flex: 1 }}>
                 <div className="workout-status-pill">{copy.current}</div>

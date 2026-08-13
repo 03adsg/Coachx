@@ -5,12 +5,14 @@ import { useEffect, useMemo, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Screen } from "@/components/screen";
 import { PrimaryButton } from "@/components/ui";
+import { AthlexMedia } from "@/components/athlex-media";
 import { useAuthStore } from "@/components/auth-provider";
 import { useProgramStore } from "@/components/program-provider";
 import { useWorkoutStore } from "@/components/workout-provider";
 import { useTranslator } from "@/components/locale-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getExerciseDefinition, countCompletedExercises } from "@/lib/workout-data";
+import { resolveExerciseHeroMedia } from "@/lib/media";
 import { getOrCreateWorkoutSession, type WorkoutSessionSeed } from "@/lib/workout-session-service";
 import type { ProgramTemplateExercise, ProgramTemplateView } from "@/lib/program-service";
 
@@ -259,7 +261,13 @@ export default function WorkoutOverviewPage() {
         <section className="stack-lg">
           {session.exercises.map((exercise, index) => {
             const definition = getExerciseDefinition(exercise.performedExerciseId);
-            const heroImage = definition.heroImage ?? definition.thumbnail ?? "/coachx-icon.svg";
+            const media = resolveExerciseHeroMedia({
+              exerciseKey: definition.id,
+              exerciseName: definition.name,
+              primaryMuscles: definition.primaryMuscles,
+              secondaryMuscles: definition.secondaryMuscles,
+              equipment: definition.equipment
+            });
             const equipment = definition.label;
 
             return (
@@ -270,7 +278,7 @@ export default function WorkoutOverviewPage() {
                   aria-label={`Open ${definition.name}`}
                 >
                   <div className="workout-overview-card__media">
-                    <img alt={`${definition.name} exercise illustration`} className="workout-overview-card__image" src={heroImage} />
+                    <AthlexMedia resolution={media} />
                     <div className="workout-overview-card__fade" />
                     <div className="workout-overview-card__content">
                       <div className="workout-overview-card__number">{String(index + 1).padStart(2, "0")}</div>

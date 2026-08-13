@@ -5,6 +5,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Screen } from "@/components/screen";
 import { Card } from "@/components/ui";
+import { AthlexMedia } from "@/components/athlex-media";
 import { useAuthStore } from "@/components/auth-provider";
 import { useProgramStore } from "@/components/program-provider";
 import { useReducedMotion } from "@/motion/useReducedMotion";
@@ -21,6 +22,7 @@ import { useTranslator } from "@/components/locale-provider";
 import { useWorkoutStore } from "@/components/workout-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { countCompletedExercises, getExerciseDefinition, getWorkoutExercise } from "@/lib/workout-data";
+import { resolveExerciseHeroMedia, resolveExerciseThumbnailMedia } from "@/lib/media";
 import { getOrCreateWorkoutSession, type WorkoutSessionSeed } from "@/lib/workout-session-service";
 import { getWorkoutLiveSnapshot } from "@/lib/workout-live-state";
 import type { ProgramTemplateExercise, ProgramTemplateView } from "@/lib/program-service";
@@ -225,6 +227,22 @@ export default function ActiveExercisePage() {
   const remainingExercises = Math.max(0, session.totalExercises - countCompletedExercises(session) - (exerciseComplete ? 0 : 1));
   const primaryMuscle = muscleLabel(locale, definition.primaryMuscles[0] ?? "");
   const secondaryMuscle = muscleLabel(locale, definition.secondaryMuscles[0] ?? "");
+  const heroMedia = resolveExerciseHeroMedia({
+    exerciseKey: definition.id,
+    exerciseName: definition.name,
+    primaryMuscles: definition.primaryMuscles,
+    secondaryMuscles: definition.secondaryMuscles,
+    equipment: definition.equipment
+  });
+  const nextExerciseMedia = nextExercise
+    ? resolveExerciseThumbnailMedia({
+        exerciseKey: getExerciseDefinition(nextExercise.performedExerciseId).id,
+        exerciseName: getExerciseDefinition(nextExercise.performedExerciseId).name,
+        primaryMuscles: getExerciseDefinition(nextExercise.performedExerciseId).primaryMuscles,
+        secondaryMuscles: getExerciseDefinition(nextExercise.performedExerciseId).secondaryMuscles,
+        equipment: getExerciseDefinition(nextExercise.performedExerciseId).equipment
+      })
+    : null;
 
   const copy = {
     en: {
@@ -614,11 +632,7 @@ export default function ActiveExercisePage() {
             <section className="section">
               <Card className="workout-active-hero" data-workout-motion="active-hero">
                 <div className="workout-active-hero__media">
-                  <img
-                    alt={`${definition.name} exercise illustration`}
-                    className="workout-active-hero__image"
-                    src={definition.heroImage ?? definition.thumbnail ?? "/exercise-placeholder.svg"}
-                  />
+                  <AthlexMedia resolution={heroMedia} />
                   <div className="workout-active-hero__fade" />
                 </div>
                 <div className="workout-active-hero__body">
@@ -813,11 +827,11 @@ export default function ActiveExercisePage() {
                   </p>
                   {nextExercise ? (
                     <div className="workout-next-preview" data-workout-motion="next-exercise-card">
-                      <img
-                        alt={getExerciseDefinition(nextExercise.performedExerciseId).name}
-                        className="workout-next-preview__image"
-                        src={getExerciseDefinition(nextExercise.performedExerciseId).heroImage ?? getExerciseDefinition(nextExercise.performedExerciseId).thumbnail ?? "/exercise-placeholder.svg"}
-                      />
+                      <div className="workout-next-preview__image">
+                        {nextExerciseMedia ? (
+                          <AthlexMedia resolution={nextExerciseMedia} />
+                        ) : null}
+                      </div>
                       <div className="workout-next-preview__copy">
                         <div className="pill" style={{ background: "rgba(182,255,0,0.14)", color: "var(--accent-primary)" }}>
                           {copy.nextExercise}

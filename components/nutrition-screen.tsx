@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton } from "@/components/ui";
+import { AthlexMedia } from "@/components/athlex-media";
 import { useTranslator } from "@/components/locale-provider";
 import { NutritionMealSheet } from "@/components/nutrition-meal-sheet";
 import { NutritionProvider, useNutritionSession } from "@/components/nutrition-provider";
@@ -14,6 +15,7 @@ import {
   type MealSlot,
   type NutritionSafetyProfile
 } from "@/lib/nutrition-data";
+import { resolveMealThumbnailMedia } from "@/lib/media";
 import { resolveNutritionMealUiState } from "@/lib/nutrition-service";
 
 type NutritionScreenMode = "ready" | "loading" | "empty" | "error";
@@ -385,6 +387,14 @@ function MealCard({
   const copy = nutritionCopyFor(locale);
   const presentation = nutritionPresentationFor(locale);
   const selectedOption = slot.selectedOptionId ? slot.options.find((option) => option.id === slot.selectedOptionId) ?? null : null;
+  const selectedOptionMedia = selectedOption
+    ? resolveMealThumbnailMedia({
+        mealKey: selectedOption.id,
+        mealName: selectedOption.name,
+        macroHint: formatMacroDisplay(selectedOption.macro),
+        prepTimeHint: selectedOption.prepTime
+      })
+    : null;
   const safeOptions = getSafeMealOptions(slot, safetyProfile);
   const canChoose = safeOptions.length > 0;
   const localizedSlot = presentation?.mealSlots[slot.id] ?? null;
@@ -457,8 +467,10 @@ function MealCard({
       </div>
 
       <div className="nutrition-meal-card__media">
-        {selectedOption?.image ? (
-          <img alt={selectedOption.name} className="nutrition-meal-thumb" src={selectedOption.image} width={64} height={64} />
+        {selectedOptionMedia ? (
+          <div className="nutrition-meal-thumb">
+            <AthlexMedia resolution={selectedOptionMedia} />
+          </div>
         ) : uiState === "next" ? (
           <div className="nutrition-meal-card__thumb-row" aria-hidden="true">
             <div className="nutrition-meal-thumb nutrition-meal-thumb--skeleton" />

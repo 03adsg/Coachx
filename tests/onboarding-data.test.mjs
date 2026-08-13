@@ -20,7 +20,9 @@ function rewriteAliasImport(specifier, currentOutputPath) {
 
   if (specifier.startsWith("@/lib/")) {
     const relativeSourcePath = specifier.slice("@/lib/".length);
-    const targetPath = path.join(tempDir, `${relativeSourcePath}.mjs`);
+    const targetPath = relativeSourcePath === "media"
+      ? path.join(tempDir, "media", "index.mjs")
+      : path.join(tempDir, `${relativeSourcePath}.mjs`);
     return normalizeRelativeImport(targetPath);
   }
 
@@ -58,6 +60,10 @@ async function transpileLibraryChain() {
     "profile-settings-data.ts",
     "feedback.ts",
     "nutrition-service.ts",
+    "media/types.ts",
+    "media/exercise-media.ts",
+    "media/meal-media.ts",
+    "media/index.ts",
     "auth/navigation.ts",
     "auth/session-policy.ts",
     "auth/identity-resolver.ts",

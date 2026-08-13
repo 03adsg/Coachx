@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Screen } from "@/components/screen";
 import { useLocale } from "@/components/locale-provider";
 import { coachxExerciseCatalog } from "@/lib/workout-data";
+import { AthlexMedia } from "@/components/athlex-media";
+import { resolveExerciseThumbnailMedia } from "@/lib/media";
 
 const libraryIds = ["barbell-hip-thrust", "romanian-deadlift", "bulgarian-split-squat", "lat-pulldown", "chest-press"];
 
@@ -137,7 +139,15 @@ export default function ExerciseLibraryPage() {
           {exercises.map((exercise) => (
             <Link key={exercise.id} href={`/exercises/${exercise.id}`} className="library-item focus-ring">
               <div className="library-item__thumb">
-                <img src={exercise.thumbnail ?? "/exercise-placeholder.svg"} alt={exercise.name} />
+                <AthlexMedia
+                  resolution={resolveExerciseThumbnailMedia({
+                    exerciseKey: exercise.id,
+                    exerciseName: exercise.name,
+                    primaryMuscles: exercise.primaryMuscles,
+                    secondaryMuscles: exercise.secondaryMuscles,
+                    equipment: exercise.equipment
+                  })}
+                />
               </div>
               <div className="library-item__body">
                 <div className="headline-md" style={{ fontSize: 24, lineHeight: "28px" }}>
