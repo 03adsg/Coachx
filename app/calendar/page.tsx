@@ -275,6 +275,7 @@ function CalendarContent({ todayKey }: { todayKey: string }) {
                   href={`/day/${dayCell.key}`}
                   className={`day-cell focus-ring ${dayCell.isSelected ? "selected" : ""} ${dayCell.isDimmed ? "dimmed" : ""}`.trim()}
                   aria-label={`${dayCell.label} ${dayCell.day} ${dayMarkerLabel(locale, dayCell)}`}
+                  aria-current={dayCell.isSelected ? "date" : undefined}
                 >
                   <span className="body-md" style={{ color: dayCell.isToday ? "var(--text-primary)" : "inherit" }}>
                     {dayCell.day}

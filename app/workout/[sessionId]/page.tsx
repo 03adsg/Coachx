@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Screen } from "@/components/screen";
-import { Card, PrimaryButton } from "@/components/ui";
+import { PrimaryButton } from "@/components/ui";
 import { useAuthStore } from "@/components/auth-provider";
 import { useProgramStore } from "@/components/program-provider";
 import { useWorkoutStore } from "@/components/workout-provider";
@@ -218,11 +218,11 @@ export default function WorkoutOverviewPage() {
           <div className="headline-md" style={{ fontSize: 18, lineHeight: "24px", fontWeight: 700 }}>
             {copy.workoutSession}
           </div>
-          <button aria-label={copy.moreOptions} className="tap-target focus-ring" type="button">
+          <Link aria-label={copy.moreOptions} className="tap-target focus-ring" href={`/workout/${session.id}/adjust`}>
             <span className="icon" aria-hidden="true">
               more_vert
             </span>
-          </button>
+          </Link>
         </header>
       }
     >
@@ -263,52 +263,60 @@ export default function WorkoutOverviewPage() {
             const equipment = definition.label;
 
             return (
-              <Card key={exercise.id} className="workout-overview-card">
-                <div className="workout-overview-card__media">
-                  <img alt={`${definition.name} exercise illustration`} className="workout-overview-card__image" src={heroImage} />
-                  <div className="workout-overview-card__fade" />
-                  <div className="workout-overview-card__content">
-                    <div className="workout-overview-card__number">{String(index + 1).padStart(2, "0")}</div>
-                    <div>
-                      <div className="headline-md" style={{ textTransform: "uppercase" }}>
-                        {definition.name}
-                      </div>
-                      <div className="pill" style={{ minHeight: 24, marginTop: 8, padding: "0 10px", background: "rgba(37,37,37,0.9)" }}>
-                        {equipment}
+              <div key={exercise.id} className="stack">
+                <Link
+                  href={`/workout/${session.id}/exercise/${exercise.id}`}
+                  className="workout-overview-card focus-ring"
+                  aria-label={`Open ${definition.name}`}
+                >
+                  <div className="workout-overview-card__media">
+                    <img alt={`${definition.name} exercise illustration`} className="workout-overview-card__image" src={heroImage} />
+                    <div className="workout-overview-card__fade" />
+                    <div className="workout-overview-card__content">
+                      <div className="workout-overview-card__number">{String(index + 1).padStart(2, "0")}</div>
+                      <div>
+                        <div className="headline-md" style={{ textTransform: "uppercase" }}>
+                          {definition.name}
+                        </div>
+                        <div className="pill" style={{ minHeight: 24, marginTop: 8, padding: "0 10px", background: "rgba(37,37,37,0.9)" }}>
+                          {equipment}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                  <div className="p-16" style={{ display: "grid", gap: 12 }}>
+                    <div className="row">
+                      <span className="caption">{copy.prescription}</span>
+                      <span className="body-md" style={{ fontWeight: 700 }}>
+                        {definition.programSets} x {definition.programReps}{" "}
+                        <span className="caption" style={{ marginLeft: 8 }}>
+                          {definition.programRir === "1-2" ? "RIR: 1-2" : `RIR: ${definition.programRir}`}
+                        </span>
+                      </span>
+                    </div>
+                    <div className="workout-mini-panel">
+                      <div className="row" style={{ marginBottom: 4 }}>
+                        <span className="eyebrow" style={{ margin: 0 }}>
+                          {copy.lastSession}
+                        </span>
+                        <span className="pill" style={{ minHeight: 24, padding: "0 10px", background: "rgba(182,255,0,0.12)" }}>
+                          {copy.readyToProgress}
+                        </span>
+                      </div>
+                      <div className="body-md">{exercise.lastComparableSession}</div>
+                    </div>
+                  </div>
+                </Link>
 
-                <div className="p-16" style={{ display: "grid", gap: 12 }}>
-                  <div className="row">
-                    <span className="caption">{copy.prescription}</span>
-                    <span className="body-md" style={{ fontWeight: 700 }}>
-                      {definition.programSets} x {definition.programReps}{" "}
-                      <span className="caption" style={{ marginLeft: 8 }}>
-                        {definition.programRir === "1-2" ? "RIR: 1-2" : `RIR: ${definition.programRir}`}
-                      </span>
-                    </span>
-                  </div>
-                  <div className="workout-mini-panel">
-                    <div className="row" style={{ marginBottom: 4 }}>
-                      <span className="eyebrow" style={{ margin: 0 }}>
-                        {copy.lastSession}
-                      </span>
-                      <span className="pill" style={{ minHeight: 24, padding: "0 10px", background: "rgba(182,255,0,0.12)" }}>
-                        {copy.readyToProgress}
-                      </span>
-                    </div>
-                    <div className="body-md">{exercise.lastComparableSession}</div>
-                  </div>
-                  <Link className="workout-secondary-button focus-ring" href={`/workout/${session.id}/exercise/${exercise.id}`}>
+                <div style={{ paddingInline: 4 }}>
+                  <Link className="workout-secondary-button focus-ring" href={`/workout/${session.id}/exercise/${exercise.id}/alternatives`}>
                     <span className="icon" aria-hidden="true">
                       swap_horiz
                     </span>
                     {copy.swap}
                   </Link>
                 </div>
-              </Card>
+              </div>
             );
           })}
         </section>

@@ -190,11 +190,11 @@ export default function ActiveExercisePage() {
           <div className="workout-active-topbar__title">
             {copy.exercise} {progressLabel}
           </div>
-          <button aria-label={copy.moreOptions} className="tap-target focus-ring" type="button">
+          <Link aria-label={copy.moreOptions} className="tap-target focus-ring" href={`/workout/${session.id}/adjust`}>
             <span className="icon" aria-hidden="true">
               more_vert
             </span>
-          </button>
+          </Link>
         </header>
       }
     >
@@ -217,11 +217,11 @@ export default function ActiveExercisePage() {
                   {copy.primary}: {primaryMuscle} · {copy.secondary}: {secondaryMuscle}
                 </p>
               </div>
-              <button aria-label={copy.previewExercise} className="workout-play-button" type="button">
+              <Link aria-label={copy.previewExercise} className="workout-play-button focus-ring" href={`/exercises/${definition.id}`}>
                 <span className="icon" aria-hidden="true">
                   play_arrow
                 </span>
-              </button>
+              </Link>
             </div>
           </Card>
         </section>

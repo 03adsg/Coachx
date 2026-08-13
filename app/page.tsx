@@ -44,11 +44,16 @@ function RestDayHero({ athleteName, day, nextWorkout }: { athleteName: string; d
                   : nextWorkout.workoutType}
               </p>
             </div>
-            <button aria-label={t("common.viewWorkout")} className="tap-target focus-ring" type="button" style={{ background: "var(--accent-primary)", borderRadius: 9999 }}>
+            <Link
+              aria-label={t("common.startWorkout")}
+              className="tap-target focus-ring"
+              href={`/workout/${day.scheduledWorkoutId}`}
+              style={{ background: "var(--accent-primary)", borderRadius: 9999 }}
+            >
               <span className="icon filled" style={{ color: "var(--background-deep)" }} aria-hidden="true">
                 play_arrow
               </span>
-            </button>
+            </Link>
           </div>
           <div className="grid-3">
             <StatTile label={t("today.duration")} value={nextWorkout.duration} />
@@ -122,11 +127,16 @@ function TodayContent() {
                         : day.workoutType}
                     </p>
                   </div>
-                  <button aria-label={t("common.startWorkout")} className="tap-target focus-ring" type="button" style={{ background: "var(--accent-primary)", borderRadius: 9999 }}>
+                  <Link
+                    aria-label={t("common.startWorkout")}
+                    className="tap-target focus-ring"
+                    href={`/workout/${day.scheduledWorkoutId}`}
+                    style={{ background: "var(--accent-primary)", borderRadius: 9999 }}
+                  >
                     <span className="icon filled" style={{ color: "var(--background-deep)" }} aria-hidden="true">
                       play_arrow
                     </span>
-                  </button>
+                  </Link>
                 </div>
 
                 <div className="grid-3">

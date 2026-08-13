@@ -115,7 +115,11 @@ export default function DayDetailPage() {
         <Section title="Workout" meta={day.primaryTarget}>
           <div className="stack">
             {day.movements.map((movement) => (
-              <Card key={movement.name} className="list-card">
+              <Link
+                key={movement.name}
+                href={day.scheduledWorkoutId ? `/workout/${day.scheduledWorkoutId}` : `/calendar?date=${day.dateKey}&month=${monthDateKey}`}
+                className="list-card focus-ring"
+              >
                 <span className="icon accent filled" aria-hidden="true">
                   {movement.icon}
                 </span>
@@ -127,7 +131,10 @@ export default function DayDetailPage() {
                     {movement.prescription}
                   </div>
                 </div>
-              </Card>
+                <span className="icon muted" aria-hidden="true">
+                  chevron_right
+                </span>
+              </Link>
             ))}
           </div>
         </Section>

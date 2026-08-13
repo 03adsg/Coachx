@@ -80,11 +80,11 @@ export default function ExerciseLibraryPage() {
           <div className="headline-md" style={{ textTransform: "uppercase", fontSize: 32, lineHeight: "38px" }}>
             {copy.title}
           </div>
-          <button aria-label={copy.openProfile} className="tap-target focus-ring" type="button" style={{ color: "#c6c6c7" }}>
+          <Link aria-label={copy.openProfile} className="tap-target focus-ring" href="/profile" style={{ color: "#c6c6c7" }}>
             <span className="icon" aria-hidden="true">
               person
             </span>
-          </button>
+          </Link>
         </header>
       }
     >
