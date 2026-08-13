@@ -620,25 +620,31 @@ export default function ActiveExercisePage() {
                     src={definition.heroImage ?? definition.thumbnail ?? "/exercise-placeholder.svg"}
                   />
                   <div className="workout-active-hero__fade" />
-                  <div className="workout-active-hero__content">
-                    <div className="pill" style={{ background: "rgba(182,255,0,0.14)", color: "var(--accent-primary)" }}>
+                </div>
+                <div className="workout-active-hero__body">
+                  <div className="workout-active-hero__body-copy">
+                    <div className="pill" style={{ background: "rgba(182,255,0,0.14)", color: "var(--accent-primary)", width: "fit-content" }}>
                       {definition.label}
                     </div>
-                    <div>
-                      <h1 className="headline-lg" style={{ textTransform: "uppercase" }}>
-                        {definition.name}
-                      </h1>
-                      <p className="body-md" style={{ marginTop: 6, color: "rgba(247,247,247,0.88)" }}>
-                        {copy.primary}: {primaryMuscle} · {copy.secondary}: {secondaryMuscle}
-                      </p>
-                      <Link
-                        className="button-secondary focus-ring workout-active-hero__detail-link"
-                        href={`/workout/${workoutId}/exercise/${exercise.id}/detail`}
-                      >
-                        {copy.previewExercise}
-                      </Link>
+                    <h1 className="headline-lg" style={{ textTransform: "uppercase", marginTop: 10 }}>
+                      {definition.name}
+                    </h1>
+                    <p className="body-md" style={{ marginTop: 8, color: "rgba(247,247,247,0.88)" }}>
+                      {copy.primary}: {primaryMuscle} · {copy.secondary}: {secondaryMuscle}
+                    </p>
+                    <div className="eyebrow" style={{ marginTop: 12 }}>
+                      {copy.previewExercise}
                     </div>
+                    <p className="caption" style={{ marginTop: 6 }}>
+                      Review technique, media, and alternatives without losing workout context.
+                    </p>
                   </div>
+                  <Link
+                    className="button-secondary focus-ring workout-active-hero__detail-link"
+                    href={`/workout/${workoutId}/exercise/${exercise.id}/detail`}
+                  >
+                    {copy.previewExercise}
+                  </Link>
                 </div>
               </Card>
             </section>

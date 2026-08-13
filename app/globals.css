@@ -676,13 +676,15 @@ img {
 .workout-active-hero {
   overflow: hidden;
   padding: 0;
+  display: grid;
+  gap: 0;
 }
 
 .workout-active-hero__media {
   position: relative;
   overflow: hidden;
   aspect-ratio: 16 / 9;
-  min-height: 212px;
+  min-height: 228px;
 }
 
 .workout-active-hero__image {
@@ -701,8 +703,29 @@ img {
   position: absolute;
   inset: auto 0 0;
   display: grid;
-  gap: 12px;
-  padding: 16px;
+  gap: 10px;
+  padding: 18px;
+}
+
+.workout-active-hero__body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(20, 20, 20, 0.98) 0%, rgba(13, 13, 13, 1) 100%);
+}
+
+.workout-active-hero__body-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.workout-active-hero__body .eyebrow {
+  color: var(--accent-primary);
 }
 
 .workout-prescription-card {
@@ -787,6 +810,10 @@ img {
 .workout-logger-footer {
   display: grid;
   gap: 12px;
+}
+
+.workout-logger-footer .caption {
+  color: var(--text-secondary);
 }
 
 .workout-set-button--wide {
@@ -4321,6 +4348,17 @@ body:has(.bottom-nav) .feedback-tray {
   .workout-logger-grid,
   .workout-sheet__actions {
     grid-template-columns: 1fr;
+  }
+
+  .workout-active-hero__body {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .workout-active-hero__detail-link {
+    width: 100%;
+    justify-content: center;
   }
 
   .exercise-detail-grid,
