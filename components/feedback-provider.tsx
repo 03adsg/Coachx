@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useReducedMotion } from "@/motion/useReducedMotion";
 import { useLocale } from "@/components/locale-provider";
 import {
@@ -13,6 +14,7 @@ import {
   reviveFeedbackMemory,
   serializeFeedbackMemory,
   resolveFeedbackLevel,
+  type FeedbackKind,
   type FeedbackActionId,
   type FeedbackIntent,
   type FeedbackMemoryState,
@@ -50,6 +52,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   const reducedMotion = useReducedMotion();
   const dismissTimersRef = useRef(new Map<string, number>());
   const recentRef = useRef<FeedbackNotice[]>([]);
+  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
   const [memory, setMemory] = useState<FeedbackMemoryState>(() => {
     if (!hasWindow()) {
       return createInitialFeedbackMemory();
@@ -70,6 +73,12 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     recentRef.current = memory.recent;
   }, [memory.recent]);
+
+  useEffect(() => {
+    if (hasWindow()) {
+      setPortalRoot(document.body);
+    }
+  }, []);
 
   const enqueueNotice = useCallback(
     (notice: FeedbackNotice) => {
@@ -232,11 +241,17 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     [clearFeedback, clearFeedbackForAction, dismissFeedback, emitError, emitFeedback, emitPending, emitSuccess, memory, queue]
   );
 
+  const trayLayer = (
+    <>
+      <FeedbackTray notices={queue.filter((notice) => notice.placement === "hero")} onDismiss={dismissFeedback} variant="hero" />
+      <FeedbackTray notices={queue.filter((notice) => notice.placement !== "hero")} onDismiss={dismissFeedback} variant="tray" />
+    </>
+  );
+
   return (
     <FeedbackContext.Provider value={value}>
       {children}
-      <FeedbackTray notices={queue.filter((notice) => notice.placement === "hero")} onDismiss={dismissFeedback} variant="hero" />
-      <FeedbackTray notices={queue.filter((notice) => notice.placement !== "hero")} onDismiss={dismissFeedback} variant="tray" />
+      {portalRoot ? createPortal(trayLayer, portalRoot) : null}
     </FeedbackContext.Provider>
   );
 }
@@ -268,18 +283,13 @@ function FeedbackTray({
             data-feedback-kind={notice.kind}
           >
             <div className="feedback-toast__icon" aria-hidden="true">
-              {notice.kind === "error" ? "error" : notice.kind === "warning" ? "warning" : notice.kind === "pending" ? "progress_activity" : "check_circle"}
+              <FeedbackToastIcon kind={notice.kind} />
             </div>
             <div className="feedback-toast__content">
               <div className="feedback-toast__title">{notice.title}</div>
               {notice.detail ? <p className="feedback-toast__detail">{notice.detail}</p> : null}
             </div>
             <div className="feedback-toast__actions">
-              {notice.reversible && notice.undoLabel ? (
-                <button className="feedback-toast__undo focus-ring" type="button" onClick={() => onDismiss(notice.id)}>
-                  {notice.undoLabel}
-                </button>
-              ) : null}
               <button className="feedback-toast__close focus-ring" type="button" aria-label="Dismiss feedback" onClick={() => onDismiss(notice.id)}>
                 ×
               </button>
@@ -288,6 +298,55 @@ function FeedbackTray({
         );
       })}
     </div>
+  );
+}
+
+function FeedbackToastIcon({ kind }: { kind: FeedbackKind }) {
+  const common = {
+    width: 16,
+    height: 16,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const
+  };
+
+  if (kind === "error") {
+    return (
+      <svg {...common} aria-hidden="true">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9 9l6 6" />
+        <path d="M15 9l-6 6" />
+      </svg>
+    );
+  }
+
+  if (kind === "warning") {
+    return (
+      <svg {...common} aria-hidden="true">
+        <path d="M12 4 3.8 19h16.4z" />
+        <path d="M12 9v4" />
+        <path d="M12 16.5h.01" />
+      </svg>
+    );
+  }
+
+  if (kind === "pending") {
+    return (
+      <svg {...common} aria-hidden="true">
+        <circle cx="12" cy="12" r="9" opacity="0.35" />
+        <path d="M12 7v5l3 2" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...common} aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="m7.5 12.5 2.6 2.6L16.5 8.7" />
+    </svg>
   );
 }
 

@@ -118,6 +118,7 @@ function profileSettingsCopyFor(locale: string) {
         languageTitle: "Language",
         languageSubtitle: "App-wide language preference",
         languageCopy: "Choose the language used across athlete navigation and settings.",
+        profileSaved: "Profile saved",
         notificationsTitle: "Notifications",
         notificationsSubtitle: "Choose what AthlexForce should remind you about.",
         notificationsHeroTitle: "AthlexForce Notifications",
@@ -145,70 +146,73 @@ function profileSettingsCopyFor(locale: string) {
       es: {
         languageTitle: "Idioma",
         languageSubtitle: "Preferencia de idioma de toda la app",
-        languageCopy: "Elige el idioma que se usarÃ¡ en la navegaciÃ³n y ajustes del atleta.",
+        languageCopy: "Elige el idioma que se usará en la navegación y los ajustes del atleta.",
+        profileSaved: "Perfil guardado",
         notificationsTitle: "Notificaciones",
-        notificationsSubtitle: "Elige quÃ© debe recordarte AthlexForce.",
+        notificationsSubtitle: "Elige qué debe recordarte AthlexForce.",
         notificationsHeroTitle: "Notificaciones de AthlexForce",
         notificationsHeroSubtitle: "Recordatorios de entrenamiento, progreso y coaching.",
-        notificationsPaused: "La entrega estÃ¡ en pausa. Tus preferencias de recordatorio siguen guardadas.",
+        notificationsPaused: "La entrega está en pausa. Tus preferencias de recordatorio siguen guardadas.",
         permission: "Permiso",
         reminderIntensity: "Intensidad de recordatorios",
         quietHours: "Horas de silencio",
         quietHoursEnabled: "Horas de silencio activadas",
-        categories: "CategorÃ­as",
+        categories: "Categorías",
         timezonePrefix: "Zona horaria:",
         notRequested: "No solicitado",
-        notRequestedDetail: "Sin permiso del navegador/iOS todavÃ­a",
+        notRequestedDetail: "Sin permiso del navegador/iOS todavía",
         allowed: "Permitido",
         allowedDetail: "Se pueden entregar notificaciones",
         denied: "Denegado",
         deniedDetail: "El dispositivo bloquea la entrega",
-        minimal: "MÃ­nimo",
+        minimal: "Mínimo",
         minimalDetail: "Solo los avisos esenciales",
         recommended: "Recomendado",
         recommendedDetail: "Apoyo equilibrado",
-        moreSupport: "MÃ¡s apoyo",
-        moreSupportDetail: "GuÃ­a extra sin saturar"
+        moreSupport: "Más apoyo",
+        moreSupportDetail: "Guía extra sin saturar"
       },
       ca: {
         languageTitle: "Idioma",
-        languageSubtitle: "PreferÃ¨ncia d'idioma de tota l'app",
-        languageCopy: "Tria l'idioma que s'utilitzarÃ  a la navegaciÃ³ i els ajustos de l'atleta.",
+        languageSubtitle: "Preferència d'idioma de tota l'app",
+        languageCopy: "Tria l'idioma que s'utilitzarà a la navegació i els ajustos de l'atleta.",
+        profileSaved: "Perfil desat",
         notificationsTitle: "Notificacions",
-        notificationsSubtitle: "Tria quÃ¨ t'ha de recordar AthlexForce.",
+        notificationsSubtitle: "Tria què t'ha de recordar AthlexForce.",
         notificationsHeroTitle: "Notificacions d'AthlexForce",
-        notificationsHeroSubtitle: "Recordatoris d'entrenament, progrÃ©s i coaching.",
-        notificationsPaused: "L'enviament estÃ  en pausa. Les teves preferÃ¨ncies de recordatori continuen desades.",
-        permission: "PermÃ­s",
+        notificationsHeroSubtitle: "Recordatoris d'entrenament, progrés i coaching.",
+        notificationsPaused: "L'enviament està en pausa. Les teves preferències de recordatori continuen desades.",
+        permission: "Permís",
         reminderIntensity: "Intensitat dels recordatoris",
         quietHours: "Hores de silenci",
         quietHoursEnabled: "Hores de silenci activades",
         categories: "Categories",
-        timezonePrefix: "Zona horÃ ria:",
-        notRequested: "No solÂ·licitat",
-        notRequestedDetail: "Encara no hi ha permÃ­s del navegador/iOS",
-        allowed: "PermÃ¨s",
+        timezonePrefix: "Zona horària:",
+        notRequested: "No sol·licitat",
+        notRequestedDetail: "Encara no hi ha permís del navegador/iOS",
+        allowed: "Permès",
         allowedDetail: "Es poden lliurar notificacions",
         denied: "Denegat",
         deniedDetail: "El dispositiu bloqueja l'enviament",
-        minimal: "MÃ­nim",
-        minimalDetail: "NomÃ©s els avisos essencials",
+        minimal: "Mínim",
+        minimalDetail: "Només els avisos essencials",
         recommended: "Recomanat",
         recommendedDetail: "Suport equilibrat",
-        moreSupport: "MÃ©s suport",
+        moreSupport: "Més suport",
         moreSupportDetail: "Guia extra sense saturar"
       },
       de: {
         languageTitle: "Sprache",
         languageSubtitle: "App-weite Spracheinstellung",
-        languageCopy: "WÃ¤hle die Sprache fÃ¼r Navigation und Einstellungen der Athletenansicht.",
+        languageCopy: "Wähle die Sprache für Navigation und Einstellungen der Athletenansicht.",
+        profileSaved: "Profil gespeichert",
         notificationsTitle: "Benachrichtigungen",
-        notificationsSubtitle: "WÃ¤hle aus, woran dich AthlexForce erinnern soll.",
+        notificationsSubtitle: "Wähle aus, woran dich AthlexForce erinnern soll.",
         notificationsHeroTitle: "AthlexForce-Benachrichtigungen",
-        notificationsHeroSubtitle: "Erinnerungen fÃ¼r Training, Fortschritt und Coaching.",
+        notificationsHeroSubtitle: "Erinnerungen für Training, Fortschritt und Coaching.",
         notificationsPaused: "Die Zustellung ist pausiert. Deine Erinnerungs-Einstellungen bleiben gespeichert.",
         permission: "Berechtigung",
-        reminderIntensity: "ErinnerungsintensitÃ¤t",
+        reminderIntensity: "Erinnerungsintensität",
         quietHours: "Ruhezeiten",
         quietHoursEnabled: "Ruhezeiten aktiviert",
         categories: "Kategorien",
@@ -216,20 +220,21 @@ function profileSettingsCopyFor(locale: string) {
         notRequested: "Nicht angefragt",
         notRequestedDetail: "Noch keine Browser-/iOS-Berechtigung",
         allowed: "Erlaubt",
-        allowedDetail: "Benachrichtigungen kÃ¶nnen zugestellt werden",
+        allowedDetail: "Benachrichtigungen können zugestellt werden",
         denied: "Verweigert",
-        deniedDetail: "Die Zustellung ist auf dem GerÃ¤t blockiert",
+        deniedDetail: "Die Zustellung ist auf dem Gerät blockiert",
         minimal: "Minimal",
         minimalDetail: "Nur die wichtigsten Hinweise",
         recommended: "Empfohlen",
-        recommendedDetail: "Ausgewogene UnterstÃ¼tzung",
-        moreSupport: "Mehr UnterstÃ¼tzung",
-        moreSupportDetail: "ZusÃ¤tzliche Hinweise ohne Spam"
+        recommendedDetail: "Ausgewogene Unterstützung",
+        moreSupport: "Mehr Unterstützung",
+        moreSupportDetail: "Zusätzliche Hinweise ohne Spam"
       }
     }[locale as "en" | "es" | "ca" | "de"] ?? {
       languageTitle: "Language",
       languageSubtitle: "App-wide language preference",
       languageCopy: "Choose the language used across athlete navigation and settings.",
+      profileSaved: "Profile saved",
       notificationsTitle: "Notifications",
       notificationsSubtitle: "Choose what AthlexForce should remind you about.",
       notificationsHeroTitle: "AthlexForce Notifications",
@@ -606,6 +611,8 @@ function GoalPriorityRow({
 
 export function ProfilePreferencesIndexScreen() {
   const { saved, pendingReview, sectionOrder } = useProfileSettingsStore();
+  const { locale } = useTranslator();
+  const copy = profileSettingsCopyFor(locale);
 
   return (
     <Screen
@@ -657,7 +664,7 @@ export function ProfilePreferencesIndexScreen() {
                   {pendingReview ? "Program update pending" : "No pending program updates"}
                 </div>
                 <div className="body-md" style={{ fontWeight: 700 }}>
-                  {pendingReview ? pendingReview.title : `${saved.profile.name} Â· profile saved`}
+                  {pendingReview ? pendingReview.title : `${saved.profile.name} · ${copy.profileSaved}`}
                 </div>
               </div>
             </div>
