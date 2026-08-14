@@ -2252,9 +2252,10 @@ img {
 .workout-overview-card__content {
   position: absolute;
   inset: auto 0 0;
-  display: flex;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
   gap: 12px;
-  align-items: flex-end;
+  align-items: end;
   padding: 16px;
 }
 
@@ -2269,6 +2270,16 @@ img {
   color: var(--accent-primary);
   font-size: 18px;
   font-weight: 800;
+}
+
+.workout-overview-card__copy {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.workout-overview-card__copy .headline-md {
+  line-height: 1;
 }
 
 .workout-mini-panel {
@@ -4894,6 +4905,27 @@ body:has(.bottom-nav) .feedback-tray--tray {
 
   .workout-next-preview {
     grid-template-columns: 1fr;
+  }
+
+  .workout-overview-card__content {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .workout-overview-card__number {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .workout-overview-card__copy {
+    gap: 6px;
+  }
+
+  .workout-overview-card__copy .pill {
+    width: fit-content;
+    max-width: 100%;
   }
 
   .workout-active-hero__media {

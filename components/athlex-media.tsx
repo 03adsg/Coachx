@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import type { ResolvedMedia } from "@/lib/media/types";
 import { markExerciseMediaLoadError, markMealMediaLoadError } from "@/lib/media";
 
-function mediaFallbackCopy(resolution: ResolvedMedia) {
-  const compact = resolution.variant === "thumbnail";
+function mediaFallbackCopy(resolution: ResolvedMedia, compactFallback: boolean) {
+  const compact = compactFallback || resolution.variant === "thumbnail";
   const subtitle = compact ? "" : resolution.fallback.subtitle;
   const hint = compact ? "" : resolution.fallback.hint ?? "";
 
@@ -17,7 +17,15 @@ function mediaFallbackCopy(resolution: ResolvedMedia) {
   };
 }
 
-export function AthlexMedia({ resolution, className = "" }: { resolution: ResolvedMedia; className?: string }) {
+export function AthlexMedia({
+  resolution,
+  className = "",
+  compactFallback = false
+}: {
+  resolution: ResolvedMedia;
+  className?: string;
+  compactFallback?: boolean;
+}) {
   const [renderResolution, setRenderResolution] = useState(resolution);
 
   useEffect(() => {
@@ -40,7 +48,7 @@ export function AthlexMedia({ resolution, className = "" }: { resolution: Resolv
   ]);
 
   const asset = renderResolution.asset;
-  const fallback = mediaFallbackCopy(renderResolution);
+  const fallback = mediaFallbackCopy(renderResolution, compactFallback);
 
   if (renderResolution.state !== "mapped" || !asset) {
     return (

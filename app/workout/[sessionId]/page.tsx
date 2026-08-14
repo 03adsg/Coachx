@@ -278,11 +278,11 @@ export default function WorkoutOverviewPage() {
                   aria-label={`Open ${definition.name}`}
                 >
                   <div className="workout-overview-card__media">
-                    <AthlexMedia resolution={media} />
+                    <AthlexMedia compactFallback resolution={media} />
                     <div className="workout-overview-card__fade" />
                     <div className="workout-overview-card__content">
                       <div className="workout-overview-card__number">{String(index + 1).padStart(2, "0")}</div>
-                      <div>
+                      <div className="workout-overview-card__copy">
                         <div className="headline-md" style={{ textTransform: "uppercase" }}>
                           {definition.name}
                         </div>
