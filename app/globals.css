@@ -1552,6 +1552,10 @@ img {
   padding-top: 16px;
 }
 
+.nutrition-shell > main {
+  padding-bottom: calc(112px + var(--safe-bottom));
+}
+
 .nutrition-topbar {
   display: grid;
   grid-template-columns: 44px 1fr 44px;
@@ -1699,7 +1703,7 @@ img {
 .nutrition-progress-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 18px;
 }
 
 .nutrition-meal-card {
@@ -1830,7 +1834,7 @@ img {
 
 .nutrition-support-card {
   display: grid;
-  gap: 14px;
+  gap: 16px;
 }
 
 .nutrition-support-card__label {
@@ -1882,9 +1886,17 @@ img {
 
 .nutrition-day-teaser {
   display: grid;
-  gap: 4px;
-  padding-top: 12px;
+  gap: 6px;
+  padding-top: 14px;
   border-top: 1px solid var(--border-quiet);
+}
+
+.nutrition-support-grid {
+  gap: 18px;
+}
+
+.nutrition-shell .section {
+  margin-bottom: 28px;
 }
 
 .nutrition-supplement-list {

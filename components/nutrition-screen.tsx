@@ -656,7 +656,7 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
           </div>
         </section>
 
-        <div className="grid-2">
+        <div className="grid-2 nutrition-support-grid">
           <Card className="nutrition-support-card p-16">
             <div className="nutrition-support-card__label">
               <span className="nutrition-support-card__icon" aria-hidden="true">
