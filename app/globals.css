@@ -1019,23 +1019,23 @@ img {
   position: fixed;
   inset: 0;
   z-index: 40;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 16px 16px calc(16px + var(--safe-bottom));
-  background: rgba(5, 5, 5, 0.78);
-  backdrop-filter: blur(18px);
-  transition: opacity 0.2s ease, backdrop-filter 0.2s ease;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: transparent;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
 }
 
 .workout-sheet--closing {
   opacity: 0;
-  backdrop-filter: blur(10px);
 }
 
 .workout-sheet__card-shell {
   width: 100%;
-  max-width: var(--max-mobile-width);
+  max-width: 460px;
+  max-height: min(100dvh - 32px, 680px);
+  pointer-events: auto;
 }
 
 .workout-sheet__card-shell--closing .workout-sheet__card {
@@ -1048,6 +1048,14 @@ img {
   display: grid;
   gap: 14px;
   transition: transform 0.22s ease, opacity 0.22s ease;
+  border-radius: 28px;
+  border: 1px solid var(--border-quiet);
+  background:
+    radial-gradient(circle at top right, rgba(182, 255, 0, 0.08), transparent 26%),
+    linear-gradient(180deg, rgba(18, 18, 18, 0.98) 0%, rgba(9, 9, 9, 0.98) 100%);
+  box-shadow:
+    0 32px 84px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .workout-sheet__card--finish {
@@ -2903,37 +2911,40 @@ img {
   position: fixed;
   inset: 0;
   z-index: 60;
-  display: flex;
-  justify-content: flex-end;
-  background: rgba(5, 5, 5, 0.62);
-  backdrop-filter: blur(10px);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: transparent;
+  pointer-events: none;
 }
 
 .app-menu__backdrop {
-  position: absolute;
-  inset: 0;
-  background: transparent;
+  display: none;
 }
 
 .app-menu__sheet {
   position: relative;
-  width: min(100%, 390px);
-  height: 100vh;
-  height: 100dvh;
-  margin-left: auto;
+  width: min(100%, 520px);
+  max-height: min(100dvh - 32px, 760px);
   padding: 0 16px;
-  background: linear-gradient(180deg, rgba(18, 18, 18, 0.98) 0%, rgba(9, 9, 9, 0.98) 100%);
-  border-left: 1px solid var(--border-quiet);
-  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.45);
+  background:
+    radial-gradient(circle at top right, rgba(182, 255, 0, 0.08), transparent 26%),
+    linear-gradient(180deg, rgba(18, 18, 18, 0.98) 0%, rgba(9, 9, 9, 0.98) 100%);
+  border: 1px solid var(--border-quiet);
+  border-radius: 28px;
+  box-shadow:
+    0 32px 84px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   overflow: hidden;
+  pointer-events: auto;
 }
 
 .app-menu__header {
   display: grid;
   gap: 10px;
-  padding: calc(12px + var(--safe-top)) 0 12px;
+  padding: 16px 0 12px;
   border-bottom: 1px solid var(--border-quiet);
 }
 
@@ -4537,27 +4548,22 @@ img {
 
 .feedback-tray {
   position: fixed;
-  right: max(16px, var(--safe-right));
-  bottom: max(16px, calc(var(--safe-bottom) + 16px));
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   z-index: 70;
   display: grid;
   gap: 12px;
   width: min(100vw - 32px, 420px);
+  max-height: min(100dvh - 32px, 640px);
+  justify-items: center;
+  overflow: auto;
   pointer-events: none;
 }
 
 .feedback-tray--hero {
-  left: 50%;
-  right: auto;
-  bottom: auto;
-  top: calc(18px + var(--safe-top));
-  transform: translateX(-50%);
-  width: min(100vw - 32px, 380px);
+  width: min(100vw - 32px, 460px);
   z-index: 78;
-}
-
-body:has(.bottom-nav) .feedback-tray--tray {
-  bottom: calc(64px + var(--safe-bottom));
 }
 
 .feedback-toast {
@@ -4566,23 +4572,22 @@ body:has(.bottom-nav) .feedback-tray--tray {
   grid-template-columns: 28px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: start;
-  padding: 14px 16px;
-  border-radius: var(--radius-xl);
+  width: 100%;
+  padding: 16px 18px;
+  border-radius: 24px;
   border: 1px solid var(--border-quiet);
-  background: rgba(17, 17, 17, 0.96);
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(12px);
+  background:
+    radial-gradient(circle at top right, rgba(182, 255, 0, 0.08), transparent 26%),
+    rgba(18, 18, 18, 0.98);
+  box-shadow:
+    0 28px 60px rgba(0, 0, 0, 0.44),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
 }
 
 .feedback-tray--hero .feedback-toast {
   width: 100%;
-  padding: 16px 18px;
-  border-radius: 20px;
-  background:
-    radial-gradient(circle at top right, rgba(182, 255, 0, 0.08), transparent 28%),
-    rgba(18, 18, 18, 0.98);
-  border-color: rgba(182, 255, 0, 0.28);
-  box-shadow: 0 28px 64px rgba(0, 0, 0, 0.46);
+  border-color: rgba(182, 255, 0, 0.24);
 }
 
 .feedback-toast[data-feedback-level="L1"] {
@@ -4681,6 +4686,7 @@ body:has(.bottom-nav) .feedback-tray--tray {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  align-self: center;
 }
 
 .feedback-toast__undo,
@@ -4907,6 +4913,11 @@ body:has(.bottom-nav) .feedback-tray--tray {
     grid-template-columns: 1fr;
   }
 
+  .feedback-tray {
+    width: min(100vw - 24px, 420px);
+    max-height: min(100dvh - 24px, 560px);
+  }
+
   .workout-overview-card__content {
     grid-template-columns: 40px minmax(0, 1fr);
     gap: 10px;
@@ -4930,12 +4941,6 @@ body:has(.bottom-nav) .feedback-tray--tray {
 
   .workout-active-hero__media {
     min-height: 188px;
-  }
-
-  .feedback-tray {
-    left: 16px;
-    right: 16px;
-    width: auto;
   }
 
   .feedback-toast {
