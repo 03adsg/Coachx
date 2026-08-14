@@ -726,6 +726,7 @@ export default function ActiveExercisePage() {
         exercises: `${session.totalExercises} ${copy.exerciseCount}`,
         duration: session.summary.duration
       };
+  const completeSetLabel = `${copy.completeSet} ${currentSet.setNumber}`;
 
   return (
     <Screen
@@ -936,18 +937,6 @@ export default function ActiveExercisePage() {
                   </div>
                   <div className="workout-logger-footer">
                     <div className="caption">{exercise.suggestedTarget}</div>
-                    <button
-                      aria-label={`${copy.completeSet} ${currentSet.setNumber}`}
-                      className="workout-set-button workout-set-button--wide focus-ring"
-                      disabled={submitting}
-                      type="button"
-                      onClick={() => void handleComplete()}
-                    >
-                      <span className="icon filled" aria-hidden="true">
-                        check
-                      </span>
-                      {submitting ? copy.saving : copy.completeSet}
-                    </button>
                   </div>
                 </Card>
               </section>
@@ -1122,8 +1111,14 @@ export default function ActiveExercisePage() {
 
         <div className="sticky-action">
           {!exerciseComplete ? (
-            <button className="button-primary focus-ring" disabled={submitting} type="button" onClick={() => void handleComplete()}>
-              {submitting ? copy.saving : copy.completeSet}
+            <button
+              aria-label={completeSetLabel}
+              className="button-primary focus-ring"
+              disabled={submitting}
+              type="button"
+              onClick={() => void handleComplete()}
+            >
+              {submitting ? copy.saving : completeSetLabel}
             </button>
           ) : nextExercise ? (
             <Link className="button-primary focus-ring" href={`/workout/${session.id}/exercise/${nextExercise.id}`}>

@@ -663,7 +663,7 @@ img {
 
 .workout-active-shell {
   padding-top: 4px;
-  padding-bottom: calc(120px + var(--safe-bottom));
+  padding-bottom: calc(176px + var(--safe-bottom));
 }
 
 .workout-start-card {
@@ -971,6 +971,8 @@ img {
 .workout-logger-footer {
   display: grid;
   gap: 12px;
+  padding-top: 2px;
+  border-top: 1px solid var(--border-quiet);
 }
 
 .workout-logger-footer .caption {
@@ -1487,6 +1489,17 @@ img {
   background: #0f0f0f;
   color: var(--text-primary);
   padding: 0 12px;
+}
+
+.workout-input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.workout-input[type="number"]::-webkit-inner-spin-button,
+.workout-input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .workout-input:focus {
