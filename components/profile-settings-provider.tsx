@@ -28,6 +28,33 @@ import { buildProfileSnapshotFromOnboarding, loadAthleteSnapshot, mapOnboardingS
 import { loadNotificationPreferences, saveNotificationPreferences } from "@/lib/notification-service";
 import { publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
 
+const localeFeedbackCopy: Record<ProfileSnapshot["profile"]["locale"], { successTitle: string; successDetail: string; errorTitle: string; errorDetail: string }> = {
+  es: {
+    successTitle: "Idioma guardado",
+    successDetail: "Se aplicó al instante.",
+    errorTitle: "No se pudo guardar el idioma",
+    errorDetail: "Se mantiene el idioma actual."
+  },
+  ca: {
+    successTitle: "Idioma desat",
+    successDetail: "S'ha aplicat a l'instant.",
+    errorTitle: "No s'ha pogut desar l'idioma",
+    errorDetail: "Es manté l'idioma actual."
+  },
+  en: {
+    successTitle: "Language saved",
+    successDetail: "Applied instantly.",
+    errorTitle: "Language could not be saved",
+    errorDetail: "The current language stays in place."
+  },
+  de: {
+    successTitle: "Sprache gespeichert",
+    successDetail: "Wird sofort angewendet.",
+    errorTitle: "Sprache konnte nicht gespeichert werden",
+    errorDetail: "Die aktuelle Sprache bleibt erhalten."
+  }
+};
+
 interface ProfileSettingsStoreValue extends ProfileSettingsState {
   commitProfileSnapshot: (nextSnapshot: ProfileSnapshot) => ProfileImpactReview;
   commitLocale: (locale: ProfileSnapshot["profile"]["locale"]) => void;
@@ -250,10 +277,12 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
           onboardingRef.current.state.progress.status === "complete" ? new Date().toISOString() : null
         )
           .then(() => {
-            publishFeedbackSuccess("profile.locale", "Language updated", "Your choice will stay with this device.");
+            const copy = localeFeedbackCopy[nextLocale];
+            publishFeedbackSuccess("profile.locale", copy.successTitle, copy.successDetail);
           })
           .catch(() => {
-            publishFeedbackError("profile.locale", "Language could not be saved", "Your current language stays in place.");
+            const copy = localeFeedbackCopy[nextLocale];
+            publishFeedbackError("profile.locale", copy.errorTitle, copy.errorDetail);
             setState((current) => ({
               ...current,
               saveState: "error",

@@ -93,7 +93,7 @@ export function LanguageSelector({ value, onChange, compact = false }: LanguageS
 
   return (
     <div ref={rootRef} className={`language-selector ${compact ? "language-selector--compact" : ""}`.trim()}>
-      <div className="language-selector__label-row">
+      <div className={`language-selector__label-row ${compact ? "language-selector__label-row--compact" : ""}`.trim()}>
         <div className="eyebrow language-selector__eyebrow">{label}</div>
       </div>
 
@@ -144,7 +144,7 @@ export function LanguageSelector({ value, onChange, compact = false }: LanguageS
                 type="button"
               >
                 <span className="language-selector__option-copy">
-                  <span className="language-selector__flag" aria-hidden="true">
+                  <span className="language-selector__flag language-selector__flag--option" aria-hidden="true">
                     {option.flag}
                   </span>
                   <span className="language-selector__option-text">

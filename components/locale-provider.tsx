@@ -35,7 +35,7 @@ export function getLocaleFlag(locale: string) {
     case "es":
       return "🇪🇸";
     case "ca":
-      return "🇨🇦";
+      return "🇦🇩";
     case "en":
       return "🇬🇧";
     case "de":

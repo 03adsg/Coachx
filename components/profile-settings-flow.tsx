@@ -871,7 +871,7 @@ export function ProfileLanguageScreen() {
       <section className="section">
         <Card className="p-16 language-settings-card" style={{ borderRadius: 20 }}>
           <p className="caption language-settings-card__copy">{copy.languageCopy}</p>
-          <LanguageSelector value={saved.profile.locale} onChange={commitLocale} />
+          <LanguageSelector value={saved.profile.locale} onChange={commitLocale} compact />
         </Card>
       </section>
     </EditorShell>

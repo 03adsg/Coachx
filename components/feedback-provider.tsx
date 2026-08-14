@@ -34,8 +34,12 @@ interface FeedbackStoreValue {
 const FeedbackContext = createContext<FeedbackStoreValue | null>(null);
 const FEEDBACK_EVENT_NAME = "athlexforce-feedback";
 const FEEDBACK_CLEAR_EVENT_NAME = "athlexforce-feedback-clear";
-const DEFAULT_DISPLAY_MS = 4200;
-const HERO_DISPLAY_MS = 6200;
+const SUCCESS_DISPLAY_MS = 2200;
+const INFO_DISPLAY_MS = 2200;
+const WARNING_DISPLAY_MS = 2800;
+const ERROR_DISPLAY_MS = 2800;
+const PENDING_DISPLAY_MS = 2400;
+const HERO_DISPLAY_MS = 3600;
 
 function hasWindow() {
   return typeof window !== "undefined";
@@ -87,10 +91,22 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
       });
 
       if (!reducedMotion && hasWindow()) {
+        const displayMs =
+          notice.placement === "hero"
+            ? HERO_DISPLAY_MS
+            : notice.kind === "success"
+              ? SUCCESS_DISPLAY_MS
+              : notice.kind === "info"
+                ? INFO_DISPLAY_MS
+                : notice.kind === "warning"
+                  ? WARNING_DISPLAY_MS
+                  : notice.kind === "error"
+                    ? ERROR_DISPLAY_MS
+                    : PENDING_DISPLAY_MS;
         const timerId = window.setTimeout(() => {
           setQueue((current) => current.filter((entry) => entry.id !== notice.id));
           dismissTimersRef.current.delete(notice.id);
-        }, notice.placement === "hero" ? HERO_DISPLAY_MS : DEFAULT_DISPLAY_MS);
+        }, displayMs);
         dismissTimersRef.current.set(notice.id, timerId);
       }
     },
