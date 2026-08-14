@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { BrandLogo } from "@/components/brand-logo";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { useProgressStore } from "@/components/progress-provider";
 import { formatProgressDifference, formatProgressMeasurement } from "@/components/progress-provider";
 import type { MeasurementType } from "@/lib/progress-data";
+import { buildContextualSuccessTimeline } from "@/motion/feedback";
+import { useReducedMotion } from "@/motion/useReducedMotion";
 
 const measurementOrder: MeasurementType[] = ["weight", "waist", "hips", "thigh"];
 const measurementLabels: Record<MeasurementType, string> = {
@@ -382,6 +384,18 @@ function SummaryRow({
 export function ProgressMeasurementSuccessScreen() {
   const { state } = useProgressStore();
   const router = useRouter();
+  const reducedMotion = useReducedMotion();
+  const successHeroRef = useRef<HTMLElement | null>(null);
+
+  useLayoutEffect(() => {
+    const root = successHeroRef.current;
+    if (!root) {
+      return undefined;
+    }
+
+    const context = buildContextualSuccessTimeline({ root, reducedMotion }, "[data-feedback-success]");
+    return () => context.revert();
+  }, [reducedMotion]);
 
   return (
     <Screen
@@ -400,7 +414,7 @@ export function ProgressMeasurementSuccessScreen() {
       }
     >
       <main className="content tight">
-        <section className="section progress-success-hero">
+        <section ref={successHeroRef} className="section progress-success-hero" data-feedback-success="true">
           <div className="progress-success-hero__icon">
             <span className="icon filled accent" aria-hidden="true" style={{ fontSize: 32 }}>
               check_circle

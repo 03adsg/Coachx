@@ -6,7 +6,17 @@ type FeedbackMotionScope = {
 };
 
 function getTargets(root: HTMLElement, selectors: string[]) {
-  return root.querySelectorAll(selectors.join(", "));
+  const targets = new Set<HTMLElement>();
+
+  for (const selector of selectors) {
+    if (root.matches(selector)) {
+      targets.add(root);
+    }
+
+    root.querySelectorAll<HTMLElement>(selector).forEach((target) => targets.add(target));
+  }
+
+  return Array.from(targets);
 }
 
 function setReducedMotionVisible(root: HTMLElement, selectors: string[]) {

@@ -10,6 +10,10 @@ import { useAuthStore } from "@/components/auth-provider";
 import { useProgramStore } from "@/components/program-provider";
 import { useReducedMotion } from "@/motion/useReducedMotion";
 import {
+  buildConfirmationSheetTimeline,
+  buildPreparingBicepsTimeline
+} from "@/motion/feedback";
+import {
   buildActiveExerciseEnterTimeline,
   buildExerciseCompleteTimeline,
   buildPauseTimeline,
@@ -79,15 +83,86 @@ function muscleLabel(locale: string, muscle: string) {
   return copy[muscle as keyof typeof copy] ?? muscle;
 }
 
+type PreparingWorkoutStage = "start" | "mid" | "ready";
+
+function WorkoutPreparingVisual({ reducedMotion }: { reducedMotion: boolean }) {
+  const visualRef = useRef<HTMLDivElement | null>(null);
+  const [stage, setStage] = useState<PreparingWorkoutStage>("start");
+
+  useEffect(() => {
+    if (reducedMotion) {
+      setStage("ready");
+      return undefined;
+    }
+
+    setStage("start");
+    const midFrame = window.requestAnimationFrame(() => setStage("mid"));
+    const readyTimer = window.setTimeout(() => setStage("ready"), 260);
+
+    return () => {
+      window.cancelAnimationFrame(midFrame);
+      window.clearTimeout(readyTimer);
+    };
+  }, [reducedMotion]);
+
+  useLayoutEffect(() => {
+    const root = visualRef.current;
+    if (!root) {
+      return undefined;
+    }
+
+    const context = buildPreparingBicepsTimeline({ root, reducedMotion }, "[data-feedback-preparing]");
+    return () => context.revert();
+  }, [reducedMotion]);
+
+  return (
+    <div className="workout-preparing-visual" ref={visualRef} data-feedback-preparing="true" data-stage={stage}>
+      <svg className="workout-preparing-visual__svg" viewBox="0 0 240 184" role="img" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="workout-preparing-glow" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stopColor="rgba(182,255,0,0.34)" />
+            <stop offset="100%" stopColor="rgba(255,255,255,0.02)" />
+          </linearGradient>
+        </defs>
+        <rect className="workout-preparing-visual__backdrop" x="0" y="0" width="240" height="184" rx="28" />
+        <circle className="workout-preparing-visual__halo" cx="172" cy="70" r="58" />
+        <path
+          className="workout-preparing-visual__torso"
+          d="M53 51C53 45.477 57.477 41 63 41H95C100.523 41 105 45.477 105 51V137C105 142.523 100.523 147 95 147H63C57.477 147 53 142.523 53 137V51Z"
+        />
+        <path className="workout-preparing-visual__arm workout-preparing-visual__arm--upper" d="M104 79C119 63 140 63 153 77" />
+        <path className="workout-preparing-visual__arm workout-preparing-visual__arm--forearm" d="M153 77C164 89 165 108 155 124" />
+        <circle className="workout-preparing-visual__fist" cx="154" cy="125" r="8" />
+        <path
+          className="workout-preparing-visual__biceps"
+          d="M112 75C121 63 139 61 151 70C144 82 132 88 120 88C116 88 112 82 112 75Z"
+        />
+        <path className="workout-preparing-visual__beam workout-preparing-visual__beam--left" d="M28 136L48 136" />
+        <path className="workout-preparing-visual__beam workout-preparing-visual__beam--right" d="M186 30L205 30" />
+      </svg>
+      <div className="workout-preparing-visual__signal" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+    </div>
+  );
+}
+
 export default function ActiveExercisePage() {
   const params = useParams<{ sessionId: string; exerciseId: string }>();
   const router = useRouter();
   const reducedMotion = useReducedMotion();
   const motionRootRef = useRef<HTMLElement | null>(null);
+  const finishSheetRef = useRef<HTMLDivElement | null>(null);
+  const finishSheetCloseButtonRef = useRef<HTMLButtonElement | null>(null);
   const hydratedRouteIdRef = useRef<string | null>(null);
+  const finishSheetTimeoutRef = useRef<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [pauseSheetOpen, setPauseSheetOpen] = useState(false);
   const [finishSheetOpen, setFinishSheetOpen] = useState(false);
+  const [finishSheetMounted, setFinishSheetMounted] = useState(false);
+  const [finishSheetClosing, setFinishSheetClosing] = useState(false);
   const [routeReady, setRouteReady] = useState(false);
   const { locale } = useTranslator();
   const auth = useAuthStore();
@@ -524,6 +599,94 @@ export default function ActiveExercisePage() {
     return undefined;
   }, [exerciseComplete, pauseSheetOpen, reducedMotion, routeReady, session.restTimer?.active]);
 
+  useEffect(() => {
+    if (finishSheetTimeoutRef.current !== null) {
+      window.clearTimeout(finishSheetTimeoutRef.current);
+      finishSheetTimeoutRef.current = null;
+    }
+
+    if (finishSheetOpen) {
+      setFinishSheetMounted(true);
+      setFinishSheetClosing(false);
+      return;
+    }
+
+    if (!finishSheetMounted) {
+      return;
+    }
+
+    if (reducedMotion) {
+      setFinishSheetMounted(false);
+      setFinishSheetClosing(false);
+      return;
+    }
+
+    setFinishSheetClosing(true);
+    finishSheetTimeoutRef.current = window.setTimeout(() => {
+      setFinishSheetMounted(false);
+      setFinishSheetClosing(false);
+      finishSheetTimeoutRef.current = null;
+    }, 220);
+
+    return () => {
+      if (finishSheetTimeoutRef.current !== null) {
+        window.clearTimeout(finishSheetTimeoutRef.current);
+        finishSheetTimeoutRef.current = null;
+      }
+    };
+  }, [finishSheetMounted, finishSheetOpen, reducedMotion]);
+
+  useLayoutEffect(() => {
+    const root = finishSheetRef.current;
+    if (!root || !finishSheetMounted || finishSheetClosing) {
+      return undefined;
+    }
+
+    const context = buildConfirmationSheetTimeline({ root, reducedMotion }, "[data-feedback-sheet]");
+    finishSheetCloseButtonRef.current?.focus();
+    return () => context.revert();
+  }, [finishSheetClosing, finishSheetMounted, reducedMotion]);
+
+  useEffect(() => {
+    if (!finishSheetMounted || finishSheetClosing) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setFinishSheetOpen(false);
+        return;
+      }
+
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      const focusable = finishSheetRef.current?.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (!focusable || focusable.length === 0) {
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const activeElement = document.activeElement as HTMLElement | null;
+
+      if (event.shiftKey && activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [finishSheetClosing, finishSheetMounted]);
+
   const handleComplete = async () => {
     if (submitting || currentSet.completed) {
       return;
@@ -615,16 +778,17 @@ export default function ActiveExercisePage() {
       <main ref={motionRootRef} className="content tight workout-active-shell">
         {!routeReady ? (
           <section className="section">
-            <Card className="workout-start-card elevated" data-workout-motion="start-hero">
-              <div className="eyebrow" style={{ color: "#b6ff00" }}>
-                {copy.workoutStart}
+            <Card className="workout-start-card workout-start-card--preparing elevated" data-workout-motion="start-hero">
+              <div className="workout-start-card__copy">
+                <div className="eyebrow workout-start-card__eyebrow">{copy.workoutStart}</div>
+                <h1 className="headline-lg workout-start-card__title" style={{ marginTop: 8, textTransform: "uppercase" }}>
+                  {workoutStartCopy?.title ?? session.workoutType}
+                </h1>
+                <p className="body-md workout-start-card__meta">
+                  {workoutStartCopy?.exercises ?? `${session.totalExercises} ${copy.exerciseCount}`} · {workoutStartCopy?.duration ?? session.summary.duration}
+                </p>
               </div>
-              <h1 className="headline-lg" style={{ marginTop: 8, textTransform: "uppercase" }}>
-                {workoutStartCopy?.title ?? session.workoutType}
-              </h1>
-              <p className="body-md" style={{ marginTop: 10, color: "var(--text-secondary)" }}>
-                {workoutStartCopy?.exercises ?? `${session.totalExercises} ${copy.exerciseCount}`} · {workoutStartCopy?.duration ?? session.summary.duration}
-              </p>
+              <WorkoutPreparingVisual reducedMotion={reducedMotion} />
             </Card>
           </section>
         ) : (
@@ -904,35 +1068,55 @@ export default function ActiveExercisePage() {
           </section>
         ) : null}
 
-        {finishSheetOpen ? (
-          <section className="workout-sheet workout-sheet--overlay" aria-label={copy.finishTitle}>
-            <Card className="workout-sheet__card elevated workout-sheet__card--finish" data-workout-motion="finish-sheet">
-              <div className="eyebrow" style={{ color: "#b6ff00" }}>
-                {remainingExercises > 0 ? copy.finishEarly : copy.finishTitle}
-              </div>
-              <h2 className="headline-lg" style={{ marginTop: 8, textTransform: "uppercase" }}>
-                {copy.finishTitle}
-              </h2>
-              <p className="body-md" style={{ marginTop: 10, color: "var(--text-secondary)" }}>
-                {copy.finishingNotice}
-              </p>
-              <div className="workout-sheet__actions">
-                <button className="button-secondary focus-ring" type="button" onClick={() => setFinishSheetOpen(false)}>
-                  {copy.keepTraining}
-                </button>
-                <button
-                  className="button-primary focus-ring"
-                  type="button"
-                  onClick={async () => {
-                    setFinishSheetOpen(false);
-                    await finishWorkout();
-                    router.push(`/workout/${session.id}/summary`);
-                  }}
-                >
-                  {copy.finishAnyway}
-                </button>
-              </div>
-            </Card>
+        {finishSheetMounted ? (
+          <section
+            className={`workout-sheet workout-sheet--overlay ${finishSheetClosing ? "workout-sheet--closing" : ""}`.trim()}
+            aria-describedby="finish-workout-copy"
+            aria-labelledby="finish-workout-title"
+            aria-modal="true"
+            role="dialog"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) {
+                setFinishSheetOpen(false);
+              }
+            }}
+          >
+            <div
+              className={`workout-sheet__card-shell ${finishSheetClosing ? "workout-sheet__card-shell--closing" : ""}`.trim()}
+              ref={finishSheetRef}
+              data-feedback-sheet="true"
+              data-workout-motion="finish-sheet"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <Card className="workout-sheet__card elevated workout-sheet__card--finish">
+                <div className="eyebrow" style={{ color: "#b6ff00" }}>
+                  {remainingExercises > 0 ? copy.finishEarly : copy.finishTitle}
+                </div>
+                <h2 className="headline-lg" id="finish-workout-title" style={{ marginTop: 8, textTransform: "uppercase" }}>
+                  {copy.finishTitle}
+                </h2>
+                <p className="body-md" id="finish-workout-copy" style={{ marginTop: 10, color: "var(--text-secondary)" }}>
+                  {copy.finishingNotice}
+                </p>
+                <div className="workout-sheet__actions">
+                  <button className="button-secondary focus-ring" type="button" onClick={() => setFinishSheetOpen(false)}>
+                    {copy.keepTraining}
+                  </button>
+                  <button
+                    ref={finishSheetCloseButtonRef}
+                    className="button-primary focus-ring"
+                    type="button"
+                    onClick={async () => {
+                      setFinishSheetOpen(false);
+                      await finishWorkout();
+                      router.push(`/workout/${session.id}/summary`);
+                    }}
+                  >
+                    {copy.finishAnyway}
+                  </button>
+                </div>
+              </Card>
+            </div>
           </section>
         ) : null}
 
