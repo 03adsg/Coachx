@@ -33,13 +33,13 @@ export function useResolvedLocale() {
 export function getLocaleFlag(locale: string) {
   switch (locale) {
     case "es":
-      return "🇪🇸";
+      return "/flags/es.svg";
     case "ca":
-      return "🇦🇩";
+      return "/flags/ca.svg";
     case "en":
-      return "🇬🇧";
+      return "/flags/gb.svg";
     case "de":
-      return "🇩🇪";
+      return "/flags/de.svg";
     default:
       return "";
   }

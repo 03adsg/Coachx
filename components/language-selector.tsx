@@ -4,6 +4,13 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTranslator, getLocaleFlag } from "@/components/locale-provider";
 import { supportedLocales, type Locale } from "@/lib/i18n";
 
+const LANGUAGE_META: Record<Locale, { flagSrc: string }> = {
+  es: { flagSrc: getLocaleFlag("es") },
+  ca: { flagSrc: getLocaleFlag("ca") },
+  en: { flagSrc: getLocaleFlag("en") },
+  de: { flagSrc: getLocaleFlag("de") }
+};
+
 type LanguageSelectorProps = {
   value: Locale;
   onChange: (locale: Locale) => void;
@@ -26,7 +33,7 @@ export function LanguageSelector({ value, onChange, compact = false }: LanguageS
   const label = t("common.language");
   const selectedLocale = useMemo(() => supportedLocales.find((entry) => entry === value) ?? "es", [value]);
   const selectedName = t(`locale.${selectedLocale}`);
-  const selectedFlag = getLocaleFlag(selectedLocale);
+  const selectedFlagSrc = LANGUAGE_META[selectedLocale].flagSrc;
   const appliedInstantlyCopy =
     {
       en: "Applied instantly",
@@ -80,7 +87,7 @@ export function LanguageSelector({ value, onChange, compact = false }: LanguageS
       supportedLocales.map((locale) => ({
         locale,
         name: t(`locale.${locale}`),
-        flag: getLocaleFlag(locale)
+        flagSrc: LANGUAGE_META[locale].flagSrc
       })),
     [t]
   );
@@ -114,9 +121,7 @@ export function LanguageSelector({ value, onChange, compact = false }: LanguageS
       >
         <span className="language-selector__trigger-copy">
           <span className="language-selector__selection">
-            <span className="language-selector__flag" aria-hidden="true">
-              {selectedFlag}
-            </span>
+            <img className="language-selector__flag" src={selectedFlagSrc} alt="" aria-hidden="true" draggable={false} />
             <span className="language-selector__value">{selectedName}</span>
           </span>
           <span className="caption language-selector__status">{appliedInstantlyCopy}</span>
@@ -144,9 +149,7 @@ export function LanguageSelector({ value, onChange, compact = false }: LanguageS
                 type="button"
               >
                 <span className="language-selector__option-copy">
-                  <span className="language-selector__flag language-selector__flag--option" aria-hidden="true">
-                    {option.flag}
-                  </span>
+                  <img className="language-selector__flag language-selector__flag--option" src={option.flagSrc} alt="" aria-hidden="true" draggable={false} />
                   <span className="language-selector__option-text">
                     <span className="language-selector__option-name">{option.name}</span>
                     <span className="caption language-selector__option-code">{option.locale.toUpperCase()}</span>
