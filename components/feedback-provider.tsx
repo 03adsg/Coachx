@@ -70,18 +70,19 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   const enqueueNotice = useCallback(
     (notice: FeedbackNotice) => {
       setMemory((current) => {
-        const recent = [notice, ...current.recent.filter((entry) => entry.dedupeKey !== notice.dedupeKey)].slice(0, 20);
+        const cleared = clearFeedbackMemoryForAction(current, notice.actionId);
+        const recent = [notice, ...cleared.recent.filter((entry) => entry.dedupeKey !== notice.dedupeKey)].slice(0, 20);
         return {
           recent,
           lastByAction: {
-            ...current.lastByAction,
+            ...cleared.lastByAction,
             [notice.actionId]: notice
           }
         };
       });
 
       setQueue((current) => {
-        const deduped = current.filter((entry) => entry.dedupeKey !== notice.dedupeKey);
+        const deduped = current.filter((entry) => entry.actionId !== notice.actionId && entry.dedupeKey !== notice.dedupeKey);
         return [notice, ...deduped].slice(0, 3);
       });
 
