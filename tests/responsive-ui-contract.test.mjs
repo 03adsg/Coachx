@@ -25,6 +25,7 @@ test("responsive UI contract is documented with the required viewport and QA rul
 test("workout responsive shell keeps the browser scroll and sticky CTA contract in source", async () => {
   const css = await readRepoFile("app/globals.css");
   const workoutPage = await readRepoFile("app/workout/[sessionId]/exercise/[exerciseId]/page.tsx");
+  const workoutOverview = await readRepoFile("app/workout/[sessionId]/page.tsx");
   const workoutData = await readRepoFile("lib/workout-data.ts");
   const numericControls = await readRepoFile("components/numeric-controls.tsx");
 
@@ -41,9 +42,13 @@ test("workout responsive shell keeps the browser scroll and sticky CTA contract 
   assert.match(workoutPage, /requestAnimationFrame/);
   assert.match(workoutPage, /getExerciseProgressionTarget/);
   assert.match(workoutPage, /workout-set-row--editing/);
+  assert.match(workoutPage, /previewExerciseBody/);
+  assert.match(workoutOverview, /resumeSession/);
 
   assert.match(workoutData, /localizedProgressionTargets/);
   assert.match(workoutData, /getExerciseProgressionTarget/);
+  assert.match(workoutData, /Keep the same steps with cleaner control\./);
+  assert.match(workoutData, /Hold the same steps with cleaner control\./);
 
   assert.match(numericControls, /const nextHelper = error \?\? helper \?\? "";?/);
   assert.match(numericControls, /const nextHelper = helper \?\? "";?/);

@@ -158,7 +158,8 @@ export default function WorkoutOverviewPage() {
       lastSession: "Last Session",
       readyToProgress: "Ready to Progress",
       swap: "Swap",
-      startSession: "Start Session"
+      startSession: "Start Session",
+      resumeSession: "Resume Workout"
     },
     es: {
       goBack: "Volver",
@@ -169,7 +170,8 @@ export default function WorkoutOverviewPage() {
       lastSession: "Sesión anterior",
       readyToProgress: "Listo para progresar",
       swap: "Cambiar",
-      startSession: "Empezar sesión"
+      startSession: "Empezar sesión",
+      resumeSession: "Reanudar entrenamiento"
     },
     ca: {
       goBack: "Enrere",
@@ -180,7 +182,8 @@ export default function WorkoutOverviewPage() {
       lastSession: "Sessió anterior",
       readyToProgress: "Preparat per progressar",
       swap: "Canvia",
-      startSession: "Inicia la sessió"
+      startSession: "Inicia la sessió",
+      resumeSession: "Reprendre entrenament"
     },
     de: {
       goBack: "Zurück",
@@ -191,7 +194,8 @@ export default function WorkoutOverviewPage() {
       lastSession: "Letzte Einheit",
       readyToProgress: "Bereit für Fortschritt",
       swap: "Tauschen",
-      startSession: "Sitzung starten"
+      startSession: "Sitzung starten",
+      resumeSession: "Training fortsetzen"
     }
   }[locale as "en" | "es" | "ca" | "de"] ?? {
     goBack: "Go back",
@@ -202,7 +206,8 @@ export default function WorkoutOverviewPage() {
     lastSession: "Last Session",
     readyToProgress: "Ready to Progress",
     swap: "Swap",
-    startSession: "Start Session"
+    startSession: "Start Session",
+    resumeSession: "Resume Workout"
   };
 
   const backHref = day ? `/day/${day.dateKey}` : "/calendar";
@@ -331,7 +336,7 @@ export default function WorkoutOverviewPage() {
 
         <div className="sticky-action">
           <PrimaryButton href={`/workout/${session.id}/exercise/${session.exercises[0].id}`}>
-            {session.status === "in_progress" ? "Resume Workout" : copy.startSession}
+            {session.status === "in_progress" ? copy.resumeSession : copy.startSession}
           </PrimaryButton>
         </div>
       </main>

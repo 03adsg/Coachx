@@ -509,6 +509,7 @@ export default function ActiveExercisePage() {
       primary: "Primary",
       secondary: "Secondary",
       previewExercise: "Preview exercise",
+      previewExerciseBody: "Review technique, media, and alternatives without losing workout context.",
       sets: "Sets",
       reps: "Reps",
       sec: "Sec",
@@ -560,6 +561,7 @@ export default function ActiveExercisePage() {
       primary: "Primario",
       secondary: "Secundario",
       previewExercise: "Vista previa del ejercicio",
+      previewExerciseBody: "Revisa la técnica, los medios y las alternativas sin perder el contexto del entrenamiento.",
       sets: "Series",
       reps: "Reps",
       sec: "Seg",
@@ -611,6 +613,7 @@ export default function ActiveExercisePage() {
       primary: "Primari",
       secondary: "Secundari",
       previewExercise: "Previsualitza l'exercici",
+      previewExerciseBody: "Revisa la tècnica, els mitjans i les alternatives sense perdre el context de l'entrenament.",
       sets: "Sèries",
       reps: "Reps",
       sec: "Seg",
@@ -662,6 +665,7 @@ export default function ActiveExercisePage() {
       primary: "Primär",
       secondary: "Sekundär",
       previewExercise: "Übung ansehen",
+      previewExerciseBody: "Überprüfe Technik, Medien und Alternativen, ohne den Trainingskontext zu verlieren.",
       sets: "Sätze",
       reps: "Wdh.",
       sec: "Sek",
@@ -713,6 +717,7 @@ export default function ActiveExercisePage() {
     primary: "Primary",
     secondary: "Secondary",
     previewExercise: "Preview exercise",
+    previewExerciseBody: "Review technique, media, and alternatives without losing workout context.",
     sets: "Sets",
     reps: "Reps",
     sec: "Sec",
@@ -1103,7 +1108,7 @@ export default function ActiveExercisePage() {
                       {copy.previewExercise}
                     </div>
                     <p className="caption" style={{ marginTop: 6 }}>
-                      Review technique, media, and alternatives without losing workout context.
+                      {copy.previewExerciseBody}
                     </p>
                   </div>
                   <Link

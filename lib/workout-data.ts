@@ -485,6 +485,11 @@ const localizedProgressionTargets: Record<string, Partial<Record<SupportedLocale
     ca: "Mantén els mateixos passos amb més control.",
     de: "Halte die gleichen Schritte mit sauberer Kontrolle."
   },
+  "Keep the same steps with cleaner control.": {
+    es: "Mantén los mismos pasos con más control.",
+    ca: "Mantén els mateixos passos amb més control.",
+    de: "Halte die gleichen Schritte mit sauberer Kontrolle."
+  },
   "Match hip thrust output with more stability.": {
     es: "Iguala el rendimiento del hip thrust con más estabilidad.",
     ca: "Iguala el rendiment del hip thrust amb més estabilitat.",
