@@ -982,6 +982,8 @@ img {
   gap: 12px;
   padding-top: 6px;
   border-top: 1px solid var(--border-quiet);
+  width: 100%;
+  min-width: 0;
 }
 
 .workout-logger-footer .caption {
@@ -1779,6 +1781,10 @@ img {
   padding-top: 16px;
 }
 
+.card.workout-set-row--editing .workout-logger-footer {
+  grid-column: 1 / -1;
+}
+
 .card.workout-set-row {
   display: grid;
   gap: 14px;
@@ -1795,10 +1801,15 @@ img {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
+  width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+  align-self: stretch;
 }
 
 .workout-set-row__actions > button {
   width: 100%;
+  min-width: 0;
 }
 
 .workout-set-button {
