@@ -233,11 +233,14 @@ export default function ActiveExercisePage() {
   const finishSheetCloseButtonRef = useRef<HTMLButtonElement | null>(null);
   const hydratedRouteIdRef = useRef<string | null>(null);
   const finishSheetTimeoutRef = useRef<number | null>(null);
+  const stickyActionScrollFrameRef = useRef<number | null>(null);
+  const stickyActionLastScrollYRef = useRef(0);
   const [submitting, setSubmitting] = useState(false);
   const [pauseSheetOpen, setPauseSheetOpen] = useState(false);
   const [finishSheetOpen, setFinishSheetOpen] = useState(false);
   const [finishSheetMounted, setFinishSheetMounted] = useState(false);
   const [finishSheetClosing, setFinishSheetClosing] = useState(false);
+  const [stickyActionHidden, setStickyActionHidden] = useState(false);
   const [routeReady, setRouteReady] = useState(false);
   const [managementMode, setManagementMode] = useState<ManagementMode>("self_managed");
   const [activeSetErrors, setActiveSetErrors] = useState<WorkoutSetDraftErrors | null>(null);
@@ -959,6 +962,55 @@ export default function ActiveExercisePage() {
   const completeSetLabel = `${copy.completeSet} ${currentSet.setNumber}`;
   const currentSetRirValue = currentSet.rir == null || currentSet.rir.trim() === "" ? null : Number(currentSet.rir);
 
+  useEffect(() => {
+    if (editingSetNumber !== null) {
+      setStickyActionHidden(true);
+      return undefined;
+    }
+
+    setStickyActionHidden(false);
+
+    const root = document.scrollingElement ?? document.documentElement;
+    stickyActionLastScrollYRef.current = root.scrollTop;
+
+    const updateStickyActionVisibility = () => {
+      const currentScrollY = root.scrollTop;
+      const delta = currentScrollY - stickyActionLastScrollYRef.current;
+
+      if (currentScrollY <= 8) {
+        setStickyActionHidden(false);
+      } else if (delta > 6) {
+        setStickyActionHidden(true);
+      } else if (delta < -6) {
+        setStickyActionHidden(false);
+      }
+
+      stickyActionLastScrollYRef.current = currentScrollY;
+    };
+
+    const onScroll = () => {
+      if (stickyActionScrollFrameRef.current != null) {
+        return;
+      }
+
+      stickyActionScrollFrameRef.current = window.requestAnimationFrame(() => {
+        stickyActionScrollFrameRef.current = null;
+        updateStickyActionVisibility();
+      });
+    };
+
+    updateStickyActionVisibility();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (stickyActionScrollFrameRef.current != null) {
+        window.cancelAnimationFrame(stickyActionScrollFrameRef.current);
+        stickyActionScrollFrameRef.current = null;
+      }
+    };
+  }, [editingSetNumber]);
+
   return (
     <Screen
       shellClassName="screen-shell workout-shell"
@@ -1258,7 +1310,7 @@ export default function ActiveExercisePage() {
                         </div>
                         <div className="workout-logger-footer">
                           <div className="caption">{controlCopy.saved}</div>
-                          <div className="row">
+                          <div className="workout-set-row__actions">
                             <button className="button-secondary focus-ring" type="button" disabled={submitting} onClick={cancelEditLoggedSet}>
                               {controlCopy.cancel}
                             </button>
@@ -1460,7 +1512,7 @@ export default function ActiveExercisePage() {
           </section>
         ) : null}
 
-        <div className="sticky-action">
+        <div className={`sticky-action ${stickyActionHidden ? "sticky-action--hidden" : ""}`.trim()}>
           {!exerciseComplete ? (
             <button
               aria-label={completeSetLabel}

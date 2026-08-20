@@ -412,8 +412,16 @@ img {
 
 .sticky-action {
   position: sticky;
-  bottom: 8px;
-  padding: 0 0 4px;
+  bottom: calc(8px + var(--safe-bottom));
+  z-index: 16;
+  padding: 12px 0 0;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.sticky-action--hidden {
+  opacity: 0;
+  transform: translateY(calc(100% + 12px));
+  pointer-events: none;
 }
 
 .page-cta {
@@ -949,9 +957,10 @@ img {
 
 .workout-logger-card {
   display: grid;
-  gap: 16px;
-  background: linear-gradient(180deg, rgba(24, 24, 24, 0.98) 0%, rgba(18, 18, 18, 0.98) 100%);
-  border: 1px solid rgba(182, 255, 0, 0.18);
+  gap: 18px;
+  background: transparent;
+  border: 0;
+  padding: 0;
 }
 
 .workout-logger-grid {
@@ -971,7 +980,7 @@ img {
 .workout-logger-footer {
   display: grid;
   gap: 12px;
-  padding-top: 2px;
+  padding-top: 6px;
   border-top: 1px solid var(--border-quiet);
 }
 
@@ -1766,19 +1775,30 @@ img {
 }
 
 .workout-set-row--editing {
-  border: 1px solid rgba(182, 255, 0, 0.22);
+  border-top: 1px solid rgba(182, 255, 0, 0.18);
+  padding-top: 16px;
 }
 
 .workout-set-row {
   display: grid;
-  gap: 12px;
-  padding: 14px;
-  border-radius: var(--radius-lg);
-  background: #101010;
+  gap: 14px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .workout-set-row .button-secondary {
   min-width: 88px;
+}
+
+.workout-set-row__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.workout-set-row__actions > button {
+  width: 100%;
 }
 
 .workout-set-button {
@@ -5195,6 +5215,10 @@ img {
   .workout-prescription-grid,
   .workout-logger-grid,
   .workout-sheet__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .workout-set-row__actions {
     grid-template-columns: 1fr;
   }
 
