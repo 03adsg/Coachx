@@ -18,6 +18,7 @@
 - `Global feedback / motion polish` -> `feedback-motion-system` + `frontend-stitch` + `visual-qa` + `qa-testing`
 - `I18n / locale QA` -> `i18n-exhaustive-auditor` + `language-selector-ux-auditor` + `visual-qa` + `qa-testing`
 - `Live browser audit` -> `live-product-flow-audit` + `qa-testing`
+- `Web / PWA notifications` -> `pwa-notifications-architect` + `qa-testing`
 
 ## Collaboration Order
 

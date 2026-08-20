@@ -1010,6 +1010,16 @@ export interface NotificationPreferencesRow {
   id: string;
   user_id: string;
   master_enabled: boolean;
+  workout_enabled: boolean;
+  meals_enabled: boolean;
+  checkin_enabled: boolean;
+  sleep_enabled: boolean;
+  workout_lead_minutes: number;
+  hydration_interval_minutes: number;
+  in_app_enabled: boolean;
+  quiet_start: string | null;
+  quiet_end: string | null;
+  timezone: string | null;
   workout_reminders_enabled: boolean;
   program_updates_enabled: boolean;
   weekly_check_in_enabled: boolean;
@@ -1034,6 +1044,16 @@ export interface NotificationPreferencesInsert {
   id?: string;
   user_id: string;
   master_enabled?: boolean;
+  workout_enabled?: boolean;
+  meals_enabled?: boolean;
+  checkin_enabled?: boolean;
+  sleep_enabled?: boolean;
+  workout_lead_minutes?: number;
+  hydration_interval_minutes?: number;
+  in_app_enabled?: boolean;
+  quiet_start?: string | null;
+  quiet_end?: string | null;
+  timezone?: string | null;
   workout_reminders_enabled?: boolean;
   program_updates_enabled?: boolean;
   weekly_check_in_enabled?: boolean;
@@ -1057,6 +1077,16 @@ export interface NotificationPreferencesInsert {
 export interface NotificationPreferencesUpdate {
   user_id?: string;
   master_enabled?: boolean;
+  workout_enabled?: boolean;
+  meals_enabled?: boolean;
+  checkin_enabled?: boolean;
+  sleep_enabled?: boolean;
+  workout_lead_minutes?: number;
+  hydration_interval_minutes?: number;
+  in_app_enabled?: boolean;
+  quiet_start?: string | null;
+  quiet_end?: string | null;
+  timezone?: string | null;
   workout_reminders_enabled?: boolean;
   program_updates_enabled?: boolean;
   weekly_check_in_enabled?: boolean;
@@ -1074,6 +1104,155 @@ export interface NotificationPreferencesUpdate {
   quiet_hours_end?: string | null;
   preferred_timezone?: string | null;
   updated_at?: string;
+}
+
+export interface PushSubscriptionsRow {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  expiration_time: string | null;
+  active: boolean;
+  last_success_at: string | null;
+  failure_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PushSubscriptionsInsert {
+  id?: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  expiration_time?: string | null;
+  active?: boolean;
+  last_success_at?: string | null;
+  failure_count?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface PushSubscriptionsUpdate {
+  user_id?: string;
+  endpoint?: string;
+  p256dh?: string;
+  auth?: string;
+  expiration_time?: string | null;
+  active?: boolean;
+  last_success_at?: string | null;
+  failure_count?: number;
+  updated_at?: string;
+}
+
+export type NotificationReminderCategory = "workout" | "meals" | "hydration" | "supplements" | "check-in" | "sleep";
+export type NotificationReminderStatus = "scheduled" | "ready" | "sent" | "delivered" | "clicked" | "dismissed" | "snoozed" | "failed" | "expired" | "cancelled";
+export type NotificationDeliveryAttemptResult = "sent" | "delivered" | "expired" | "gone" | "failed" | "ignored";
+
+export interface NotificationRemindersRow {
+  id: string;
+  user_id: string;
+  category: NotificationReminderCategory;
+  source_table: string | null;
+  source_id: string | null;
+  source_reference: string | null;
+  destination_path: string;
+  title: string;
+  body: string;
+  status: NotificationReminderStatus;
+  scheduled_for: string;
+  sent_at: string | null;
+  delivered_at: string | null;
+  clicked_at: string | null;
+  dismissed_at: string | null;
+  snoozed_until: string | null;
+  dedupe_key: string;
+  payload: Json;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationRemindersInsert {
+  id?: string;
+  user_id: string;
+  category: NotificationReminderCategory;
+  source_table?: string | null;
+  source_id?: string | null;
+  source_reference?: string | null;
+  destination_path: string;
+  title: string;
+  body: string;
+  status?: NotificationReminderStatus;
+  scheduled_for: string;
+  sent_at?: string | null;
+  delivered_at?: string | null;
+  clicked_at?: string | null;
+  dismissed_at?: string | null;
+  snoozed_until?: string | null;
+  dedupe_key: string;
+  payload?: Json;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface NotificationRemindersUpdate {
+  user_id?: string;
+  category?: NotificationReminderCategory;
+  source_table?: string | null;
+  source_id?: string | null;
+  source_reference?: string | null;
+  destination_path?: string;
+  title?: string;
+  body?: string;
+  status?: NotificationReminderStatus;
+  scheduled_for?: string;
+  sent_at?: string | null;
+  delivered_at?: string | null;
+  clicked_at?: string | null;
+  dismissed_at?: string | null;
+  snoozed_until?: string | null;
+  dedupe_key?: string;
+  payload?: Json;
+  updated_at?: string;
+}
+
+export interface NotificationDeliveryAttemptsRow {
+  id: string;
+  notification_reminder_id: string;
+  user_id: string;
+  push_subscription_id: string | null;
+  attempted_at: string;
+  result: NotificationDeliveryAttemptResult;
+  status_code: number | null;
+  error_code: string | null;
+  error_detail: string | null;
+  created_at: string;
+}
+
+export interface NotificationDeliveryAttemptsInsert {
+  id?: string;
+  notification_reminder_id: string;
+  user_id: string;
+  push_subscription_id?: string | null;
+  attempted_at?: string;
+  result: NotificationDeliveryAttemptResult;
+  status_code?: number | null;
+  error_code?: string | null;
+  error_detail?: string | null;
+  created_at?: string;
+}
+
+export interface NotificationDeliveryAttemptsUpdate {
+  notification_reminder_id?: string;
+  user_id?: string;
+  push_subscription_id?: string | null;
+  attempted_at?: string;
+  result?: NotificationDeliveryAttemptResult;
+  status_code?: number | null;
+  error_code?: string | null;
+  error_detail?: string | null;
+  created_at?: string;
 }
 
 export interface CoachProfilesRow {
@@ -1469,6 +1648,24 @@ export interface Database {
         Row: NotificationPreferencesRow;
         Insert: NotificationPreferencesInsert;
         Update: NotificationPreferencesUpdate;
+        Relationships: [];
+      };
+      push_subscriptions: {
+        Row: PushSubscriptionsRow;
+        Insert: PushSubscriptionsInsert;
+        Update: PushSubscriptionsUpdate;
+        Relationships: [];
+      };
+      notification_reminders: {
+        Row: NotificationRemindersRow;
+        Insert: NotificationRemindersInsert;
+        Update: NotificationRemindersUpdate;
+        Relationships: [];
+      };
+      notification_delivery_attempts: {
+        Row: NotificationDeliveryAttemptsRow;
+        Insert: NotificationDeliveryAttemptsInsert;
+        Update: NotificationDeliveryAttemptsUpdate;
         Relationships: [];
       };
       coach_profiles: {

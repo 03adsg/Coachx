@@ -1,6 +1,5 @@
-import { ProfileNotificationsScreen } from "@/components/profile-settings-flow";
+import { NotificationSettingsScreen } from "@/components/notification-settings-screen";
 
 export default function ProfileNotificationsPage() {
-  return <ProfileNotificationsScreen />;
+  return <NotificationSettingsScreen />;
 }
-

@@ -18,7 +18,7 @@
 | 25 | COMPLETE | Media System. Production ready. |
 | 26 | COMPLETE | Feedback + Motion polish. Production ready. |
 | 27 | IMPLEMENTATION COMPLETE / CERTIFICATION PENDING | Inputs and intensity refinement. Imported Slice 27 handoff is in the repo; code validation passed, but authenticated mobile visual QA is still pending in this environment. |
-| 28 | NEXT | Web/PWA notifications where reliable. |
+| 28 | IMPLEMENTATION IN PROGRESS / CERTIFICATION PENDING | Web/PWA notifications. Canonical Slice 28 architecture, storage, service worker, dispatch path, and test coverage are in the repo; browser QA still needs to be finished against the live production surface. |
 | 29 | NEXT | Athlete Private Alpha final certification. |
 
 ## Product Principle

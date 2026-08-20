@@ -83,3 +83,9 @@ This document records the supplied Stitch reference screens without dumping prot
 | Reference package | Production target | Status | Known artifact |
 | --- | --- | --- | --- |
 | Slice 27 visual authority package | `Slice 27 inputs and intensity refinement` | Implementation in progress | Imported canonical handoff is in `docs/design-references/slice-27/`. Treat the authority note and source audit there as the source of truth for numeric controls, actual-vs-plan behavior, and discrete RIR/RPE families. |
+
+## Slice 28 Reference Index
+
+| Reference package | Production target | Status | Known artifact |
+| --- | --- | --- | --- |
+| Slice 28 notification authority package | `Slice 28 web / PWA notifications` | Implementation in progress | Imported canonical handoff is in `docs/design-references/slice-28/`. Treat the authority note, source audit, and boards there as the source of truth for browser capability, permission, quiet hours, and fallback delivery behavior. |

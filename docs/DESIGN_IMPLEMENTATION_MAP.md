@@ -104,3 +104,13 @@ This map ties the canonical design system to the real repository code.
 | Workout logger inputs | `app/workout/[sessionId]/exercise/[exerciseId]/page.tsx` + `components/workout-provider.tsx` + `lib/workout-session-service.ts` | In progress | Actual set logging now uses the shared input family and preserves editable logged sets. |
 | Progress measurement inputs | `components/progress-measurements-screen.tsx` + `components/progress-provider.tsx` + `lib/progress-data.ts` + `lib/progress-service.ts` | In progress | Measurement entry now uses the same numeric parser and localized validation copy. |
 | Slice 27 handoff import | `docs/design-references/slice-27/` + `docs/INPUTS_INTENSITY_SYSTEM.md` | Complete | Canonical authority package is now checked into the repo as the source of truth for this slice. |
+
+## Slice 28 Notification Targets
+
+| Next target | Code path(s) | Status | Notes |
+| --- | --- | --- | --- |
+| Notification settings surface | `app/profile/notifications/page.tsx` + `components/notification-settings-screen.tsx` | In progress | Canonical browser capability, permission, subscription, and per-category preference screen. |
+| Notification persistence | `lib/notification-preference-service.ts` + `lib/supabase/database.types.ts` + `supabase/migrations/20260820_slice_28_notifications.sql` | In progress | Stores preferences, subscriptions, reminders, and delivery attempts. |
+| Push delivery runtime | `public/notification-sw.js` + `supabase/functions/dispatch-notification-reminders/index.ts` | In progress | Service worker and dispatch path for authenticated push delivery. |
+| Today fallback reminders | `app/page.tsx` | In progress | Keep a truthful in-app reminder fallback when push is blocked, unsupported, or not yet subscribed. |
+| Design authority import | `docs/design-references/slice-28/` | Complete | Canonical Slice 28 authority package and boards are now imported into the repository. |
