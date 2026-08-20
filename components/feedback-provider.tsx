@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
 import { useReducedMotion } from "@/motion/useReducedMotion";
 import { useLocale } from "@/components/locale-provider";
 import {
@@ -49,6 +50,7 @@ function hasWindow() {
 
 export function FeedbackProvider({ children }: { children: ReactNode }) {
   const { locale } = useLocale();
+  const pathname = usePathname();
   const reducedMotion = useReducedMotion();
   const dismissTimersRef = useRef(new Map<string, number>());
   const recentRef = useRef<FeedbackNotice[]>([]);
@@ -79,6 +81,15 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
       setPortalRoot(document.body);
     }
   }, []);
+
+  useEffect(() => {
+    setQueue([]);
+    setMemory(createInitialFeedbackMemory());
+    for (const timerId of dismissTimersRef.current.values()) {
+      window.clearTimeout(timerId);
+    }
+    dismissTimersRef.current.clear();
+  }, [pathname]);
 
   const enqueueNotice = useCallback(
     (notice: FeedbackNotice) => {
