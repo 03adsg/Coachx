@@ -53,6 +53,7 @@ async function transpileLibraryChain() {
     "nutrition-data.ts",
     "workout-data.ts",
     "coachx-data.ts",
+    "numeric-input.ts",
     "progress-data.ts",
     "progress-service.ts",
     "program-service.ts",
@@ -108,6 +109,7 @@ async function transpileLibraryChain() {
 const onboarding = await transpileLibraryChain();
 const i18n = await import(pathToFileURL(path.join(tempDir, "i18n.mjs")).href);
 const progressData = await import(pathToFileURL(path.join(tempDir, "progress-data.mjs")).href);
+const numericInput = await import(pathToFileURL(path.join(tempDir, "numeric-input.mjs")).href);
 const profileSettings = await import(pathToFileURL(path.join(tempDir, "profile-settings-data.mjs")).href);
 const nutritionService = await import(pathToFileURL(path.join(tempDir, "nutrition-service.mjs")).href);
 const authNavigation = await import(pathToFileURL(path.join(tempDir, "auth/navigation.mjs")).href);
@@ -1676,6 +1678,22 @@ test("progress payloads keep weight separate from centimeter measurements", () =
   );
 });
 
+test("numeric input helpers accept comma decimals and reject invalid strings", () => {
+  const parsed = numericInput.parseNumericInput("32,5", { allowBlank: false, allowZero: false });
+  assert.equal(parsed.valid, true);
+  assert.equal(parsed.value, 32.5);
+
+  const rejected = numericInput.parseNumericInput("abc", { allowBlank: false, allowZero: false });
+  assert.equal(rejected.valid, false);
+  assert.equal(rejected.reason, "invalid");
+
+  assert.equal(numericInput.stepNumericInput("32,5", 2.5, { decimals: 1, fallback: 30 }), "35");
+
+  const measurement = progressData.parseMeasurementInput("72,8", 40, 150);
+  assert.equal(measurement.valid, true);
+  assert.equal(measurement.value, 72.8);
+});
+
 test("progress snapshots hydrate remote measurement history and photo paths", () => {
   const snapshot = {
     entries: [
@@ -2150,11 +2168,11 @@ test("workout set saves update the same row and complete the exercise only when 
     workoutSessionExerciseId: "00000000-0000-4000-8000-000000000005",
     workoutSetId: "00000000-0000-4000-8000-000000000007",
     setNumber: 1,
-    payload: { kilograms: "80", reps: "10", rir: "2" }
+    payload: { kilograms: "80,5", reps: "10", rir: "2" }
   });
 
   assert.equal(client.state.workout_sets.length, 1);
-  assert.equal(client.state.workout_sets[0].weight_kg, 80);
+  assert.equal(client.state.workout_sets[0].weight_kg, 80.5);
   assert.equal(client.state.workout_session_exercises[0].status, "planned");
   assert.equal(workoutSessionService.isWorkoutSessionExerciseComplete(2, client.state.workout_sets), false);
 
@@ -2162,17 +2180,18 @@ test("workout set saves update the same row and complete the exercise only when 
     workoutSessionExerciseId: "00000000-0000-4000-8000-000000000005",
     workoutSetId: "00000000-0000-4000-8000-000000000007",
     setNumber: 1,
-    payload: { kilograms: "85", reps: "10", rir: "1" }
+    payload: { kilograms: "85,5", reps: "10", rir: "" }
   });
 
   assert.equal(client.state.workout_sets.length, 1);
-  assert.equal(client.state.workout_sets[0].weight_kg, 85);
+  assert.equal(client.state.workout_sets[0].weight_kg, 85.5);
+  assert.equal(client.state.workout_sets[0].rir, null);
   assert.equal(workoutSessionService.isWorkoutSessionExerciseComplete(2, client.state.workout_sets), false);
 
   await workoutSessionService.saveWorkoutSet(client, {
     workoutSessionExerciseId: "00000000-0000-4000-8000-000000000005",
     setNumber: 2,
-    payload: { kilograms: "85", reps: "9", rir: "1" }
+    payload: { kilograms: "85,0", reps: "9", rir: "1" }
   });
 
   assert.equal(client.state.workout_sets.length, 2);

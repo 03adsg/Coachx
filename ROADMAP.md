@@ -17,7 +17,7 @@
 | 24 | DESIGN COMPLETE / IMPLEMENTATION IN PROGRESS | Nutrition UX 2.0. |
 | 25 | COMPLETE | Media System. Production ready. |
 | 26 | COMPLETE | Feedback + Motion polish. Production ready. |
-| 27 | DESIGN IN PROGRESS / IMPLEMENTATION NOT STARTED | Inputs and intensity refinement. |
+| 27 | IMPLEMENTATION IN PROGRESS | Inputs and intensity refinement. Imported Slice 27 handoff is now in the repo; validation and certification still remain. |
 | 28 | NEXT | Web/PWA notifications where reliable. |
 | 29 | NEXT | Athlete Private Alpha final certification. |
 

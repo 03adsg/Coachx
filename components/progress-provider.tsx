@@ -19,6 +19,7 @@ import {
   type PhotoPose,
   type ProgressState
 } from "@/lib/progress-data";
+import { getNumericValidationMessage } from "@/lib/numeric-input";
 import { useAuthStore } from "@/components/auth-provider";
 import { publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -229,8 +230,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         const parsed = parseMeasurementInput(definition.todayValue, definition.min, definition.max);
         if (!parsed.valid) {
           if (definition.todayValue.trim()) {
-            nextValidationErrors[definition.type] = parsed.reason;
-            errors.push(`${definition.label}: ${parsed.reason}`);
+            const reason = parsed.reason ?? "invalid";
+            const message = getNumericValidationMessage(locale as "en" | "es" | "ca" | "de", reason, {
+              min: definition.min,
+              max: definition.max
+            });
+            nextValidationErrors[definition.type] = message;
+            errors.push(`${definition.label}: ${message}`);
           }
           return;
         }
@@ -251,19 +257,20 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
       const rows = state.measurement.definitions
         .map((definition) => {
-          const parsed = definition.todayValue.trim() ? Number(definition.todayValue) : null;
+          const parsed = updates[definition.type] ?? null;
           const previousValue = getMeasurementDefinition(state.measurement, definition.type).lastValue;
           const existingRow = state.measurement.lastSavedRows.find((row) => row.type === definition.type) ?? null;
+          const currentValue = definition.todayValue.trim() ? parsed : existingRow?.currentValue ?? null;
 
           return {
             type: definition.type,
             label: definition.label,
             unit: definition.unit,
             previousValue,
-            currentValue: parsed ?? existingRow?.currentValue ?? null,
+            currentValue,
             previousDate: definition.lastDate,
-            currentDate: parsed === null ? existingRow?.currentDate ?? null : state.measurement.currentDateLabel,
-            difference: computeMeasurementDifference(previousValue, parsed ?? existingRow?.currentValue ?? null)
+            currentDate: definition.todayValue.trim() ? state.measurement.currentDateLabel : existingRow?.currentDate ?? null,
+            difference: computeMeasurementDifference(previousValue, currentValue)
           };
         })
         .filter((row) => row.currentValue !== null || row.previousValue !== null);

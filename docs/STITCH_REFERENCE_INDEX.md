@@ -82,4 +82,4 @@ This document records the supplied Stitch reference screens without dumping prot
 
 | Reference package | Production target | Status | Known artifact |
 | --- | --- | --- | --- |
-| Slice 27 visual authority package | `Slice 27 inputs and intensity refinement` | Design in progress | Present boards: A, B, C, D, E, I. Missing boards: F, G, H, J, K, L, M, N, O, P. Implementation is not started until the missing boards are exported. |
+| Slice 27 visual authority package | `Slice 27 inputs and intensity refinement` | Implementation in progress | Imported canonical handoff is in `docs/design-references/slice-27/`. Treat the authority note and source audit there as the source of truth for numeric controls, actual-vs-plan behavior, and discrete RIR/RPE families. |

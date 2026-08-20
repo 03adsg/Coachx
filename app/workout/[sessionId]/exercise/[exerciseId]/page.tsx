@@ -5,8 +5,10 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Screen } from "@/components/screen";
 import { Card } from "@/components/ui";
+import { NumericControl, RirControl } from "@/components/numeric-controls";
 import { AthlexMedia } from "@/components/athlex-media";
 import { useAuthStore } from "@/components/auth-provider";
+import { loadIdentityResolution, type ManagementMode } from "@/lib/auth/identity-resolver";
 import { useProgramStore } from "@/components/program-provider";
 import { useReducedMotion } from "@/motion/useReducedMotion";
 import {
@@ -26,9 +28,11 @@ import { useTranslator } from "@/components/locale-provider";
 import { useWorkoutStore } from "@/components/workout-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { countCompletedExercises, getExerciseDefinition, getWorkoutExercise } from "@/lib/workout-data";
+import type { SessionExercise } from "@/lib/workout-data";
 import { resolveExerciseHeroMedia, resolveExerciseThumbnailMedia } from "@/lib/media";
 import { getOrCreateWorkoutSession, type WorkoutSessionSeed } from "@/lib/workout-session-service";
 import { getWorkoutLiveSnapshot } from "@/lib/workout-live-state";
+import { getNumericValidationMessage, parseNumericInput, type SupportedLocale } from "@/lib/numeric-input";
 import type { ProgramTemplateExercise, ProgramTemplateView } from "@/lib/program-service";
 
 function resolveSessionId(param: string | string[] | undefined) {
@@ -81,6 +85,77 @@ function muscleLabel(locale: string, muscle: string) {
   }[locale as "en" | "es" | "ca" | "de"] ?? { glutes: "Glutes", back: "Back", chest: "Chest", hamstrings: "Hamstrings", quadriceps: "Quads", core: "Core" };
 
   return copy[muscle as keyof typeof copy] ?? muscle;
+}
+
+type WorkoutSetDraftErrors = {
+  kilograms?: string;
+  reps?: string;
+  rir?: string;
+};
+
+function resolveSupportedLocale(locale: string): SupportedLocale {
+  return locale === "es" || locale === "ca" || locale === "de" ? locale : "en";
+}
+
+function formatWorkoutRirValue(value: string | number | null | undefined) {
+  if (value == null || (typeof value === "string" && value.trim() === "")) {
+    return "—";
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return value;
+  }
+
+  return parsed >= 5 ? "5+" : String(parsed);
+}
+
+function validateWorkoutSetDraft(locale: SupportedLocale, payload: { kilograms: string; reps: string; rir?: string }) {
+  const kilograms = parseNumericInput(payload.kilograms, { allowBlank: false, allowZero: false });
+  const reps = parseNumericInput(payload.reps, { allowBlank: false, allowZero: false, integer: true });
+  const rir =
+    payload.rir == null || payload.rir.trim() === ""
+      ? { valid: true as const, value: null as number | null }
+      : parseNumericInput(payload.rir, { allowBlank: false, allowZero: true, integer: true, min: 0, max: 5 });
+
+  const errors: WorkoutSetDraftErrors = {};
+
+  if (!kilograms.valid) {
+    errors.kilograms = getNumericValidationMessage(locale, kilograms.reason ?? "invalid", { min: 0.1, max: 999.9 });
+  }
+
+  if (!reps.valid) {
+    errors.reps = getNumericValidationMessage(locale, reps.reason ?? "invalid", { min: 1, max: 999 });
+  }
+
+  if (!rir.valid) {
+    errors.rir = getNumericValidationMessage(locale, rir.reason ?? "invalid", { min: 0, max: 5 });
+  }
+
+  if (errors.kilograms || errors.reps || errors.rir) {
+    return {
+      valid: false as const,
+      errors
+    };
+  }
+
+  return {
+    valid: true as const,
+    errors: {} as WorkoutSetDraftErrors,
+    parsed: {
+      kilograms: kilograms.value ?? 0,
+      reps: reps.value ?? 0,
+      rir: rir.value ?? null
+    }
+  };
+}
+
+function formatWorkoutSetSubtitle(set: { kilograms: string | number; reps: string | number; rir?: string | number | null }) {
+  const load = `${set.kilograms} kg`;
+  const reps = `${set.reps} reps`;
+  const rir = `RIR ${formatWorkoutRirValue(set.rir)}`;
+
+  return `${load} · ${reps} · ${rir}`;
 }
 
 type PreparingWorkoutStage = "start" | "mid" | "ready";
@@ -164,10 +239,15 @@ export default function ActiveExercisePage() {
   const [finishSheetMounted, setFinishSheetMounted] = useState(false);
   const [finishSheetClosing, setFinishSheetClosing] = useState(false);
   const [routeReady, setRouteReady] = useState(false);
+  const [managementMode, setManagementMode] = useState<ManagementMode>("self_managed");
+  const [activeSetErrors, setActiveSetErrors] = useState<WorkoutSetDraftErrors | null>(null);
+  const [editingSetNumber, setEditingSetNumber] = useState<number | null>(null);
+  const [editingSetSnapshot, setEditingSetSnapshot] = useState<SessionExercise["sets"][number] | null>(null);
+  const [editingSetErrors, setEditingSetErrors] = useState<WorkoutSetDraftErrors | null>(null);
   const { locale } = useTranslator();
   const auth = useAuthStore();
   const { scheduledWorkouts, templates, templateExercises, getDaySummary, ready: programReady } = useProgramStore();
-  const { session, hydrateSession, updateSetDraft, completeSet, skipRestTimer, addThirtySeconds, pauseWorkout, resumeWorkout, finishWorkout } =
+  const { session, hydrateSession, updateSetDraft, completeSet, saveLoggedSet, skipRestTimer, addThirtySeconds, pauseWorkout, resumeWorkout, finishWorkout } =
     useWorkoutStore();
 
   const workoutId = resolveSessionId(params.sessionId);
@@ -224,6 +304,39 @@ export default function ActiveExercisePage() {
   useEffect(() => {
     setPauseSheetOpen(Boolean(session.workflow?.pausedAt));
   }, [session.workflow?.pausedAt]);
+
+  useEffect(() => {
+    if (!auth.ready || !auth.isConfigured || !auth.user) {
+      setManagementMode("self_managed");
+      return;
+    }
+
+    let active = true;
+
+    async function hydrateIdentity() {
+      const client = getSupabaseBrowserClient();
+      if (!client) {
+        return;
+      }
+
+      try {
+        const identity = await loadIdentityResolution(client, auth.user!.id, { identityIntent: null });
+        if (active) {
+          setManagementMode(identity.managementMode);
+        }
+      } catch {
+        if (active) {
+          setManagementMode("self_managed");
+        }
+      }
+    }
+
+    void hydrateIdentity();
+
+    return () => {
+      active = false;
+    };
+  }, [auth.isConfigured, auth.ready, auth.user?.id]);
 
   useEffect(() => {
     if (!auth.ready || !programReady || !auth.isConfigured || !auth.user || !workoutId || !scheduledWorkout || !day || !templateView) {
@@ -318,6 +431,63 @@ export default function ActiveExercisePage() {
         equipment: getExerciseDefinition(nextExercise.performedExerciseId).equipment
       })
     : null;
+
+  const supportedLocale = resolveSupportedLocale(locale);
+
+  const controlCopy = {
+    en: {
+      plan: "PLAN",
+      actual: "ACTUAL",
+      coachPlan: "COACH PLAN",
+      loggedSets: "LOGGED SETS",
+      edit: "Edit",
+      save: "Save",
+      cancel: "Cancel",
+      saved: "Saved",
+      readOnly: "Read only",
+      youDid: "YOU DID",
+      setLabel: "Set"
+    },
+    es: {
+      plan: "PLAN",
+      actual: "ACTUAL",
+      coachPlan: "PLAN DEL COACH",
+      loggedSets: "SERIES REGISTRADAS",
+      edit: "Editar",
+      save: "Guardar",
+      cancel: "Cancelar",
+      saved: "Guardado",
+      readOnly: "Solo lectura",
+      youDid: "HICISTE",
+      setLabel: "Serie"
+    },
+    ca: {
+      plan: "PLA",
+      actual: "ACTUAL",
+      coachPlan: "PLA DEL COACH",
+      loggedSets: "SÈRIES REGISTRADES",
+      edit: "Edita",
+      save: "Desa",
+      cancel: "Cancel·la",
+      saved: "Desat",
+      readOnly: "Només lectura",
+      youDid: "HAS FET",
+      setLabel: "Sèrie"
+    },
+    de: {
+      plan: "PLAN",
+      actual: "AKTUELL",
+      coachPlan: "COACH-PLAN",
+      loggedSets: "PROTOKOLLIERTE SÄTZE",
+      edit: "Bearbeiten",
+      save: "Speichern",
+      cancel: "Abbrechen",
+      saved: "Gespeichert",
+      readOnly: "Nur lesen",
+      youDid: "DU HAST GEMACHT",
+      setLabel: "Satz"
+    }
+  }[supportedLocale];
 
   const copy = {
     en: {
@@ -692,7 +862,19 @@ export default function ActiveExercisePage() {
       return;
     }
 
+    const validation = validateWorkoutSetDraft(supportedLocale, {
+      kilograms: currentSet.kilograms,
+      reps: currentSet.reps,
+      rir: currentSet.rir
+    });
+
+    if (!validation.valid) {
+      setActiveSetErrors(validation.errors);
+      return;
+    }
+
     setSubmitting(true);
+    setActiveSetErrors(null);
 
     try {
       await completeSet(exercise.id, currentSet.setNumber, {
@@ -719,6 +901,54 @@ export default function ActiveExercisePage() {
     }
   };
 
+  const beginEditLoggedSet = (setNumber: number) => {
+    const set = exercise.sets.find((entry) => entry.setNumber === setNumber);
+    if (!set) {
+      return;
+    }
+
+    setEditingSetNumber(setNumber);
+    setEditingSetSnapshot({ ...set });
+    setEditingSetErrors(null);
+  };
+
+  const cancelEditLoggedSet = () => {
+    setEditingSetNumber(null);
+    setEditingSetSnapshot(null);
+    setEditingSetErrors(null);
+  };
+
+  const saveLoggedSetDraft = async () => {
+    if (!editingSetSnapshot || editingSetNumber === null || submitting) {
+      return;
+    }
+
+    const validation = validateWorkoutSetDraft(supportedLocale, {
+      kilograms: editingSetSnapshot.kilograms,
+      reps: editingSetSnapshot.reps,
+      rir: editingSetSnapshot.rir
+    });
+
+    if (!validation.valid) {
+      setEditingSetErrors(validation.errors);
+      return;
+    }
+
+    setSubmitting(true);
+    setEditingSetErrors(null);
+
+    try {
+      await saveLoggedSet(exercise.id, editingSetNumber, {
+        kilograms: editingSetSnapshot.kilograms,
+        reps: editingSetSnapshot.reps,
+        rir: editingSetSnapshot.rir?.trim() ? editingSetSnapshot.rir : undefined
+      });
+      cancelEditLoggedSet();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const workoutStartCopy = routeReady
     ? null
     : {
@@ -727,6 +957,7 @@ export default function ActiveExercisePage() {
         duration: session.summary.duration
       };
   const completeSetLabel = `${copy.completeSet} ${currentSet.setNumber}`;
+  const currentSetRirValue = currentSet.rir == null || currentSet.rir.trim() === "" ? null : Number(currentSet.rir);
 
   return (
     <Screen
@@ -830,6 +1061,16 @@ export default function ActiveExercisePage() {
 
             <section className="section" data-workout-motion="active-shell">
               <Card className="workout-prescription-card">
+                <div className="row" style={{ marginBottom: 12 }}>
+                  <div className="eyebrow" style={{ margin: 0 }}>
+                    {managementMode === "coach_managed" ? controlCopy.coachPlan : controlCopy.plan}
+                  </div>
+                  {managementMode === "coach_managed" ? (
+                    <span className="pill" style={{ background: "rgba(182,255,0,0.12)", color: "var(--accent-primary)" }}>
+                      {controlCopy.readOnly}
+                    </span>
+                  ) : null}
+                </div>
                 <div className="workout-prescription-grid">
                   <div>
                     <div className="eyebrow" style={{ margin: 0 }}>
@@ -898,49 +1139,162 @@ export default function ActiveExercisePage() {
                     </div>
                   </div>
                   <div className="workout-logger-grid">
-                    <label>
-                      <span className="eyebrow" style={{ marginBottom: 6 }}>
-                        {copy.kg}
-                      </span>
-                      <input
-                        className="workout-input workout-input--large"
-                        inputMode="decimal"
-                        type="number"
-                        value={currentSet.kilograms}
-                        onChange={(event) => updateSetDraft(exercise.id, currentSet.setNumber, { kilograms: event.target.value })}
-                      />
-                    </label>
-                    <label>
-                      <span className="eyebrow" style={{ marginBottom: 6 }}>
-                        {copy.reps}
-                      </span>
-                      <input
-                        className="workout-input workout-input--large"
-                        inputMode="numeric"
-                        type="number"
-                        value={currentSet.reps}
-                        onChange={(event) => updateSetDraft(exercise.id, currentSet.setNumber, { reps: event.target.value })}
-                      />
-                    </label>
-                    <label>
-                      <span className="eyebrow" style={{ marginBottom: 6 }}>
-                        {copy.rir}
-                      </span>
-                      <input
-                        className="workout-input workout-input--large"
-                        inputMode="numeric"
-                        type="number"
-                        value={currentSet.rir ?? ""}
-                        onChange={(event) => updateSetDraft(exercise.id, currentSet.setNumber, { rir: event.target.value })}
-                      />
-                    </label>
+                    <NumericControl
+                      className="workout-logger-control"
+                      decimals={1}
+                      error={activeSetErrors?.kilograms}
+                      inputMode="decimal"
+                      label={copy.kg}
+                      locale={supportedLocale}
+                      min={0.1}
+                      onBlur={() => setActiveSetErrors((current) => (current ? { ...current, kilograms: undefined } : current))}
+                      onChange={(value) => updateSetDraft(exercise.id, currentSet.setNumber, { kilograms: value })}
+                      onFocus={() => setActiveSetErrors((current) => (current ? { ...current, kilograms: undefined } : current))}
+                      step={2.5}
+                      unit="kg"
+                      value={currentSet.kilograms}
+                    />
+                    <NumericControl
+                      className="workout-logger-control"
+                      decimals={0}
+                      error={activeSetErrors?.reps}
+                      inputMode="numeric"
+                      label={copy.reps}
+                      locale={supportedLocale}
+                      min={1}
+                      onBlur={() => setActiveSetErrors((current) => (current ? { ...current, reps: undefined } : current))}
+                      onChange={(value) => updateSetDraft(exercise.id, currentSet.setNumber, { reps: value })}
+                      onFocus={() => setActiveSetErrors((current) => (current ? { ...current, reps: undefined } : current))}
+                      step={1}
+                      unit="reps"
+                      value={currentSet.reps}
+                    />
+                    <RirControl
+                      className="workout-logger-control"
+                      helper={activeSetErrors?.rir}
+                      locale={supportedLocale}
+                      onChange={(value) => updateSetDraft(exercise.id, currentSet.setNumber, { rir: String(value) })}
+                      readOnly={false}
+                      state={activeSetErrors?.rir ? "invalid" : "default"}
+                      value={currentSetRirValue !== null && Number.isFinite(currentSetRirValue) ? currentSetRirValue : null}
+                    />
                   </div>
                   <div className="workout-logger-footer">
                     <div className="caption">{exercise.suggestedTarget}</div>
+                    <button className="button-primary focus-ring" type="button" disabled={submitting} onClick={handleComplete}>
+                      {submitting ? copy.saving : completeSetLabel}
+                    </button>
                   </div>
                 </Card>
               </section>
             ) : null}
+
+            <section className="section">
+              <div className="row" style={{ marginBottom: 10 }}>
+                <div className="eyebrow" style={{ margin: 0 }}>
+                  {controlCopy.loggedSets}
+                </div>
+                <div className="caption">
+                  {exercise.completedSets.length} / {exercise.totalSets}
+                </div>
+              </div>
+              <div className="stack">
+                {exercise.completedSets.map((set) => {
+                  const isEditing = editingSetNumber === set.setNumber;
+                  const setDraft = isEditing ? editingSetSnapshot : null;
+
+                  if (isEditing && setDraft) {
+                    return (
+                      <Card key={set.setNumber} className="workout-set-row workout-set-row--editing elevated">
+                        <div className="row start" style={{ marginBottom: 12 }}>
+                          <div>
+                            <div className="eyebrow" style={{ margin: 0 }}>
+                              {controlCopy.setLabel} {set.setNumber}
+                            </div>
+                            <div className="body-md" style={{ marginTop: 8, fontWeight: 700 }}>
+                              {formatWorkoutSetSubtitle(set)}
+                            </div>
+                          </div>
+                          <span className="pill" style={{ background: "rgba(182,255,0,0.12)", color: "var(--accent-primary)" }}>
+                            {controlCopy.edit}
+                          </span>
+                        </div>
+                        <div className="workout-logger-grid">
+                          <NumericControl
+                            className="workout-logger-control"
+                            decimals={1}
+                            error={editingSetErrors?.kilograms}
+                            inputMode="decimal"
+                            label={copy.kg}
+                            locale={supportedLocale}
+                            min={0.1}
+                            onChange={(value) => setEditingSetSnapshot((current) => (current ? { ...current, kilograms: value } : current))}
+                            step={2.5}
+                            unit="kg"
+                            value={setDraft.kilograms}
+                          />
+                          <NumericControl
+                            className="workout-logger-control"
+                            decimals={0}
+                            error={editingSetErrors?.reps}
+                            inputMode="numeric"
+                            label={copy.reps}
+                            locale={supportedLocale}
+                            min={1}
+                            onChange={(value) => setEditingSetSnapshot((current) => (current ? { ...current, reps: value } : current))}
+                            step={1}
+                            unit="reps"
+                            value={setDraft.reps}
+                          />
+                          <RirControl
+                            className="workout-logger-control"
+                            helper={editingSetErrors?.rir}
+                            locale={supportedLocale}
+                            onChange={(value) => setEditingSetSnapshot((current) => (current ? { ...current, rir: String(value) } : current))}
+                            state={editingSetErrors?.rir ? "invalid" : "default"}
+                            value={
+                              setDraft.rir != null && setDraft.rir.trim() !== "" && Number.isFinite(Number(setDraft.rir))
+                                ? Number(setDraft.rir)
+                                : null
+                            }
+                          />
+                        </div>
+                        <div className="workout-logger-footer">
+                          <div className="caption">{controlCopy.saved}</div>
+                          <div className="row">
+                            <button className="button-secondary focus-ring" type="button" disabled={submitting} onClick={cancelEditLoggedSet}>
+                              {controlCopy.cancel}
+                            </button>
+                            <button className="button-primary focus-ring" type="button" disabled={submitting} onClick={saveLoggedSetDraft}>
+                              {submitting ? copy.saving : controlCopy.save}
+                            </button>
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  }
+
+                  return (
+                    <Card key={set.setNumber} className="workout-set-row elevated">
+                      <div className="row start">
+                        <div className="workout-set-row__meta">
+                          <div className="eyebrow" style={{ margin: 0 }}>
+                            {controlCopy.setLabel} {set.setNumber}
+                          </div>
+                          <div className="body-md" style={{ fontWeight: 700 }}>
+                            {formatWorkoutSetSubtitle(set)}
+                          </div>
+                          <div className="caption">{controlCopy.saved}</div>
+                        </div>
+                        <button className="button-secondary focus-ring" type="button" onClick={() => beginEditLoggedSet(set.setNumber)}>
+                          {controlCopy.edit}
+                        </button>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </section>
 
             {session.restTimer?.active ? (
               <section className="section" data-workout-motion="rest-card">

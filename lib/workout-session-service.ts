@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { formatDate, getCurrentLocale } from "@/lib/i18n";
+import { parseNumericInput } from "@/lib/numeric-input";
 import type {
   Database,
   ScheduledWorkoutsRow,
@@ -794,18 +795,25 @@ export async function saveWorkoutSet(
     payload: WorkoutSetPayload;
   }
 ) {
-  const weightKg = params.payload.kilograms.trim() === "" ? null : Number(params.payload.kilograms);
-  const reps = params.payload.reps.trim() === "" ? null : Number(params.payload.reps);
-  const rir = params.payload.rir?.trim() === "" ? null : params.payload.rir == null ? null : Number(params.payload.rir);
+  const weightResult = parseNumericInput(params.payload.kilograms, { allowBlank: false, allowZero: false });
+  const repsResult = parseNumericInput(params.payload.reps, { allowBlank: false, allowZero: false, integer: true });
+  const rirResult =
+    params.payload.rir == null || params.payload.rir.trim() === ""
+      ? { valid: true as const, value: null as number | null }
+      : parseNumericInput(params.payload.rir, { allowBlank: false, allowZero: true, integer: true, min: 0, max: 5 });
+
+  if (!weightResult.valid || !repsResult.valid || !rirResult.valid) {
+    throw new Error("Invalid workout set values.");
+  }
 
   const insertPayload: WorkoutSetsInsert = {
     id: params.workoutSetId ?? createId(),
     workout_session_exercise_id: params.workoutSessionExerciseId,
     set_number: params.setNumber,
     status: "completed",
-    weight_kg: Number.isFinite(weightKg ?? NaN) ? weightKg : null,
-    reps: Number.isFinite(reps ?? NaN) ? reps : null,
-    rir: Number.isFinite(rir ?? NaN) ? rir : null,
+    weight_kg: weightResult.value ?? null,
+    reps: repsResult.value ?? null,
+    rir: rirResult.value,
     completed_at: new Date().toISOString(),
     notes: null
   };
@@ -832,8 +840,8 @@ export async function saveWorkoutSet(
     }
 
     if (existingResult.data) {
-    const existingRow = parseWorkoutSetRow(existingResult.data);
-    const updateResult = await client.from("workout_sets").update(insertPayload as never).eq("id", existingRow.id).select("*").single();
+      const existingRow = parseWorkoutSetRow(existingResult.data);
+      const updateResult = await client.from("workout_sets").update(insertPayload as never).eq("id", existingRow.id).select("*").single();
       if (updateResult.error) {
         throw updateResult.error;
       }

@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { BrandLogo } from "@/components/brand-logo";
+import { NumericControl } from "@/components/numeric-controls";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { useProgressStore } from "@/components/progress-provider";
 import { formatProgressDifference, formatProgressMeasurement } from "@/components/progress-provider";
 import type { MeasurementType } from "@/lib/progress-data";
+import { useTranslator } from "@/components/locale-provider";
 import { buildContextualSuccessTimeline } from "@/motion/feedback";
 import { useReducedMotion } from "@/motion/useReducedMotion";
 
@@ -19,6 +21,10 @@ const measurementLabels: Record<MeasurementType, string> = {
   hips: "Hips",
   thigh: "Thigh"
 };
+
+function resolveSupportedLocale(locale: string) {
+  return locale === "es" || locale === "ca" || locale === "de" ? locale : "en";
+}
 
 function ProgressTopbar({ closeHref }: { closeHref: string }) {
   return (
@@ -114,6 +120,7 @@ function ProgressDialog({
 }
 
 function MeasurementCard({
+  locale,
   type,
   children,
   active,
@@ -124,9 +131,9 @@ function MeasurementCard({
   unit,
   onInfo,
   value,
-  onChange,
-  placeholder = "00.0"
+  onChange
 }: {
+  locale: "en" | "es" | "ca" | "de";
   type: MeasurementType;
   children?: ReactNode;
   active?: boolean;
@@ -138,7 +145,6 @@ function MeasurementCard({
   onInfo?: () => void;
   value: string;
   onChange: (value: string) => void;
-  placeholder?: string;
 }) {
   const accent = type === "waist";
 
@@ -172,25 +178,19 @@ function MeasurementCard({
         </div>
       </div>
 
-      <label className={`progress-measurement-input ${active ? "active" : ""}`.trim()}>
-        <input
-          aria-label={`${measurementLabels[type]} measurement`}
-          inputMode="decimal"
-          placeholder={placeholder}
-          step="0.1"
-          type="text"
-          pattern="[0-9]*[.,]?[0-9]*"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-        />
-        <span>{unit.toUpperCase()}</span>
-      </label>
-
-      {error ? (
-        <p className="caption" style={{ color: "#ffb4ab", marginTop: 8 }}>
-          {error}
-        </p>
-      ) : null}
+      <NumericControl
+        className="progress-measurement-control"
+        decimals={1}
+        error={error}
+        inputMode="decimal"
+        label={`${measurementLabels[type]} measurement`}
+        locale={locale}
+        min={0.1}
+        state={active ? "editing" : "default"}
+        unit={unit.toUpperCase()}
+        value={value}
+        onChange={onChange}
+      />
 
       {children}
     </Card>
@@ -217,9 +217,11 @@ function MeasurementGuidance({ onClose }: { onClose: () => void }) {
 
 export function ProgressMeasurementsScreen() {
   const router = useRouter();
+  const { locale } = useTranslator();
   const { state, updateMeasurementDraft, saveMeasurements, dismissMeasurementErrors, measurementRows } = useProgressStore();
   const [helpOpen, setHelpOpen] = useState(false);
   const submittedRef = useRef(false);
+  const supportedLocale = resolveSupportedLocale(locale);
 
   const errors = state.measurement.validationErrors;
 
@@ -290,6 +292,7 @@ export function ProgressMeasurementsScreen() {
                 error={errors[type]}
                 lastDate="July 11"
                 lastValue={lastLabel.replace(` ${row.unit}`, "")}
+                locale={supportedLocale}
                 onChange={(value) => updateMeasurementDraft(type, value)}
                 onInfo={() => setHelpOpen(true)}
                 type={type}

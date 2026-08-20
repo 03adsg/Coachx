@@ -17,6 +17,7 @@ This map ties the canonical design system to the real repository code.
 | Workout Overview | `app/workout/[sessionId]/page.tsx` + `components/workout-provider.tsx` | Implemented | Session shell and workout entry. |
 | Active Workout | `app/workout/[sessionId]/exercise/[exerciseId]/page.tsx` + `lib/workout-live-state.ts` + `lib/workout-session-service.ts` + `motion/workout.ts` | Live verified | Logs actual sets and preserves workout state truth. |
 | Workout Summary | `app/workout/[sessionId]/summary/page.tsx` + `motion/workout.ts` | Live verified | Summarizes the real completed session. |
+| Inputs & Intensity Controls | `app/workout/[sessionId]/exercise/[exerciseId]/page.tsx` + `components/progress-measurements-screen.tsx` + `components/numeric-controls.tsx` + `lib/numeric-input.ts` | In progress | Shared numeric parsing, stepper controls, discrete RIR selection, and localized validation for workout and progress entry. |
 | Exercise Alternatives | `app/workout/[sessionId]/exercise/[exerciseId]/alternatives/page.tsx` + `lib/workout-data.ts` | Implemented / partial | Offers swaps that preserve movement intent. |
 | Exercise Safety | `app/workout/[sessionId]/exercise/[exerciseId]/safety/page.tsx` + subroutes | Implemented | Handles discomfort and safety responses. |
 | Nutrition | `app/nutrition/page.tsx` + `app/day/[date]/nutrition/page.tsx` + `components/nutrition-screen.tsx` + `components/nutrition-meal-sheet.tsx` + `components/nutrition-provider.tsx` + `lib/nutrition-service.ts` | Implemented / upgrading | Answers "What do I need to eat or complete today?" |
@@ -94,3 +95,12 @@ This map ties the canonical design system to the real repository code.
 | Canonical interaction feedback system | `lib/feedback.ts` + `components/feedback-provider.tsx` + `docs/INTERACTION_FEEDBACK_SYSTEM.md` | Complete | Standardize persistence-first feedback, hierarchy, dedupe, and toast policy. |
 | Shared feedback motion helpers | `motion/feedback.ts` + affected feature components | Complete | Centralize confirmation-sheet, KPI, contextual success, and preparing-motion choreography. |
 | Feedback/motion specialist routing | `.agents/feedback-motion-system.md` + `AGENT_ROUTING.md` | Complete | Route slice-specific motion and feedback work through the shared specialist. |
+
+## Slice 27 Inputs & Intensity Targets
+
+| Next target | Code path(s) | Status | Notes |
+| --- | --- | --- | --- |
+| Shared numeric control family | `components/numeric-controls.tsx` + `lib/numeric-input.ts` | In progress | Centralizes locale-aware parsing, stepper behavior, RIR chips, and discrete RPE wiring. |
+| Workout logger inputs | `app/workout/[sessionId]/exercise/[exerciseId]/page.tsx` + `components/workout-provider.tsx` + `lib/workout-session-service.ts` | In progress | Actual set logging now uses the shared input family and preserves editable logged sets. |
+| Progress measurement inputs | `components/progress-measurements-screen.tsx` + `components/progress-provider.tsx` + `lib/progress-data.ts` + `lib/progress-service.ts` | In progress | Measurement entry now uses the same numeric parser and localized validation copy. |
+| Slice 27 handoff import | `docs/design-references/slice-27/` + `docs/INPUTS_INTENSITY_SYSTEM.md` | Complete | Canonical authority package is now checked into the repo as the source of truth for this slice. |

@@ -1,4 +1,5 @@
 import { coachxDemoState } from "@/lib/coachx-data";
+import { parseNumericInput, type NumericParseReason } from "@/lib/numeric-input";
 
 export type MeasurementType = "weight" | "waist" | "hips" | "thigh";
 export type PhotoPose = "front" | "side" | "back";
@@ -427,24 +428,22 @@ export function formatMeasurementDifference(difference: number | null, unit: str
 }
 
 export function parseMeasurementInput(value: string, min: number, max: number) {
-  if (!value.trim()) {
-    return { valid: false, reason: "Enter a value or leave this field blank." as const };
+  const parsed = parseNumericInput(value, {
+    min,
+    max,
+    allowBlank: true,
+    allowZero: false
+  });
+
+  if (!parsed.valid) {
+    return { valid: false, reason: parsed.reason as NumericParseReason };
   }
 
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) {
-    return { valid: false, reason: "Enter a numeric value." as const };
+  if (typeof parsed.value !== "number") {
+    return { valid: false, reason: "required" as const };
   }
 
-  if (parsed <= 0) {
-    return { valid: false, reason: "Use a value greater than zero." as const };
-  }
-
-  if (parsed < min || parsed > max) {
-    return { valid: false, reason: `Keep this between ${min} and ${max}.` as const };
-  }
-
-  return { valid: true, value: parsed };
+  return { valid: true, value: parsed.value };
 }
 
 export function computeMeasurementDifference(previousValue: number | null, currentValue: number | null) {
