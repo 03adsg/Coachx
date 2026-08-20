@@ -54,6 +54,7 @@ async function transpileLibraryChain() {
     "workout-data.ts",
     "coachx-data.ts",
     "numeric-input.ts",
+    "workout-set-editor.ts",
     "progress-data.ts",
     "progress-service.ts",
     "program-service.ts",
@@ -110,6 +111,7 @@ const onboarding = await transpileLibraryChain();
 const i18n = await import(pathToFileURL(path.join(tempDir, "i18n.mjs")).href);
 const progressData = await import(pathToFileURL(path.join(tempDir, "progress-data.mjs")).href);
 const numericInput = await import(pathToFileURL(path.join(tempDir, "numeric-input.mjs")).href);
+const workoutSetEditor = await import(pathToFileURL(path.join(tempDir, "workout-set-editor.mjs")).href);
 const profileSettings = await import(pathToFileURL(path.join(tempDir, "profile-settings-data.mjs")).href);
 const nutritionService = await import(pathToFileURL(path.join(tempDir, "nutrition-service.mjs")).href);
 const authNavigation = await import(pathToFileURL(path.join(tempDir, "auth/navigation.mjs")).href);
@@ -1692,6 +1694,51 @@ test("numeric input helpers accept comma decimals and reject invalid strings", (
   const measurement = progressData.parseMeasurementInput("72,8", 40, 150);
   assert.equal(measurement.valid, true);
   assert.equal(measurement.value, 72.8);
+});
+
+test("logged set editor validation and save helpers keep active logger and edit draft separate", () => {
+  const session = structuredClone(workoutData.createDemoWorkoutSession());
+  const exercise = session.exercises[0];
+  const setNumber = exercise.sets[0].setNumber;
+
+  const activeLogger = {
+    kilograms: "abc",
+    reps: "8",
+    rir: "2"
+  };
+  const editDraft = {
+    kilograms: "32,5",
+    reps: "8",
+    rir: "2"
+  };
+
+  const activeLoggerValidation = workoutSetEditor.validateWorkoutSetDraft("en", activeLogger);
+  const editDraftValidation = workoutSetEditor.validateWorkoutSetDraft("es", editDraft);
+
+  assert.equal(activeLoggerValidation.valid, false);
+  assert.equal(activeLoggerValidation.errors.kilograms, "ENTER A VALID NUMBER");
+  assert.equal(editDraftValidation.valid, true);
+  assert.equal(editDraftValidation.parsed.kilograms, 32.5);
+
+  const draftSession = workoutSetEditor.updateWorkoutSetDraft(session, exercise.id, setNumber, { kilograms: "abc" });
+  assert.notStrictEqual(draftSession, session);
+  assert.equal(session.exercises[0].sets[0].kilograms, exercise.sets[0].kilograms);
+  assert.equal(draftSession.exercises[0].sets[0].kilograms, "abc");
+
+  const savedSession = workoutSetEditor.applySavedWorkoutSetToSession(session, exercise.id, setNumber, {
+    id: "00000000-0000-4000-8000-000000009999",
+    weight_kg: 32.5,
+    reps: 8,
+    rir: 2,
+    completed_at: "2026-08-20T08:00:00.000Z",
+    status: "completed",
+    notes: null
+  });
+
+  assert.equal(savedSession.exercises[0].performedExerciseId, exercise.performedExerciseId);
+  assert.equal(savedSession.exercises[0].sets[0].workoutSetId, "00000000-0000-4000-8000-000000009999");
+  assert.equal(savedSession.exercises[0].sets[0].kilograms, "32.5");
+  assert.equal(savedSession.exercises[0].completedSets[0].kilograms, 32.5);
 });
 
 test("progress snapshots hydrate remote measurement history and photo paths", () => {

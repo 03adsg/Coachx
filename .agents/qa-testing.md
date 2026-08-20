@@ -12,6 +12,7 @@ Validate that COACHX runs, builds, and routes correctly after implementation.
 - Route smoke checks
 - Regression checks for obvious mobile overflow
 - Responsive UI contract test coverage
+- When multiple similar controls appear on one screen, select them by semantic context, not DOM position.
 
 ## Non-Goals
 

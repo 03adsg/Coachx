@@ -29,10 +29,11 @@ import { useWorkoutStore } from "@/components/workout-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { countCompletedExercises, getExerciseDefinition, getExerciseProgressionTarget, getWorkoutExercise } from "@/lib/workout-data";
 import type { SessionExercise } from "@/lib/workout-data";
+import { validateWorkoutSetDraft, type WorkoutSetDraftErrors } from "@/lib/workout-set-editor";
 import { resolveExerciseHeroMedia, resolveExerciseThumbnailMedia } from "@/lib/media";
 import { getOrCreateWorkoutSession, type WorkoutSessionSeed } from "@/lib/workout-session-service";
 import { getWorkoutLiveSnapshot } from "@/lib/workout-live-state";
-import { getNumericValidationMessage, parseNumericInput, type SupportedLocale } from "@/lib/numeric-input";
+import type { SupportedLocale } from "@/lib/numeric-input";
 import type { ProgramTemplateExercise, ProgramTemplateView } from "@/lib/program-service";
 
 function resolveSessionId(param: string | string[] | undefined) {
@@ -87,12 +88,6 @@ function muscleLabel(locale: string, muscle: string) {
   return copy[muscle as keyof typeof copy] ?? muscle;
 }
 
-type WorkoutSetDraftErrors = {
-  kilograms?: string;
-  reps?: string;
-  rir?: string;
-};
-
 function resolveSupportedLocale(locale: string): SupportedLocale {
   return locale === "es" || locale === "ca" || locale === "de" ? locale : "en";
 }
@@ -108,46 +103,6 @@ function formatWorkoutRirValue(value: string | number | null | undefined) {
   }
 
   return parsed >= 5 ? "5+" : String(parsed);
-}
-
-function validateWorkoutSetDraft(locale: SupportedLocale, payload: { kilograms: string; reps: string; rir?: string }) {
-  const kilograms = parseNumericInput(payload.kilograms, { allowBlank: false, allowZero: false });
-  const reps = parseNumericInput(payload.reps, { allowBlank: false, allowZero: false, integer: true });
-  const rir =
-    payload.rir == null || payload.rir.trim() === ""
-      ? { valid: true as const, value: null as number | null }
-      : parseNumericInput(payload.rir, { allowBlank: false, allowZero: true, integer: true, min: 0, max: 5 });
-
-  const errors: WorkoutSetDraftErrors = {};
-
-  if (!kilograms.valid) {
-    errors.kilograms = getNumericValidationMessage(locale, kilograms.reason ?? "invalid", { min: 0.1, max: 999.9 });
-  }
-
-  if (!reps.valid) {
-    errors.reps = getNumericValidationMessage(locale, reps.reason ?? "invalid", { min: 1, max: 999 });
-  }
-
-  if (!rir.valid) {
-    errors.rir = getNumericValidationMessage(locale, rir.reason ?? "invalid", { min: 0, max: 5 });
-  }
-
-  if (errors.kilograms || errors.reps || errors.rir) {
-    return {
-      valid: false as const,
-      errors
-    };
-  }
-
-  return {
-    valid: true as const,
-    errors: {} as WorkoutSetDraftErrors,
-    parsed: {
-      kilograms: kilograms.value ?? 0,
-      reps: reps.value ?? 0,
-      rir: rir.value ?? null
-    }
-  };
 }
 
 function formatWorkoutSetSubtitle(set: { kilograms: string | number; reps: string | number; rir?: string | number | null }) {

@@ -5,6 +5,7 @@ import { useAuthStore } from "@/components/auth-provider";
 import { useLocale } from "@/components/locale-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { parseNumericInput } from "@/lib/numeric-input";
+import { applySavedWorkoutSetToSession, updateWorkoutSetDraft } from "@/lib/workout-set-editor";
 import { publishFeedbackError, publishFeedbackSuccess } from "@/components/feedback-provider";
 import {
   completeWorkoutSession,
@@ -100,25 +101,6 @@ function getSessionExercise(session: WorkoutSessionState, exerciseId: string) {
   return session.exercises.find((exercise) => exercise.id === exerciseId) ?? session.exercises[0];
 }
 
-function updateSessionExerciseDraft(
-  session: WorkoutSessionState,
-  exerciseId: string,
-  setNumber: number,
-  patch: Partial<SessionExercise["sets"][number]>
-) {
-  return {
-    ...session,
-    exercises: session.exercises.map((exercise) =>
-      exercise.id !== exerciseId
-        ? exercise
-        : {
-            ...exercise,
-            sets: exercise.sets.map((set) => (set.setNumber === setNumber ? { ...set, ...patch } : set))
-          }
-    )
-  };
-}
-
 function markCompletedSetOnSession(session: WorkoutSessionState, exerciseId: string, setNumber: number, payload: { kilograms: string; reps: string; rir?: string }): WorkoutSessionState {
   const completedAt = new Date().toISOString();
   const weightKg = parseNumericInput(payload.kilograms, { allowBlank: false, allowZero: false }).value ?? 0;
@@ -174,66 +156,6 @@ function markCompletedSetOnSession(session: WorkoutSessionState, exerciseId: str
       };
     }),
     restTimer: computeRestTimer(exerciseId, setNumber, getExerciseDefinition(getSessionExercise(session, exerciseId).performedExerciseId).restSeconds)
-  } satisfies WorkoutSessionState;
-}
-
-function applySavedSetToSession(
-  session: WorkoutSessionState,
-  exerciseId: string,
-  setNumber: number,
-  saved: {
-    id: string;
-    weight_kg: number | null;
-    reps: number | null;
-    rir: number | null;
-    completed_at: string | null;
-    status: "planned" | "completed" | "skipped";
-    notes: string | null;
-  }
-) {
-  return {
-    ...session,
-    exercises: session.exercises.map((exercise) => {
-      if (exercise.id !== exerciseId) {
-        return exercise;
-      }
-
-      const nextSets = exercise.sets.map((set) =>
-        set.setNumber === setNumber
-          ? {
-              ...set,
-              workoutSetId: saved.id,
-              kilograms: saved.weight_kg == null ? "" : String(saved.weight_kg),
-              reps: saved.reps == null ? "" : String(saved.reps),
-              rir: saved.rir == null ? undefined : String(saved.rir),
-              completed: saved.status === "completed",
-              status: saved.status,
-              completedAt: saved.completed_at,
-              notes: saved.notes
-            }
-          : set
-      );
-      const completedSetEntry = {
-        setNumber,
-        kilograms: saved.weight_kg ?? 0,
-        reps: saved.reps ?? 0,
-        rir: saved.rir ?? undefined,
-        performedAt: saved.completed_at ?? new Date().toISOString()
-      } satisfies CompletedSet;
-      const completedSets = exercise.completedSets.some((set) => set.setNumber === setNumber)
-        ? exercise.completedSets.map((set) => (set.setNumber === setNumber ? completedSetEntry : set))
-        : [...exercise.completedSets, completedSetEntry];
-      const completedCount = completedSets.length;
-      const exerciseCompleted = completedCount >= exercise.totalSets;
-
-      return {
-        ...exercise,
-        sets: nextSets,
-        completedSets,
-        status: exerciseCompleted ? "completed" : exercise.status,
-        completedAt: exerciseCompleted ? saved.completed_at ?? exercise.completedAt : exercise.completedAt
-      };
-    })
   } satisfies WorkoutSessionState;
 }
 
@@ -313,7 +235,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     };
 
     const updateSetDraft: WorkoutStoreValue["updateSetDraft"] = (exerciseId, setNumber, patch) => {
-      setSession((current) => updateSessionExerciseDraft(current, exerciseId, setNumber, patch));
+      setSession((current) => updateWorkoutSetDraft(current, exerciseId, setNumber, patch));
     };
 
     const completeSet: WorkoutStoreValue["completeSet"] = async (exerciseId, setNumber, payload) => {
@@ -344,7 +266,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         publishFeedbackSuccess("workout.set", "Set completed", "Your reps and load are saved.");
         setSession((current) =>
           normalizeWorkoutSessionState({
-            ...applySavedSetToSession(current, exerciseId, setNumber, saved),
+            ...applySavedWorkoutSetToSession(current, exerciseId, setNumber, saved),
             saveState: "saved",
             saveError: null
           })
@@ -388,7 +310,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         publishFeedbackSuccess("workout.set", "Set updated", "Your saved set stays in sync.");
         setSession((current) =>
           normalizeWorkoutSessionState({
-            ...applySavedSetToSession(current, exerciseId, setNumber, saved),
+            ...applySavedWorkoutSetToSession(current, exerciseId, setNumber, saved),
             saveState: "saved",
             saveError: null
           })
