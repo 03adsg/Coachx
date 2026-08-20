@@ -1181,9 +1181,6 @@ export default function ActiveExercisePage() {
                   </div>
                   <div className="workout-logger-footer">
                     <div className="caption">{exercise.suggestedTarget}</div>
-                    <button className="button-primary focus-ring" type="button" disabled={submitting} onClick={handleComplete}>
-                      {submitting ? copy.saving : completeSetLabel}
-                    </button>
                   </div>
                 </Card>
               </section>
