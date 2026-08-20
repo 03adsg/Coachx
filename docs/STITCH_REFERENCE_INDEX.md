@@ -66,14 +66,20 @@ This document records the supplied Stitch reference screens without dumping prot
 
 | Reference screen | Production target | Status | Known artifact |
 | --- | --- | --- | --- |
-| Exercise Media Families | `lib/media/*` | In progress | Stitch boards are art direction only; no prototype URLs or HTML should ship. |
-| Exercise Fallback | `components/athlex-media.tsx` | In progress | Fallback must remain branded and intentional, not like a broken image. |
-| Meal Media Families | `lib/media/*` + `components/nutrition-screen.tsx` + `components/nutrition-meal-sheet.tsx` | In progress | Meal media must preserve identity and avoid recipe drift. |
+| Exercise Media Families | `lib/media/*` | Complete | Stitch boards are art direction only; no prototype URLs or HTML should ship. |
+| Exercise Fallback | `components/athlex-media.tsx` | Complete | Fallback must remain branded and intentional, not like a broken image. |
+| Meal Media Families | `lib/media/*` + `components/nutrition-screen.tsx` + `components/nutrition-meal-sheet.tsx` | Complete | Meal media must preserve identity and avoid recipe drift. |
 
 ## Slice 26 Reference Index
 
 | Reference package | Production target | Status | Known artifact |
 | --- | --- | --- | --- |
-| AthlexForce Global Interaction Authority Board | `docs/INTERACTION_FEEDBACK_SYSTEM.md` + `motion/feedback.ts` + shared feature surfaces | In progress | Treat the approved board as visual/reference authority only. |
-| Interaction & Motion Spec v2.1 | `docs/ATHLEXFORCE_CINEMATIC_MOTION_SYSTEM.md` + shared feedback motion helpers | In progress | Stale olive prototype `DESIGN.md` metadata is ignored. |
-| interaction_component_tokens.json | `lib/feedback.ts` + component feedback states | In progress | Use canonical AthlexForce tokens and persistence-first behavior. |
+| AthlexForce Global Interaction Authority Board | `docs/INTERACTION_FEEDBACK_SYSTEM.md` + `motion/feedback.ts` + shared feature surfaces | Complete | Treat the approved board as visual/reference authority only. |
+| Interaction & Motion Spec v2.1 | `docs/ATHLEXFORCE_CINEMATIC_MOTION_SYSTEM.md` + shared feedback motion helpers | Complete | Stale olive prototype `DESIGN.md` metadata is ignored. |
+| interaction_component_tokens.json | `lib/feedback.ts` + component feedback states | Complete | Use canonical AthlexForce tokens and persistence-first behavior. |
+
+## Slice 27 Reference Index
+
+| Reference package | Production target | Status | Known artifact |
+| --- | --- | --- | --- |
+| Slice 27 visual authority package | `Slice 27 inputs and intensity refinement` | Design in progress | Present boards: A, B, C, D, E, I. Missing boards: F, G, H, J, K, L, M, N, O, P. Implementation is not started until the missing boards are exported. |

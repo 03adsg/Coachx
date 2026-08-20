@@ -75,20 +75,22 @@ This map ties the canonical design system to the real repository code.
 - `Today`, `Calendar`, `Day Detail`, `Nutrition`, `Progress`, and `Profile` are implemented and live.
 - `Workout` live flow is implemented and anchored by the Slice 22 runtime motion and persistence layer.
 - `Exercise detail` and `replacement` work are documented as the next slice rather than merged into a second design system.
+- Slice 25 media targets are complete and production ready.
+- Slice 26 feedback and motion targets are complete and production ready.
 
 ## Slice 25 Media Targets
 
 | Next target | Code path(s) | Status | Notes |
 | --- | --- | --- | --- |
-| Central media resolver | `lib/media/*` | In progress | Single source for exercise and meal media resolution, fallback, and load-error handling. |
-| Exercise media surfaces | `app/workout/[sessionId]/page.tsx` + `app/workout/[sessionId]/exercise/[exerciseId]/page.tsx` + `components/exercise-detail-experience.tsx` + `app/workout/[sessionId]/exercise/[exerciseId]/alternatives/page.tsx` + `app/exercises/page.tsx` | In progress | Workout hero, START / END, fullscreen, alternatives, and library thumbnails share the same resolver. |
-| Meal media surfaces | `components/nutrition-screen.tsx` + `components/nutrition-meal-sheet.tsx` | In progress | Nutrition cards and meal detail sheet resolve from the same meal media families. |
-| Media QA contract | `tests/*` + live browser QA | In progress | Validate missing-media, load-error, crop, and responsive fallback behavior. |
+| Central media resolver | `lib/media/*` | Complete | Single source for exercise and meal media resolution, fallback, and load-error handling. |
+| Exercise media surfaces | `app/workout/[sessionId]/page.tsx` + `app/workout/[sessionId]/exercise/[exerciseId]/page.tsx` + `components/exercise-detail-experience.tsx` + `app/workout/[sessionId]/exercise/[exerciseId]/alternatives/page.tsx` + `app/exercises/page.tsx` | Complete | Workout hero, START / END, fullscreen, alternatives, and library thumbnails share the same resolver. |
+| Meal media surfaces | `components/nutrition-screen.tsx` + `components/nutrition-meal-sheet.tsx` | Complete | Nutrition cards and meal detail sheet resolve from the same meal media families. |
+| Media QA contract | `tests/*` + live browser QA | Complete | Validate missing-media, load-error, crop, and responsive fallback behavior. |
 
 ## Slice 26 Feedback and Motion Targets
 
 | Next target | Code path(s) | Status | Notes |
 | --- | --- | --- | --- |
-| Canonical interaction feedback system | `lib/feedback.ts` + `components/feedback-provider.tsx` + `docs/INTERACTION_FEEDBACK_SYSTEM.md` | In progress | Standardize persistence-first feedback, hierarchy, dedupe, and toast policy. |
-| Shared feedback motion helpers | `motion/feedback.ts` + affected feature components | In progress | Centralize confirmation-sheet, KPI, contextual success, and preparing-motion choreography. |
-| Feedback/motion specialist routing | `.agents/feedback-motion-system.md` + `AGENT_ROUTING.md` | In progress | Route slice-specific motion and feedback work through the shared specialist. |
+| Canonical interaction feedback system | `lib/feedback.ts` + `components/feedback-provider.tsx` + `docs/INTERACTION_FEEDBACK_SYSTEM.md` | Complete | Standardize persistence-first feedback, hierarchy, dedupe, and toast policy. |
+| Shared feedback motion helpers | `motion/feedback.ts` + affected feature components | Complete | Centralize confirmation-sheet, KPI, contextual success, and preparing-motion choreography. |
+| Feedback/motion specialist routing | `.agents/feedback-motion-system.md` + `AGENT_ROUTING.md` | Complete | Route slice-specific motion and feedback work through the shared specialist. |
