@@ -1516,27 +1516,29 @@ export default function ActiveExercisePage() {
           </section>
         ) : null}
 
-        <div className={`sticky-action ${stickyActionHidden ? "sticky-action--hidden" : ""}`.trim()}>
-          {!exerciseComplete ? (
-            <button
-              aria-label={completeSetLabel}
-              className="button-primary focus-ring"
-              disabled={submitting}
-              type="button"
-              onClick={() => void handleComplete()}
-            >
-              {submitting ? copy.saving : completeSetLabel}
-            </button>
-          ) : nextExercise ? (
-            <Link className="button-primary focus-ring" href={`/workout/${session.id}/exercise/${nextExercise.id}`}>
-              {copy.nextExerciseCta}
-            </Link>
-          ) : (
-            <Link className="button-primary focus-ring" href={`/workout/${session.id}/summary`}>
-              {copy.workoutComplete}
-            </Link>
-          )}
-        </div>
+        {editingSetNumber === null ? (
+          <div className={`sticky-action ${stickyActionHidden ? "sticky-action--hidden" : ""}`.trim()}>
+            {!exerciseComplete ? (
+              <button
+                aria-label={completeSetLabel}
+                className="button-primary focus-ring"
+                disabled={submitting}
+                type="button"
+                onClick={() => void handleComplete()}
+              >
+                {submitting ? copy.saving : completeSetLabel}
+              </button>
+            ) : nextExercise ? (
+              <Link className="button-primary focus-ring" href={`/workout/${session.id}/exercise/${nextExercise.id}`}>
+                {copy.nextExerciseCta}
+              </Link>
+            ) : (
+              <Link className="button-primary focus-ring" href={`/workout/${session.id}/summary`}>
+                {copy.workoutComplete}
+              </Link>
+            )}
+          </div>
+        ) : null}
       </main>
     </Screen>
   );
