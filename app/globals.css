@@ -1793,7 +1793,7 @@ img {
 
 .workout-set-row__actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 10px;
 }
 
@@ -5215,10 +5215,6 @@ img {
   .workout-prescription-grid,
   .workout-logger-grid,
   .workout-sheet__actions {
-    grid-template-columns: 1fr;
-  }
-
-  .workout-set-row__actions {
     grid-template-columns: 1fr;
   }
 
