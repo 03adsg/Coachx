@@ -36,7 +36,7 @@ The following production flows were opened and read in the live browser:
 | CAL-001 | Calendar | P2 | Open | The calendar grid is not directly navigable by day; the live surface exposes one `Ver día` CTA for the selected date. |
 | WORKOUT-001 | Workout | P2 | Open | `Close workout` is present as a button, but the live flow does not clearly exit the workout shell. |
 | NAV-001 | Navigation | P3 | Open | Nutrition is real but hidden behind day detail instead of a primary destination. |
-| FEEDBACK-001 | Feedback state | P3 | Open | Stale feedback toasts persist across authenticated route changes. |
+| FEEDBACK-001 | Feedback state | P3 | Resolved | Stale feedback toasts are cleared on route transitions in the live runtime. |
 | PROGRESS-001 | Progress copy | P3 | Open | Some analytics wording still implies missing persistence while the page already shows live metrics. |
 
 ## Locale Note
@@ -51,4 +51,3 @@ The first-auth English render is explained by locale bootstrap order, not by pro
 ## Recommendation
 
 No code change is recommended for locale bootstrap unless product wants authenticated profile locale to override browser/device language on first entry.
-
