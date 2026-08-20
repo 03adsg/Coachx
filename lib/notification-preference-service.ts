@@ -69,7 +69,7 @@ const reminderRowSchema = z.object({
   destination_path: z.string().min(1),
   title: z.string().min(1),
   body: z.string().min(1),
-  status: z.enum(["scheduled", "ready", "sent", "delivered", "clicked", "dismissed", "snoozed", "failed", "expired", "cancelled"]),
+  status: z.enum(["scheduled", "ready", "processing", "sent", "delivered", "clicked", "dismissed", "snoozed", "failed", "expired", "cancelled"]),
   scheduled_for: z.string(),
   sent_at: z.string().nullable().optional(),
   delivered_at: z.string().nullable().optional(),
@@ -135,7 +135,7 @@ export interface NotificationReminderRow {
   destination_path: string;
   title: string;
   body: string;
-  status: "scheduled" | "ready" | "sent" | "delivered" | "clicked" | "dismissed" | "snoozed" | "failed" | "expired" | "cancelled";
+  status: "scheduled" | "ready" | "processing" | "sent" | "delivered" | "clicked" | "dismissed" | "snoozed" | "failed" | "expired" | "cancelled";
   scheduled_for: string;
   sent_at: string | null;
   delivered_at: string | null;

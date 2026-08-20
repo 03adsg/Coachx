@@ -1,11 +1,11 @@
 alter table public.notification_preferences
-  add column if not exists workout_enabled boolean not null default true,
-  add column if not exists meals_enabled boolean not null default true,
-  add column if not exists checkin_enabled boolean not null default true,
-  add column if not exists sleep_enabled boolean not null default false,
-  add column if not exists workout_lead_minutes smallint not null default 30,
-  add column if not exists hydration_interval_minutes smallint not null default 120,
-  add column if not exists in_app_enabled boolean not null default true,
+  add column if not exists workout_enabled boolean null,
+  add column if not exists meals_enabled boolean null,
+  add column if not exists checkin_enabled boolean null,
+  add column if not exists sleep_enabled boolean null,
+  add column if not exists workout_lead_minutes smallint null,
+  add column if not exists hydration_interval_minutes smallint null,
+  add column if not exists in_app_enabled boolean null,
   add column if not exists quiet_start time null,
   add column if not exists quiet_end time null,
   add column if not exists timezone text null;
@@ -23,6 +23,24 @@ set
   quiet_end = coalesce(quiet_end, quiet_hours_end),
   timezone = coalesce(timezone, preferred_timezone)
 where true;
+
+alter table public.notification_preferences
+  alter column workout_enabled set default true,
+  alter column meals_enabled set default true,
+  alter column checkin_enabled set default true,
+  alter column sleep_enabled set default false,
+  alter column workout_lead_minutes set default 30,
+  alter column hydration_interval_minutes set default 120,
+  alter column in_app_enabled set default true;
+
+alter table public.notification_preferences
+  alter column workout_enabled set not null,
+  alter column meals_enabled set not null,
+  alter column checkin_enabled set not null,
+  alter column sleep_enabled set not null,
+  alter column workout_lead_minutes set not null,
+  alter column hydration_interval_minutes set not null,
+  alter column in_app_enabled set not null;
 
 alter table public.notification_preferences
   add constraint notification_preferences_workout_lead_minutes_check
@@ -56,7 +74,7 @@ create table if not exists public.notification_reminders (
   destination_path text not null,
   title text not null,
   body text not null,
-  status text not null default 'scheduled' check (status in ('scheduled', 'ready', 'sent', 'delivered', 'clicked', 'dismissed', 'snoozed', 'failed', 'expired', 'cancelled')),
+  status text not null default 'scheduled' check (status in ('scheduled', 'ready', 'processing', 'sent', 'delivered', 'clicked', 'dismissed', 'snoozed', 'failed', 'expired', 'cancelled')),
   scheduled_for timestamptz not null,
   sent_at timestamptz null,
   delivered_at timestamptz null,
@@ -81,6 +99,18 @@ create table if not exists public.notification_delivery_attempts (
   error_detail text null,
   created_at timestamptz not null default timezone('utc', now())
 );
+
+create index if not exists push_subscriptions_user_id_active_idx
+  on public.push_subscriptions (user_id, active);
+
+create index if not exists notification_reminders_status_scheduled_for_idx
+  on public.notification_reminders (status, scheduled_for);
+
+create index if not exists notification_reminders_user_id_status_idx
+  on public.notification_reminders (user_id, status);
+
+create index if not exists notification_delivery_attempts_notification_reminder_id_idx
+  on public.notification_delivery_attempts (notification_reminder_id);
 
 drop trigger if exists set_push_subscriptions_updated_at on public.push_subscriptions;
 create trigger set_push_subscriptions_updated_at

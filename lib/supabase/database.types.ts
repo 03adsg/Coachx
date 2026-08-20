@@ -1147,7 +1147,7 @@ export interface PushSubscriptionsUpdate {
 }
 
 export type NotificationReminderCategory = "workout" | "meals" | "hydration" | "supplements" | "check-in" | "sleep";
-export type NotificationReminderStatus = "scheduled" | "ready" | "sent" | "delivered" | "clicked" | "dismissed" | "snoozed" | "failed" | "expired" | "cancelled";
+export type NotificationReminderStatus = "scheduled" | "ready" | "processing" | "sent" | "delivered" | "clicked" | "dismissed" | "snoozed" | "failed" | "expired" | "cancelled";
 export type NotificationDeliveryAttemptResult = "sent" | "delivered" | "expired" | "gone" | "failed" | "ignored";
 
 export interface NotificationRemindersRow {

@@ -43,6 +43,7 @@ async function transpileLibraryChain() {
     "i18n.ts",
     "auth/session-policy.ts",
     "notification-system.ts",
+    "notification-dispatcher.ts",
     "notification-preference-service.ts",
     "notification-browser.ts"
   ];
@@ -75,6 +76,7 @@ async function transpileLibraryChain() {
     i18n: await import(toModuleUrl(path.join(tempDir, "i18n.mjs"))),
     sessionPolicy: await import(toModuleUrl(path.join(tempDir, "auth/session-policy.mjs"))),
     notificationSystem: await import(toModuleUrl(path.join(tempDir, "notification-system.mjs"))),
+    notificationDispatcher: await import(toModuleUrl(path.join(tempDir, "notification-dispatcher.mjs"))),
     notificationPreferences: await import(toModuleUrl(path.join(tempDir, "notification-preference-service.mjs"))),
     notificationBrowser: await import(toModuleUrl(path.join(tempDir, "notification-browser.mjs")))
   };
@@ -82,13 +84,17 @@ async function transpileLibraryChain() {
 
 const {
   notificationSystem,
+  notificationDispatcher,
   notificationPreferences,
   notificationBrowser
 } = await transpileLibraryChain();
 
-function createFakeReminderClient(initialRows = []) {
+function createFakeReminderClient(initialRows = [], initialPreferences = [], initialSubscriptions = [], initialAttempts = []) {
   const state = {
-    notification_reminders: structuredClone(initialRows)
+    notification_reminders: structuredClone(initialRows),
+    notification_preferences: structuredClone(initialPreferences),
+    push_subscriptions: structuredClone(initialSubscriptions),
+    notification_delivery_attempts: structuredClone(initialAttempts)
   };
 
   function createQuery(tableName) {
@@ -96,7 +102,8 @@ function createFakeReminderClient(initialRows = []) {
       type: "select",
       payload: null,
       filters: [],
-      conflict: []
+      conflict: [],
+      order: null
     };
 
     const api = {
@@ -111,7 +118,18 @@ function createFakeReminderClient(initialRows = []) {
         query.filters.push({ kind: "in", column, values });
         return api;
       },
-      order() {
+      order(column, options) {
+        query.order = { column, ascending: options?.ascending ?? true };
+        return api;
+      },
+      update(values) {
+        query.type = "update";
+        query.payload = values;
+        return api;
+      },
+      insert(values) {
+        query.type = "insert";
+        query.payload = Array.isArray(values) ? values : [values];
         return api;
       },
       upsert(values, options) {
@@ -127,6 +145,9 @@ function createFakeReminderClient(initialRows = []) {
       async single() {
         const rows = runQuery(tableName, query);
         return { data: rows[0] ?? null, error: rows[0] ? null : new Error("Not found") };
+      },
+      then(onFulfilled, onRejected) {
+        return Promise.resolve({ data: runQuery(tableName, query), error: null }).then(onFulfilled, onRejected);
       }
     };
 
@@ -150,6 +171,37 @@ function createFakeReminderClient(initialRows = []) {
   function runQuery(tableName, query) {
     const table = state[tableName];
 
+    if (!table) {
+      throw new Error(`Unknown table ${tableName}`);
+    }
+
+    if (query.type === "insert") {
+      const rows = [];
+      for (const candidate of query.payload) {
+        const next = {
+          id: candidate.id ?? crypto.randomUUID(),
+          created_at: candidate.created_at ?? "2026-08-20T00:00:00.000Z",
+          updated_at: candidate.updated_at ?? "2026-08-20T00:00:00.000Z",
+          ...structuredClone(candidate)
+        };
+        table.push(next);
+        rows.push(next);
+      }
+      return rows;
+    }
+
+    if (query.type === "update") {
+      const rows = [];
+      for (const row of table) {
+        if (!matchesRow(row, query.filters)) {
+          continue;
+        }
+        Object.assign(row, structuredClone(query.payload));
+        rows.push(row);
+      }
+      return rows;
+    }
+
     if (query.type === "upsert") {
       const rows = [];
       for (const candidate of query.payload) {
@@ -171,7 +223,19 @@ function createFakeReminderClient(initialRows = []) {
       return rows;
     }
 
-    return table.filter((row) => matchesRow(row, query.filters));
+    const rows = table.filter((row) => matchesRow(row, query.filters));
+    if (query.order) {
+      rows.sort((left, right) => {
+        const leftValue = left[query.order.column];
+        const rightValue = right[query.order.column];
+        if (leftValue === rightValue) {
+          return 0;
+        }
+        const direction = query.order.ascending ? 1 : -1;
+        return leftValue > rightValue ? direction : -direction;
+      });
+    }
+    return rows;
   }
 
   return {
@@ -179,6 +243,59 @@ function createFakeReminderClient(initialRows = []) {
     from(tableName) {
       return createQuery(tableName);
     }
+  };
+}
+
+function buildReminderRow(overrides = {}) {
+  return {
+    id: "00000000-0000-4000-8000-000000000101",
+    user_id: "00000000-0000-4000-8000-000000000001",
+    category: "workout",
+    destination_path: "/workout/next",
+    title: "Workout ready",
+    body: "Open the workout",
+    status: "scheduled",
+    scheduled_for: "2026-08-20T08:00:00.000Z",
+    sent_at: null,
+    delivered_at: null,
+    dismissed_at: null,
+    snoozed_until: null,
+    dedupe_key: "workout-20260820",
+    payload: null,
+    ...overrides
+  };
+}
+
+function buildPreferenceRow(overrides = {}) {
+  return {
+    user_id: "00000000-0000-4000-8000-000000000001",
+    master_enabled: true,
+    workout_enabled: true,
+    meals_enabled: true,
+    hydration_enabled: true,
+    supplements_enabled: true,
+    checkin_enabled: true,
+    sleep_enabled: true,
+    quiet_hours_enabled: false,
+    quiet_start: null,
+    quiet_end: null,
+    timezone: null,
+    in_app_enabled: true,
+    ...overrides
+  };
+}
+
+function buildSubscriptionRow(overrides = {}) {
+  return {
+    id: "00000000-0000-4000-8000-000000000201",
+    user_id: "00000000-0000-4000-8000-000000000001",
+    endpoint: "https://push.example/subscription",
+    p256dh: "abc",
+    auth: "def",
+    expiration_time: null,
+    active: true,
+    failure_count: 0,
+    ...overrides
   };
 }
 
@@ -333,4 +450,139 @@ test("reminder upsert dedupes by logical key", async () => {
   assert.equal(first.id, second.id);
   assert.equal(second.title, "Meal reminder updated");
   assert.equal(second.payload.retry, true);
+});
+
+test("successfully sent reminder remains SENT", async () => {
+  const client = createFakeReminderClient(
+    [buildReminderRow()],
+    [buildPreferenceRow()],
+    [buildSubscriptionRow()]
+  );
+  const sendPush = async () => new Response(null, { status: 200, statusText: "OK" });
+
+  const result = await notificationDispatcher.dispatchNotificationReminders({
+    supabaseAdmin: client,
+    sendPush,
+    now: new Date("2026-08-20T08:00:00.000Z"),
+    vapidPrivateKey: JSON.stringify({ kty: "EC" }),
+    vapidSubject: "mailto:support@athlexforce.app"
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(client.state.notification_reminders[0].status, "sent");
+  assert.equal(client.state.notification_reminders[0].sent_at, "2026-08-20T08:00:00.000Z");
+  assert.equal(client.state.notification_delivery_attempts[0].result, "sent");
+});
+
+test("sent reminder is not selected again", async () => {
+  const sentReminder = buildReminderRow({ id: "00000000-0000-4000-8000-000000000102", status: "sent", sent_at: "2026-08-20T07:00:00.000Z" });
+  const dueReminder = buildReminderRow({ id: "00000000-0000-4000-8000-000000000103" });
+  const client = createFakeReminderClient(
+    [sentReminder, dueReminder],
+    [buildPreferenceRow()],
+    [buildSubscriptionRow()]
+  );
+  const sendPush = async () => new Response(null, { status: 200, statusText: "OK" });
+
+  await notificationDispatcher.dispatchNotificationReminders({
+    supabaseAdmin: client,
+    sendPush,
+    now: new Date("2026-08-20T08:00:00.000Z"),
+    vapidPrivateKey: JSON.stringify({ kty: "EC" }),
+    vapidSubject: "mailto:support@athlexforce.app"
+  });
+
+  assert.equal(client.state.notification_reminders.find((row) => row.id === sentReminder.id)?.status, "sent");
+  assert.equal(client.state.notification_delivery_attempts.length, 1);
+  assert.equal(client.state.notification_delivery_attempts[0].notification_reminder_id, dueReminder.id);
+});
+
+test("two dispatcher claims cannot process the same occurrence", async () => {
+  const client = createFakeReminderClient([buildReminderRow()], [buildPreferenceRow()], [buildSubscriptionRow()]);
+
+  const firstClaim = await notificationDispatcher.claimNotificationReminder(client, "00000000-0000-4000-8000-000000000101", "scheduled");
+  const secondClaim = await notificationDispatcher.claimNotificationReminder(client, "00000000-0000-4000-8000-000000000101", "scheduled");
+
+  assert.equal(firstClaim?.status, "processing");
+  assert.equal(secondClaim, null);
+});
+
+test("in_app_enabled=false does not disable Web Push", async () => {
+  const client = createFakeReminderClient(
+    [buildReminderRow()],
+    [buildPreferenceRow({ in_app_enabled: false })],
+    [buildSubscriptionRow()]
+  );
+  let callCount = 0;
+  const sendPush = async () => {
+    callCount += 1;
+    return new Response(null, { status: 200, statusText: "OK" });
+  };
+
+  const result = await notificationDispatcher.dispatchNotificationReminders({
+    supabaseAdmin: client,
+    sendPush,
+    now: new Date("2026-08-20T08:00:00.000Z"),
+    vapidPrivateKey: JSON.stringify({ kty: "EC" }),
+    vapidSubject: "mailto:support@athlexforce.app"
+  });
+
+  assert.equal(result.sent, 1);
+  assert.equal(callCount, 1);
+  assert.equal(client.state.notification_reminders[0].status, "sent");
+});
+
+test("failure records the actual subscription id", async () => {
+  const failingSubscription = buildSubscriptionRow({ id: "00000000-0000-4000-8000-000000000202", endpoint: "https://push.example/failure" });
+  const client = createFakeReminderClient(
+    [buildReminderRow()],
+    [buildPreferenceRow()],
+    [failingSubscription]
+  );
+  const sendPush = async () => {
+    throw new Error("boom");
+  };
+
+  await notificationDispatcher.dispatchNotificationReminders({
+    supabaseAdmin: client,
+    sendPush,
+    now: new Date("2026-08-20T08:00:00.000Z"),
+    vapidPrivateKey: JSON.stringify({ kty: "EC" }),
+    vapidSubject: "mailto:support@athlexforce.app"
+  });
+
+  assert.equal(client.state.notification_delivery_attempts[0].push_subscription_id, failingSubscription.id);
+  assert.equal(client.state.notification_delivery_attempts[0].error_code, "exception");
+});
+
+test("multiple subscriptions are processed", async () => {
+  const client = createFakeReminderClient(
+    [buildReminderRow()],
+    [buildPreferenceRow()],
+    [
+      buildSubscriptionRow({ id: "00000000-0000-4000-8000-000000000203", endpoint: "https://push.example/one" }),
+      buildSubscriptionRow({ id: "00000000-0000-4000-8000-000000000204", endpoint: "https://push.example/two" })
+    ]
+  );
+  const calls = [];
+  const sendPush = async (subscription) => {
+    calls.push(subscription.id);
+    return new Response(null, { status: 200, statusText: "OK" });
+  };
+
+  const result = await notificationDispatcher.dispatchNotificationReminders({
+    supabaseAdmin: client,
+    sendPush,
+    now: new Date("2026-08-20T08:00:00.000Z"),
+    vapidPrivateKey: JSON.stringify({ kty: "EC" }),
+    vapidSubject: "mailto:support@athlexforce.app"
+  });
+
+  assert.equal(result.sent, 2);
+  assert.deepEqual(calls, [
+    "00000000-0000-4000-8000-000000000203",
+    "00000000-0000-4000-8000-000000000204"
+  ]);
+  assert.equal(client.state.notification_delivery_attempts.length, 2);
+  assert.equal(client.state.notification_reminders[0].status, "sent");
 });
