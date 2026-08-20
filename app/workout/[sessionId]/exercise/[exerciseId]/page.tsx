@@ -970,11 +970,15 @@ export default function ActiveExercisePage() {
 
     setStickyActionHidden(false);
 
-    const root = document.scrollingElement ?? document.documentElement;
-    stickyActionLastScrollYRef.current = root.scrollTop;
+    const scrollContainer = document.querySelector("main");
+    if (!(scrollContainer instanceof HTMLElement)) {
+      return undefined;
+    }
+
+    stickyActionLastScrollYRef.current = scrollContainer.scrollTop;
 
     const updateStickyActionVisibility = () => {
-      const currentScrollY = root.scrollTop;
+      const currentScrollY = scrollContainer.scrollTop;
       const delta = currentScrollY - stickyActionLastScrollYRef.current;
 
       if (currentScrollY <= 8) {
@@ -1000,10 +1004,10 @@ export default function ActiveExercisePage() {
     };
 
     updateStickyActionVisibility();
-    window.addEventListener("scroll", onScroll, { passive: true });
+    scrollContainer.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      scrollContainer.removeEventListener("scroll", onScroll);
       if (stickyActionScrollFrameRef.current != null) {
         window.cancelAnimationFrame(stickyActionScrollFrameRef.current);
         stickyActionScrollFrameRef.current = null;
