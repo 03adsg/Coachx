@@ -955,7 +955,7 @@ img {
   color: var(--text-primary);
 }
 
-.workout-logger-card {
+.card.workout-logger-card {
   display: grid;
   gap: 18px;
   background: transparent;
@@ -1774,12 +1774,12 @@ img {
   color: var(--accent-primary);
 }
 
-.workout-set-row--editing {
+.card.workout-set-row--editing {
   border-top: 1px solid rgba(182, 255, 0, 0.18);
   padding-top: 16px;
 }
 
-.workout-set-row {
+.card.workout-set-row {
   display: grid;
   gap: 14px;
   padding: 0;
@@ -1787,7 +1787,7 @@ img {
   background: transparent;
 }
 
-.workout-set-row .button-secondary {
+.card.workout-set-row .button-secondary {
   min-width: 88px;
 }
 
