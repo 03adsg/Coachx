@@ -671,7 +671,7 @@ img {
 
 .workout-active-shell {
   padding-top: 4px;
-  padding-bottom: calc(176px + var(--safe-bottom));
+  padding-bottom: calc(224px + var(--safe-bottom));
 }
 
 .workout-start-card {
@@ -1777,11 +1777,28 @@ img {
 }
 
 .card.workout-set-row--editing {
-  border-top: 1px solid rgba(182, 255, 0, 0.18);
-  padding-top: 16px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
 }
 
+.card.workout-set-row--editing .workout-set-row__header {
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.card.workout-set-row--editing .workout-set-row__header .pill {
+  align-self: flex-start;
+}
+
+.card.workout-set-row--editing .workout-logger-grid,
 .card.workout-set-row--editing .workout-logger-footer {
+  width: 100%;
+  min-width: 0;
   grid-column: 1 / -1;
 }
 

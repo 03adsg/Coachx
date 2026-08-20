@@ -24,6 +24,7 @@ Verify the current AthlexForce product surface in a live browser before slice 17
 - `docs/FUNCTIONAL_GAP_REGISTER.md`
 - `docs/ROUTE_AND_FLOW_MAP.md`
 - `docs/SLICE_17_RECOMMENDED_SCOPE.md`
+- `docs/RESPONSIVE_UI_CONTRACT.md` if the live audit uncovers a geometry rule that needs permanent enforcement
 
 ## Verification Rules
 
@@ -31,6 +32,7 @@ Verify the current AthlexForce product surface in a live browser before slice 17
 - Do not print secrets or environment values.
 - Do not mutate data unless a blocking audit step requires a safe confirmation.
 - Record exact route names, labels, and visible page state.
+- When the workout flow is audited, include the viewport width and whether sticky CTA behavior changes on scroll direction.
 
 ## Stop Conditions
 
@@ -41,4 +43,3 @@ Verify the current AthlexForce product surface in a live browser before slice 17
 
 - Hand off UI gaps to frontend work.
 - Hand off structure/data gaps to architecture or QA only after the gap is clearly evidenced.
-

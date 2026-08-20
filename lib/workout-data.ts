@@ -1,5 +1,7 @@
 import type { MuscleGroup } from "@/lib/coachx-data";
 
+import type { SupportedLocale } from "@/lib/numeric-input";
+
 export type WorkoutEquipment = "barbell" | "machine" | "smith" | "dumbbells" | "cable" | "bodyweight";
 export type CompatibilityLabel = "EXCELLENT" | "GOOD";
 
@@ -452,8 +454,75 @@ export const coachxExerciseAlternativeMap: Record<string, ExerciseAlternative[]>
   ]
 };
 
+const localizedProgressionTargets: Record<string, Partial<Record<SupportedLocale, string>>> = {
+  "Maintain 80 kg and reach 10 reps across all 4 sets.": {
+    es: "Mantén 80 kg y llega a 10 repeticiones en las 4 series.",
+    ca: "Mantén 80 kg i arriba a 10 repeticions a les 4 sèries.",
+    de: "Halte 80 kg und erreiche 10 Wiederholungen in allen 4 Sätzen."
+  },
+  "Stay at 30 kg and reach all 10s.": {
+    es: "Mantente en 30 kg y completa todas las series con 10.",
+    ca: "Mantén-te en 30 kg i completa totes les sèries amb 10.",
+    de: "Bleib bei 30 kg und erreiche in allen Sätzen 10."
+  },
+  "Add 1 rep to each set before adding load.": {
+    es: "Añade 1 repetición por serie antes de subir carga.",
+    ca: "Afegeix 1 repetició per sèrie abans d'augmentar la càrrega.",
+    de: "Erhöhe jede Serie um 1 Wiederholung, bevor du Gewicht erhöhst."
+  },
+  "Hit 15 reps across all sets.": {
+    es: "Llega a 15 repeticiones en todas las series.",
+    ca: "Arriba a 15 repeticions en totes les sèries.",
+    de: "Erreiche 15 Wiederholungen über alle Sätze."
+  },
+  "Add 1-2 reps per set.": {
+    es: "Añade 1-2 repeticiones por serie.",
+    ca: "Afegeix 1-2 repeticions per sèrie.",
+    de: "Füge pro Satz 1-2 Wiederholungen hinzu."
+  },
+  "Hold the same steps with cleaner control.": {
+    es: "Mantén los mismos pasos con más control.",
+    ca: "Mantén els mateixos passos amb més control.",
+    de: "Halte die gleichen Schritte mit sauberer Kontrolle."
+  },
+  "Match hip thrust output with more stability.": {
+    es: "Iguala el rendimiento del hip thrust con más estabilidad.",
+    ca: "Iguala el rendiment del hip thrust amb més estabilitat.",
+    de: "Erreiche die Hip-Thrust-Leistung mit mehr Stabilität."
+  },
+  "Build stability and then push the top set.": {
+    es: "Primero consolida la estabilidad y luego empuja la serie top.",
+    ca: "Primer consolida l'estabilitat i després empeny la sèrie top.",
+    de: "Baue zuerst Stabilität auf und drücke dann den Top-Satz."
+  },
+  "Increase reps before jumping load.": {
+    es: "Sube repeticiones antes de aumentar la carga.",
+    ca: "Augmenta repeticions abans de pujar la càrrega.",
+    de: "Erhöhe zuerst die Wiederholungen, bevor du das Gewicht steigerst."
+  },
+  "Add load or 1 rep per set.": {
+    es: "Sube carga o añade 1 repetición por serie.",
+    ca: "Afegeix càrrega o 1 repetició per sèrie.",
+    de: "Erhöhe das Gewicht oder füge pro Satz 1 Wiederholung hinzu."
+  },
+  "Keep the chest tall and match the top reps.": {
+    es: "Mantén el pecho alto e iguala las repeticiones de la mejor serie.",
+    ca: "Mantén el pit alt i iguala les repeticions de la millor sèrie.",
+    de: "Halte die Brust aufrecht und gleiche die Top-Wiederholungen an."
+  },
+  "Keep form clean and build the top set.": {
+    es: "Mantén la técnica limpia y construye la serie top.",
+    ca: "Mantén la tècnica neta i construeix la sèrie top.",
+    de: "Halte die Form sauber und arbeite den Top-Satz aus."
+  }
+};
+
 export function getExerciseDefinition(exerciseId: string) {
   return coachxExerciseCatalog.find((exercise) => exercise.id === exerciseId) ?? coachxExerciseCatalog[0];
+}
+
+export function getExerciseProgressionTarget(locale: SupportedLocale, progressionTarget: string) {
+  return localizedProgressionTargets[progressionTarget]?.[locale] ?? progressionTarget;
 }
 
 export function getWorkoutExercise(session: WorkoutSessionState, exerciseId: string) {

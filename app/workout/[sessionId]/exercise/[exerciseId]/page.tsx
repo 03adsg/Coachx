@@ -27,7 +27,7 @@ import {
 import { useTranslator } from "@/components/locale-provider";
 import { useWorkoutStore } from "@/components/workout-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { countCompletedExercises, getExerciseDefinition, getWorkoutExercise } from "@/lib/workout-data";
+import { countCompletedExercises, getExerciseDefinition, getExerciseProgressionTarget, getWorkoutExercise } from "@/lib/workout-data";
 import type { SessionExercise } from "@/lib/workout-data";
 import { resolveExerciseHeroMedia, resolveExerciseThumbnailMedia } from "@/lib/media";
 import { getOrCreateWorkoutSession, type WorkoutSessionSeed } from "@/lib/workout-session-service";
@@ -961,6 +961,7 @@ export default function ActiveExercisePage() {
       };
   const completeSetLabel = `${copy.completeSet} ${currentSet.setNumber}`;
   const currentSetRirValue = currentSet.rir == null || currentSet.rir.trim() === "" ? null : Number(currentSet.rir);
+  const suggestedTargetCopy = getExerciseProgressionTarget(supportedLocale, exercise.suggestedTarget);
 
   useEffect(() => {
     if (editingSetNumber !== null) {
@@ -1234,12 +1235,12 @@ export default function ActiveExercisePage() {
                       state={activeSetErrors?.rir ? "invalid" : "default"}
                       value={currentSetRirValue !== null && Number.isFinite(currentSetRirValue) ? currentSetRirValue : null}
                     />
-                  </div>
-                  <div className="workout-logger-footer">
-                    <div className="caption">{exercise.suggestedTarget}</div>
-                  </div>
-                </Card>
-              </section>
+                        </div>
+                        <div className="workout-logger-footer">
+                          <div className="caption">{suggestedTargetCopy}</div>
+                        </div>
+                      </Card>
+                    </section>
             ) : null}
 
             <section className="section">
@@ -1259,7 +1260,7 @@ export default function ActiveExercisePage() {
                   if (isEditing && setDraft) {
                     return (
                       <Card key={set.setNumber} className="workout-set-row workout-set-row--editing elevated">
-                        <div className="row start" style={{ marginBottom: 12 }}>
+                        <div className="row start workout-set-row__header">
                           <div>
                             <div className="eyebrow" style={{ margin: 0 }}>
                               {controlCopy.setLabel} {set.setNumber}

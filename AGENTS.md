@@ -6,6 +6,7 @@
 - `frontend-stitch.md` - Stitch-faithful screen implementation and shared UI.
 - `visual-qa.md` - Stitch comparison, spacing, typography, and motion drift checks.
 - `qa-testing.md` - lint, typecheck, build, and route-level regression validation.
+- `responsive-ui-contract.md` - repository-level responsive geometry contract and viewport gate.
 - `auth-security-ux.md` - secure entry, session persistence, and recovery UX.
 - `identity-role-security-architect.md` - capability, workspace, and relationship security.
 - `athlete-flow-architect.md` - athlete-side route hierarchy and command-center clarity.
@@ -30,7 +31,8 @@
 7. `i18n-exhaustive-auditor` and `language-selector-ux-auditor` for locale work.
 8. `feedback-interaction-ux`, `feedback-motion-system`, `data-visualization-motion`, and `motivational-immersion-ux` for their domains.
 9. `live-product-flow-audit` for live browser verification.
-10. `qa-testing` for lint, typecheck, build, and regression checks.
+10. `responsive-ui-contract` for viewport contracts, scroll containment, and CTA geometry.
+11. `qa-testing` for lint, typecheck, build, and regression checks.
 
 ## Global Rule
 

@@ -84,8 +84,7 @@ export function NumericControl({
   const errorId = `${baseId}-error`;
   const helperId = `${baseId}-helper`;
   const resolvedState: NumericControlState = readOnly ? "read-only" : error ? "invalid" : state;
-  const copy = getNumericCopy(locale);
-  const nextHelper = error ?? helper ?? stateLabel(locale, resolvedState);
+  const nextHelper = error ?? helper ?? "";
 
   const describedBy = [helper || error ? helperId : null, error ? errorId : null].filter(Boolean).join(" ") || undefined;
 
@@ -178,6 +177,7 @@ export function RirControl({
   const labelId = useId();
   const resolvedState: NumericControlState = readOnly ? "read-only" : state;
   const copy = getNumericCopy(locale);
+  const nextHelper = helper ?? "";
 
   return (
     <div className={`numeric-rir ${className}`.trim()} data-state={resolvedState}>
@@ -208,7 +208,7 @@ export function RirControl({
         })}
       </div>
       <div className="numeric-control__footer">
-        <span className="numeric-control__message">{helper ?? copy.enterValidNumber}</span>
+        <span className="numeric-control__message">{nextHelper}</span>
       </div>
     </div>
   );

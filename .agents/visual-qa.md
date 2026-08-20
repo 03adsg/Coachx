@@ -10,6 +10,7 @@ Verify COACHX screens match Stitch layout, spacing, typography, iconography, and
 - Mobile viewport review
 - Motion consistency
 - States and bottom navigation fidelity
+- Responsive contract checks at 375px, 390px, 430px, and 768px
 
 ## Non-Goals
 
@@ -41,6 +42,7 @@ Verify COACHX screens match Stitch layout, spacing, typography, iconography, and
 
 - Send layout fixes to `frontend-stitch`.
 - Send motion or accessibility issues to `qa-testing` if they are technical.
+- Send viewport-contract regressions to `responsive-ui-contract` or `qa-testing` depending on whether the break is visual or runtime.
 
 ## Definition of Done
 

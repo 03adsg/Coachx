@@ -11,6 +11,7 @@ Validate that COACHX runs, builds, and routes correctly after implementation.
 - Build
 - Route smoke checks
 - Regression checks for obvious mobile overflow
+- Responsive UI contract test coverage
 
 ## Non-Goals
 
@@ -42,6 +43,7 @@ Validate that COACHX runs, builds, and routes correctly after implementation.
 
 - Send structural failures to `architecture-typescript`.
 - Send UI failures to `frontend-stitch`.
+- Send viewport-contract failures to `visual-qa` when the geometry is correct in code but wrong in the browser.
 
 ## Definition of Done
 
