@@ -22,14 +22,116 @@ const measurementLabels: Record<MeasurementType, string> = {
   thigh: "Thigh"
 };
 
+const measurementCopy = {
+  en: {
+    labels: measurementLabels,
+    closeScreen: "Close screen",
+    closeDialog: "Close dialog",
+    last: "Last",
+    howToMeasure: "How to measure",
+    measurement: "measurement",
+    phase: "Phase 1",
+    lastDate: "Last: July 11",
+    title: "Update measurements",
+    subtitle: "Use similar conditions each time for better comparisons.",
+    checkpoint: "Current checkpoint",
+    add: "Add measurement",
+    guidanceTitle: "For better comparisons",
+    guidanceDescription: "Use the same conditions each time so the changes stay objective.",
+    guidanceItems: ["Measure at the same time of day.", "Maintain consistent hydration levels.", "Keep a relaxed posture, avoid flexing.", "Use the exact same measuring tape."],
+    save: "Save measurements",
+    skip: "Skip missing values",
+    successClose: "Close success screen",
+    successTitle: "Measurements updated",
+    insightTitle: "AthlexForce insight",
+    insightBody: "Your waist decreased while body weight remained stable, which supports a positive recomposition trend.",
+    nextSteps: "Next steps"
+  },
+  es: {
+    labels: { weight: "Peso", waist: "Cintura", hips: "Cadera", thigh: "Muslo" },
+    closeScreen: "Cerrar pantalla",
+    closeDialog: "Cerrar diálogo",
+    last: "Último",
+    howToMeasure: "Cómo medir",
+    measurement: "medición",
+    phase: "Fase 1",
+    lastDate: "Último: 11 de julio",
+    title: "Actualizar mediciones",
+    subtitle: "Usa condiciones similares cada vez para comparar mejor.",
+    checkpoint: "Checkpoint actual",
+    add: "Añadir medición",
+    guidanceTitle: "Para comparar mejor",
+    guidanceDescription: "Usa las mismas condiciones cada vez para que los cambios sean objetivos.",
+    guidanceItems: ["Mide a la misma hora del día.", "Mantén niveles de hidratación constantes.", "Mantén una postura relajada, sin flexionar.", "Usa exactamente la misma cinta métrica."],
+    save: "Guardar mediciones",
+    skip: "Saltar valores pendientes",
+    successClose: "Cerrar pantalla de éxito",
+    successTitle: "Mediciones actualizadas",
+    insightTitle: "Insight de AthlexForce",
+    insightBody: "La cintura bajó mientras el peso corporal se mantuvo estable, lo que apoya una tendencia positiva de recomposición.",
+    nextSteps: "Siguientes pasos"
+  },
+  ca: {
+    labels: { weight: "Pes", waist: "Cintura", hips: "Maluc", thigh: "Cuixa" },
+    closeScreen: "Tanca la pantalla",
+    closeDialog: "Tanca el diàleg",
+    last: "Últim",
+    howToMeasure: "Com mesurar",
+    measurement: "mesura",
+    phase: "Fase 1",
+    lastDate: "Últim: 11 de juliol",
+    title: "Actualitza mesures",
+    subtitle: "Fes servir condicions similars cada vegada per comparar millor.",
+    checkpoint: "Checkpoint actual",
+    add: "Afegeix mesura",
+    guidanceTitle: "Per comparar millor",
+    guidanceDescription: "Fes servir les mateixes condicions cada vegada perquè els canvis siguin objectius.",
+    guidanceItems: ["Mesura a la mateixa hora del dia.", "Mantén nivells d'hidratació constants.", "Mantén una postura relaxada, sense flexionar.", "Fes servir exactament la mateixa cinta mètrica."],
+    save: "Desa les mesures",
+    skip: "Salta els valors pendents",
+    successClose: "Tanca la pantalla d'èxit",
+    successTitle: "Mesures actualitzades",
+    insightTitle: "Insight d'AthlexForce",
+    insightBody: "La cintura ha baixat mentre el pes corporal s'ha mantingut estable, cosa que reforça una tendència positiva de recomposició.",
+    nextSteps: "Propers passos"
+  },
+  de: {
+    labels: { weight: "Gewicht", waist: "Taille", hips: "Hüfte", thigh: "Oberschenkel" },
+    closeScreen: "Bildschirm schließen",
+    closeDialog: "Dialog schließen",
+    last: "Zuletzt",
+    howToMeasure: "So misst du",
+    measurement: "Messung",
+    phase: "Phase 1",
+    lastDate: "Zuletzt: 11. Juli",
+    title: "Messungen aktualisieren",
+    subtitle: "Nutze jedes Mal ähnliche Bedingungen, damit die Vergleiche besser werden.",
+    checkpoint: "Aktueller Checkpoint",
+    add: "Messung hinzufügen",
+    guidanceTitle: "Für bessere Vergleiche",
+    guidanceDescription: "Nutze jedes Mal dieselben Bedingungen, damit die Änderungen objektiv bleiben.",
+    guidanceItems: ["Miss zur gleichen Tageszeit.", "Halte die Hydration möglichst konstant.", "Bleibe entspannt und vermeide Anspannen.", "Nutze exakt dasselbe Maßband."],
+    save: "Messungen speichern",
+    skip: "Fehlende Werte überspringen",
+    successClose: "Erfolgsansicht schließen",
+    successTitle: "Messungen aktualisiert",
+    insightTitle: "AthlexForce-Insight",
+    insightBody: "Deine Taille ist gesunken, während das Körpergewicht stabil blieb. Das unterstützt einen positiven Recomposition-Trend.",
+    nextSteps: "Nächste Schritte"
+  }
+} as const;
+
 function resolveSupportedLocale(locale: string) {
   return locale === "es" || locale === "ca" || locale === "de" ? locale : "en";
 }
 
 function ProgressTopbar({ closeHref }: { closeHref: string }) {
+  const { locale } = useTranslator();
+  const copy = measurementCopy[resolveSupportedLocale(locale)];
+
   return (
     <header className="progress-topbar">
-      <Link href={closeHref} className="progress-topbar__button focus-ring" aria-label="Close screen">
+      <Link href={closeHref} className="progress-topbar__button focus-ring" aria-label={copy.closeScreen}>
         <span className="icon" aria-hidden="true">
           arrow_back
         </span>
@@ -43,11 +145,13 @@ function ProgressTopbar({ closeHref }: { closeHref: string }) {
 function ProgressDialog({
   title,
   description,
+  closeLabel,
   onClose,
   children
 }: {
   title: string;
   description: string;
+  closeLabel: string;
   onClose: () => void;
   children: ReactNode;
 }) {
@@ -107,7 +211,7 @@ function ProgressDialog({
               {description}
             </p>
           </div>
-          <button ref={closeRef} className="tap-target focus-ring" type="button" onClick={onClose} aria-label="Close dialog">
+          <button ref={closeRef} className="tap-target focus-ring" type="button" onClick={onClose} aria-label={closeLabel}>
             <span className="icon" aria-hidden="true">
               close
             </span>
@@ -146,6 +250,7 @@ function MeasurementCard({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const copy = measurementCopy[locale];
   const accent = type === "waist";
 
   return (
@@ -153,10 +258,10 @@ function MeasurementCard({
       <div className="row start" style={{ marginBottom: 10 }}>
         <div>
           <div className="eyebrow" style={{ marginBottom: 4, color: accent ? "var(--accent-primary)" : undefined }}>
-            {measurementLabels[type].toUpperCase()}
+            {copy.labels[type].toUpperCase()}
           </div>
           <p className="caption">
-            Last: {lastValue} · {lastDate}
+            {copy.last}: {lastValue} · {lastDate}
           </p>
         </div>
         <div className="row" style={{ gap: 10 }}>
@@ -169,7 +274,7 @@ function MeasurementCard({
             </span>
           ) : null}
           {onInfo ? (
-            <button className="tap-target focus-ring" type="button" aria-label={`How to measure ${measurementLabels[type]}`} onClick={onInfo}>
+            <button className="tap-target focus-ring" type="button" aria-label={`${copy.howToMeasure} ${copy.labels[type]}`} onClick={onInfo}>
               <span className="icon" aria-hidden="true">
                 info
               </span>
@@ -183,7 +288,7 @@ function MeasurementCard({
         decimals={1}
         error={error}
         inputMode="decimal"
-        label={`${measurementLabels[type]} measurement`}
+        label={`${copy.labels[type]} ${copy.measurement}`}
         locale={locale}
         min={0.1}
         state={active ? "editing" : "default"}
@@ -197,19 +302,20 @@ function MeasurementCard({
   );
 }
 
-function MeasurementGuidance({ onClose }: { onClose: () => void }) {
+function MeasurementGuidance({ locale, onClose }: { locale: keyof typeof measurementCopy; onClose: () => void }) {
+  const copy = measurementCopy[locale];
+
   return (
     <ProgressDialog
-      title="For better comparisons"
-      description="Use the same conditions each time so the changes stay objective."
+      title={copy.guidanceTitle}
+      description={copy.guidanceDescription}
+      closeLabel={copy.closeDialog}
       onClose={onClose}
     >
       <ul className="progress-dialog-list">
-        <li>Measure at the same time of day.</li>
-        <li>Keep hydration and food timing similar.</li>
-        <li>Use the same measuring location.</li>
-        <li>Keep posture relaxed and consistent.</li>
-        <li>Use the same unit and measuring tape.</li>
+        {copy.guidanceItems.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
       </ul>
     </ProgressDialog>
   );
@@ -224,6 +330,7 @@ export function ProgressMeasurementsScreen() {
   const supportedLocale = resolveSupportedLocale(locale);
 
   const errors = state.measurement.validationErrors;
+  const copy = measurementCopy[supportedLocale];
 
   const save = async () => {
     const result = await saveMeasurements();
@@ -249,24 +356,24 @@ export function ProgressMeasurementsScreen() {
       <main className="content tight">
         <section className="section progress-hero">
           <div className="progress-hero__eyebrow">
-            <span>PHASE 1</span>
+            <span>{copy.phase.toUpperCase()}</span>
             <span>•</span>
             <span>{state.measurement.weekLabel.toUpperCase()}</span>
             <span>•</span>
-            <span>LAST: JULY 11</span>
+            <span>{copy.lastDate.toUpperCase()}</span>
           </div>
           <h1 className="headline-lg" style={{ textTransform: "uppercase" }}>
-            UPDATE MEASUREMENTS
+            {copy.title}
           </h1>
           <p className="body-md muted" style={{ marginTop: 12 }}>
-            Use similar conditions each time for better comparisons.
+            {copy.subtitle}
           </p>
         </section>
 
         <section className="section">
           <Card className="progress-banner p-16">
             <div className="eyebrow" style={{ marginBottom: 6, color: "var(--accent-primary)" }}>
-              CURRENT CHECKPOINT
+              {copy.checkpoint}
             </div>
             <div className="body-lg">{state.measurement.currentCheckpointLabel}</div>
           </Card>
@@ -290,7 +397,7 @@ export function ProgressMeasurementsScreen() {
                 active={type === "waist"}
                 difference={type === "waist" && row.difference !== null ? `↓ ${Math.abs(row.difference).toFixed(1)} ${row.unit.toUpperCase()}` : currentDifference}
                 error={errors[type]}
-                lastDate="July 11"
+                lastDate={copy.lastDate.replace(/^.*: /, "")}
                 lastValue={lastLabel.replace(` ${row.unit}`, "")}
                 locale={supportedLocale}
                 onChange={(value) => updateMeasurementDraft(type, value)}
@@ -308,7 +415,7 @@ export function ProgressMeasurementsScreen() {
             <span className="icon" aria-hidden="true">
               add
             </span>
-            ADD MEASUREMENT
+            {copy.add}
           </button>
         </section>
 
@@ -320,13 +427,12 @@ export function ProgressMeasurementsScreen() {
               </span>
               <div>
                 <div className="eyebrow" style={{ marginBottom: 6, color: "var(--accent-primary)" }}>
-                  FOR BETTER COMPARISONS
+                  {copy.guidanceTitle}
                 </div>
                 <ul className="progress-dialog-list">
-                  <li>Measure at the same time of day.</li>
-                  <li>Maintain consistent hydration levels.</li>
-                  <li>Keep a relaxed posture, avoid flexing.</li>
-                  <li>Use the exact same measuring tape.</li>
+                  {copy.guidanceItems.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -336,14 +442,14 @@ export function ProgressMeasurementsScreen() {
 
       <div className="progress-fixed-actions">
         <button className="button-primary focus-ring" type="button" onClick={save}>
-          SAVE MEASUREMENTS
+          {copy.save}
         </button>
         <SecondaryButton className="focus-ring" onClick={() => router.push("/progress/measurements/success")}>
-          SKIP MISSING VALUES
+          {copy.skip}
         </SecondaryButton>
       </div>
 
-      {helpOpen ? <MeasurementGuidance onClose={() => setHelpOpen(false)} /> : null}
+      {helpOpen ? <MeasurementGuidance locale={supportedLocale} onClose={() => setHelpOpen(false)} /> : null}
     </Screen>
   );
 }
@@ -387,6 +493,8 @@ function SummaryRow({
 export function ProgressMeasurementSuccessScreen() {
   const { state } = useProgressStore();
   const router = useRouter();
+  const { locale } = useTranslator();
+  const copy = measurementCopy[resolveSupportedLocale(locale)];
   const reducedMotion = useReducedMotion();
   const successHeroRef = useRef<HTMLElement | null>(null);
 
@@ -406,7 +514,7 @@ export function ProgressMeasurementSuccessScreen() {
       shellClassName="progress-flow-shell"
       topbar={
         <header className="progress-topbar progress-topbar--success">
-          <button className="progress-topbar__button focus-ring" type="button" aria-label="Close success screen" onClick={() => router.push("/progress")}>
+          <button className="progress-topbar__button focus-ring" type="button" aria-label={copy.successClose} onClick={() => router.push("/progress")}>
             <span className="icon" aria-hidden="true">
               close
             </span>
@@ -424,7 +532,7 @@ export function ProgressMeasurementSuccessScreen() {
             </span>
           </div>
           <h1 className="headline-md" style={{ textTransform: "uppercase", textAlign: "center" }}>
-            MEASUREMENTS UPDATED
+            {copy.successTitle}
           </h1>
         </section>
 
@@ -451,18 +559,18 @@ export function ProgressMeasurementSuccessScreen() {
                 auto_awesome
               </span>
               <div className="eyebrow" style={{ margin: 0, color: "var(--accent-primary)" }}>
-                ATHLEXFORCE INSIGHT
+                {copy.insightTitle}
               </div>
             </div>
             <p className="body-md" style={{ lineHeight: 1.6 }}>
-              Your waist decreased while body weight remained stable, which supports a positive recomposition trend.
+              {copy.insightBody}
             </p>
           </Card>
         </section>
 
         <section className="section">
           <div className="eyebrow" style={{ marginBottom: 10 }}>
-            NEXT STEPS
+            {copy.nextSteps}
           </div>
           <div className="stack">
             <Card className="progress-next-card p-16">

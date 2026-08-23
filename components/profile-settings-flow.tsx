@@ -611,7 +611,7 @@ function GoalPriorityRow({
 
 export function ProfilePreferencesIndexScreen() {
   const { saved, pendingReview, sectionOrder } = useProfileSettingsStore();
-  const { locale } = useTranslator();
+  const { locale, t } = useTranslator();
   const copy = profileSettingsCopyFor(locale);
 
   return (
@@ -619,13 +619,13 @@ export function ProfilePreferencesIndexScreen() {
       shellClassName="screen-shell"
       topbar={
         <header className="topbar" style={{ justifyContent: "center" }}>
-          <Link href="/profile" aria-label="Go back" className="tap-target focus-ring" style={{ position: "absolute", left: 16 }}>
+          <Link href="/profile" aria-label={t("common.back")} className="tap-target focus-ring" style={{ position: "absolute", left: 16 }}>
             <span className="icon" aria-hidden="true">
               arrow_back
             </span>
           </Link>
           <h1 className="headline-md" style={{ margin: 0, fontSize: 32, lineHeight: "34px", letterSpacing: "-0.04em", textTransform: "uppercase", textAlign: "center", maxWidth: 240 }}>
-            Profile & Preferences
+            {t("profile.profileEditing")}
           </h1>
         </header>
       }
@@ -661,7 +661,7 @@ export function ProfilePreferencesIndexScreen() {
               </span>
               <div style={{ minWidth: 0 }}>
                 <div className="caption" style={{ marginBottom: 4 }}>
-                  {pendingReview ? "Program update pending" : "No pending program updates"}
+                  {pendingReview ? t("profile.programUpdatePending") : t("profile.noPendingProgramUpdates")}
                 </div>
                 <div className="body-md" style={{ fontWeight: 700 }}>
                   {pendingReview ? pendingReview.title : `${saved.profile.name} · ${copy.profileSaved}`}

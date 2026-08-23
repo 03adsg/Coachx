@@ -411,7 +411,9 @@ export async function saveNotificationReminder(client: SupabaseClient<Database>,
 export async function updateNotificationReminderStatus(
   client: SupabaseClient<Database>,
   reminderId: string,
-  patch: Partial<Pick<NotificationReminderRow, "status" | "dismissed_at" | "snoozed_until" | "clicked_at" | "delivered_at" | "sent_at">>
+  patch:
+    | { status: "dismissed"; dismissed_at: string; snoozed_until?: null }
+    | { status: "snoozed"; snoozed_until: string; dismissed_at?: null }
 ) {
   const result = await client
     .from("notification_reminders" as never)

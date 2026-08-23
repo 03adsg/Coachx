@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Card } from "@/components/ui";
 import { buildKpiUpdateTimeline } from "@/motion/feedback";
 import { useReducedMotion } from "@/motion/useReducedMotion";
@@ -21,52 +21,68 @@ interface AnalyticsChartCardProps {
   targetState?: ProgressIntensityLevel | null;
 }
 
-function buildPath(points: PerformanceAnalyticsSeries["points"]) {
+function getValueDomain(points: PerformanceAnalyticsSeries["points"], targetValue?: number | null) {
+  const values = points.map((point) => point.value);
+  if (typeof targetValue === "number" && Number.isFinite(targetValue)) {
+    values.push(targetValue);
+  }
+
+  const maxValue = Math.max(...values);
+  const minValue = Math.min(...values);
+  const range = Math.max(1, maxValue - minValue);
+
+  return { maxValue, minValue, range };
+}
+
+function valueToY(value: number, domain: ReturnType<typeof getValueDomain>) {
+  return 100 - ((value - domain.minValue) / domain.range) * 78 - 10;
+}
+
+function buildPath(points: PerformanceAnalyticsSeries["points"], domain: ReturnType<typeof getValueDomain>) {
   if (points.length === 0) {
     return "";
   }
 
-  const maxValue = Math.max(...points.map((point) => point.value));
-  const minValue = Math.min(...points.map((point) => point.value));
-  const range = Math.max(1, maxValue - minValue);
-
   return points
     .map((point, index) => {
       const x = (index / Math.max(1, points.length - 1)) * 100;
-      const y = 100 - ((point.value - minValue) / range) * 78 - 10;
+      const y = valueToY(point.value, domain);
       return `${index === 0 ? "M" : "L"}${x},${y}`;
     })
     .join(" ");
 }
 
-function getPointPosition(points: PerformanceAnalyticsSeries["points"], index: number) {
+function buildAreaPath(points: PerformanceAnalyticsSeries["points"], domain: ReturnType<typeof getValueDomain>) {
+  const line = buildPath(points, domain);
+  if (!line) {
+    return "";
+  }
+
+  return `${line} L100,100 L0,100 Z`;
+}
+
+function getPointPosition(points: PerformanceAnalyticsSeries["points"], index: number, domain: ReturnType<typeof getValueDomain>) {
   if (points.length === 0) {
     return { x: 0, y: 0 };
   }
 
-  const maxValue = Math.max(...points.map((point) => point.value));
-  const minValue = Math.min(...points.map((point) => point.value));
-  const range = Math.max(1, maxValue - minValue);
   const point = points[index] ?? points.at(-1)!;
   const x = (index / Math.max(1, points.length - 1)) * 100;
-  const y = 100 - ((point.value - minValue) / range) * 78 - 10;
+  const y = valueToY(point.value, domain);
   return { x, y };
 }
 
-function getValuePosition(points: PerformanceAnalyticsSeries["points"], value: number) {
+function getValuePosition(points: PerformanceAnalyticsSeries["points"], value: number, domain: ReturnType<typeof getValueDomain>) {
   if (points.length === 0) {
     return { x: 100, y: 50 };
   }
 
-  const maxValue = Math.max(...points.map((point) => point.value));
-  const minValue = Math.min(...points.map((point) => point.value));
-  const range = Math.max(1, maxValue - minValue);
-  const y = 100 - ((value - minValue) / range) * 78 - 10;
-  return { x: 100, y };
+  return { x: 100, y: valueToY(value, domain) };
 }
 
 export function AnalyticsChartCard({ title, subtitle, unit, series, pointsLabel, emptyTitle, emptyCopy, chartTone = "primary", targetValue = null, targetLabel = null, targetState = null }: AnalyticsChartCardProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const gradientId = useId().replaceAll(":", "");
   const reducedMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState(() => Math.max(0, series.points.length - 1));
   const activePoint = series.points[activeIndex] ?? series.points.at(-1) ?? null;
@@ -124,11 +140,13 @@ export function AnalyticsChartCard({ title, subtitle, unit, series, pointsLabel,
     );
   }
 
-  const path = buildPath(series.points);
-  const selectedPosition = getPointPosition(series.points, activeIndex);
-  const maxValue = Math.max(...series.points.map((point) => point.value));
-  const minValue = Math.min(...series.points.map((point) => point.value));
-  const targetPosition = typeof targetValue === "number" ? getValuePosition(series.points, targetValue) : null;
+  const domain = getValueDomain(series.points, targetValue);
+  const path = buildPath(series.points, domain);
+  const areaPath = buildAreaPath(series.points, domain);
+  const selectedPosition = getPointPosition(series.points, activeIndex, domain);
+  const maxValue = domain.maxValue;
+  const minValue = domain.minValue;
+  const targetPosition = typeof targetValue === "number" ? getValuePosition(series.points, targetValue, domain) : null;
   const targetStroke =
     targetState === "achieved"
       ? "#ff8f2f"
@@ -142,7 +160,10 @@ export function AnalyticsChartCard({ title, subtitle, unit, series, pointsLabel,
 
   return (
     <div ref={rootRef}>
-      <Card className={`analytics-chart-card analytics-chart-card--${chartTone} p-16`}>
+      <Card
+        data-feedback-kpi-card
+        className={`analytics-chart-card analytics-chart-card--${chartTone} ${targetState ? `analytics-chart-card--target-${targetState}` : ""} p-16`.trim()}
+      >
       <div className="row start" style={{ marginBottom: 12 }}>
         <div>
           <div className="eyebrow">{title}</div>
@@ -161,12 +182,23 @@ export function AnalyticsChartCard({ title, subtitle, unit, series, pointsLabel,
       <div className="analytics-chart">
         <svg className="analytics-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={title}>
           <defs>
-            <linearGradient id={`chart-gradient-${series.id}`} x1="0" x2="0" y1="0" y2="1">
+            <linearGradient id={`chart-gradient-${gradientId}-${series.id}`} x1="0" x2="0" y1="0" y2="1">
               <stop offset="0%" stopColor={series.accent} stopOpacity="0.28" />
               <stop offset="100%" stopColor={series.accent} stopOpacity="0" />
             </linearGradient>
           </defs>
-          <path d="M0,100 L0,100 L100,100 Z" fill={`url(#chart-gradient-${series.id})`} opacity="0.35" />
+          {[25, 50, 75].map((line) => (
+            <line
+              key={line}
+              className="analytics-chart__gridline"
+              x1="0"
+              x2="100"
+              y1={line}
+              y2={line}
+              vectorEffect="non-scaling-stroke"
+            />
+          ))}
+          <path d={areaPath} fill={`url(#chart-gradient-${gradientId}-${series.id})`} opacity="0.55" />
           <path
             data-analytics-line
             data-feedback-kpi-line
@@ -194,7 +226,7 @@ export function AnalyticsChartCard({ title, subtitle, unit, series, pointsLabel,
             </g>
           ) : null}
           {series.points.map((point, index) => {
-            const position = getPointPosition(series.points, index);
+            const position = getPointPosition(series.points, index, domain);
             const isActive = index === activeIndex;
             return (
               <g key={`${series.id}-${point.dateKey}-${index}`}>

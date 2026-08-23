@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -466,6 +467,30 @@ test("reminder actions update an existing row without inserting a replacement", 
   assert.equal(updated.id, reminder.id);
   assert.equal(updated.status, "snoozed");
   assert.equal(updated.snoozed_until, snoozedUntil);
+});
+
+test("Slice 29 migration reserves notification delivery truth for the backend", () => {
+  const migration = readFileSync(
+    new URL("../supabase/migrations/20260823170000_slice_29_private_alpha_security_hardening.sql", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(migration, /revoke update on table public\.notification_reminders from authenticated/i);
+  assert.match(migration, /grant update \(status, dismissed_at, snoozed_until\)/i);
+  assert.match(migration, /status in \('dismissed', 'snoozed'\)/i);
+  assert.match(migration, /revoke all on function public\.apply_program_change_proposal\(uuid\) from public, anon/i);
+  assert.match(migration, /revoke all on function public\.coach_decide_recommendation\(uuid, text\) from public, anon/i);
+});
+
+test("Slice 29 removes anonymous notification mutation grants", () => {
+  const migration = readFileSync(
+    new URL("../supabase/migrations/20260823170100_slice_29_notification_anon_grants_hardening.sql", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(migration, /revoke insert, update, delete on table public\.notification_reminders from anon/i);
+  assert.match(migration, /revoke insert, update, delete on table public\.push_subscriptions from anon/i);
+  assert.match(migration, /revoke insert, update, delete on table public\.notification_preferences from anon/i);
 });
 
 test("successfully sent reminder remains SENT", async () => {

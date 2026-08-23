@@ -10,10 +10,170 @@ import { Card, PrimaryButton, SecondaryButton } from "@/components/ui";
 import { useCheckInStore } from "@/components/checkin-provider";
 import type { WeeklyCheckinQuestionDefinition } from "@/lib/checkin-data";
 
+const checkInCopy = {
+  en: {
+    closeScreen: "Close screen",
+    loadingAnswers: "Restoring your answers",
+    unableToLoad: "Unable to load",
+    tryAgain: "Try again",
+    weekOf: "Week of",
+    to: "to",
+    inProgress: "In progress",
+    saved: "Saved",
+    draft: "Draft",
+    training: "training",
+    nutrition: "nutrition",
+    pending: "Pending",
+    summaryFallback: "Your answers and adherence context are being captured.",
+    addShortNote: "Add a short note",
+    saveNote: "Save note",
+    alreadySaved: "What is already saved",
+    notAnswered: "Not answered",
+    submit: "Submit check-in",
+    submittedAt: "Submitted at",
+    noReview: "No review yet.",
+    keyTraining: "Training",
+    keyNutrition: "Nutrition",
+    keyProgressEntries: "Progress entries",
+    reviewStored: "The review state is stored remotely and can later be consumed by the coach workflow."
+  },
+  es: {
+    closeScreen: "Cerrar pantalla",
+    loadingAnswers: "Restaurando tus respuestas",
+    unableToLoad: "No se ha podido cargar",
+    tryAgain: "Intentar de nuevo",
+    weekOf: "Semana del",
+    to: "al",
+    inProgress: "En curso",
+    saved: "Guardado",
+    draft: "Borrador",
+    training: "entrenamiento",
+    nutrition: "nutrición",
+    pending: "Pendiente",
+    summaryFallback: "Se están guardando tus respuestas y el contexto de adherencia.",
+    addShortNote: "Añade una nota breve",
+    saveNote: "Guardar nota",
+    alreadySaved: "Ya guardado",
+    notAnswered: "Sin responder",
+    submit: "Enviar check-in",
+    submittedAt: "Enviado el",
+    noReview: "Aún no hay revisión.",
+    keyTraining: "Entrenamiento",
+    keyNutrition: "Nutrición",
+    keyProgressEntries: "Entradas de progreso",
+    reviewStored: "El estado de la revisión queda guardado y el flujo del coach podrá usarlo más adelante."
+  },
+  ca: {
+    closeScreen: "Tanca la pantalla",
+    loadingAnswers: "Restaurant les teves respostes",
+    unableToLoad: "No s'ha pogut carregar",
+    tryAgain: "Torna-ho a provar",
+    weekOf: "Setmana del",
+    to: "al",
+    inProgress: "En curs",
+    saved: "Desat",
+    draft: "Esborrany",
+    training: "entrenament",
+    nutrition: "nutrició",
+    pending: "Pendent",
+    summaryFallback: "S'estan desant les teves respostes i el context d'adherència.",
+    addShortNote: "Afegeix una nota breu",
+    saveNote: "Desa la nota",
+    alreadySaved: "Ja desat",
+    notAnswered: "Sense resposta",
+    submit: "Envia el check-in",
+    submittedAt: "Enviat el",
+    noReview: "Encara no hi ha revisió.",
+    keyTraining: "Entrenament",
+    keyNutrition: "Nutrició",
+    keyProgressEntries: "Entrades de progrés",
+    reviewStored: "L'estat de la revisió queda desat i el flux del coach el podrà fer servir més endavant."
+  },
+  de: {
+    closeScreen: "Bildschirm schließen",
+    loadingAnswers: "Deine Antworten werden wiederhergestellt",
+    unableToLoad: "Konnte nicht geladen werden",
+    tryAgain: "Erneut versuchen",
+    weekOf: "Woche vom",
+    to: "bis",
+    inProgress: "In Bearbeitung",
+    saved: "Gespeichert",
+    draft: "Entwurf",
+    training: "Training",
+    nutrition: "Ernährung",
+    pending: "Ausstehend",
+    summaryFallback: "Deine Antworten und der Adhärenzkontext werden erfasst.",
+    addShortNote: "Kurze Notiz hinzufügen",
+    saveNote: "Notiz speichern",
+    alreadySaved: "Bereits gespeichert",
+    notAnswered: "Nicht beantwortet",
+    submit: "Check-in senden",
+    submittedAt: "Gesendet am",
+    noReview: "Noch keine Prüfung.",
+    keyTraining: "Training",
+    keyNutrition: "Ernährung",
+    keyProgressEntries: "Fortschrittseinträge",
+    reviewStored: "Der Prüfstatus ist gespeichert und kann später vom Coach-Workflow genutzt werden."
+  }
+} as const;
+
+function localizeCheckInReviewCopy(value: string | null | undefined, locale: keyof typeof checkInCopy) {
+  if (!value) {
+    return value;
+  }
+
+  if (locale === "en") {
+    return value;
+  }
+
+  const es: Record<string, string> = {
+    "Coach review required": "Revisión del coach necesaria",
+    "Light review recommended": "Revisión ligera recomendada",
+    "No review required": "Sin revisión necesaria",
+    "The week looks stable and the active program can remain in place.": "La semana parece estable y el programa activo puede mantenerse.",
+    "A safety-sensitive signal was captured. Keep the current program stable until someone reviews it.": "Se ha detectado una señal sensible de seguridad. Mantén estable el programa actual hasta que se revise.",
+    "A few adherence signals are softer this week, so the review should stay visible without mutating the program.": "Algunas señales de adherencia están más bajas esta semana, así que la revisión debe permanecer visible sin modificar el programa."
+  };
+  const ca: Record<string, string> = {
+    "Coach review required": "Cal revisió del coach",
+    "Light review recommended": "Revisió lleugera recomanada",
+    "No review required": "No cal revisió",
+    "The week looks stable and the active program can remain in place.": "La setmana sembla estable i el programa actiu es pot mantenir.",
+    "A safety-sensitive signal was captured. Keep the current program stable until someone reviews it.": "S'ha detectat un senyal sensible de seguretat. Mantén estable el programa actual fins que algú el revisi.",
+    "A few adherence signals are softer this week, so the review should stay visible without mutating the program.": "Alguns senyals d'adherència són més baixos aquesta setmana, així que la revisió ha de continuar visible sense modificar el programa."
+  };
+  const de: Record<string, string> = {
+    "Coach review required": "Coach-Prüfung erforderlich",
+    "Light review recommended": "Leichte Prüfung empfohlen",
+    "No review required": "Keine Prüfung erforderlich",
+    "The week looks stable and the active program can remain in place.": "Die Woche wirkt stabil und das aktive Programm kann bestehen bleiben.",
+    "A safety-sensitive signal was captured. Keep the current program stable until someone reviews it.": "Ein sicherheitsrelevantes Signal wurde erfasst. Halte das aktuelle Programm stabil, bis es geprüft wurde.",
+    "A few adherence signals are softer this week, so the review should stay visible without mutating the program.": "Einige Adhärenzsignale sind diese Woche schwächer, daher sollte die Prüfung sichtbar bleiben, ohne das Programm zu ändern."
+  };
+
+  const translations: Partial<Record<keyof typeof checkInCopy, Record<string, string>>> = { es, ca, de };
+  return translations[locale]?.[value] ?? value;
+}
+
+function localizeCheckInStatus(value: string | null | undefined, locale: keyof typeof checkInCopy) {
+  const normalized = value?.replaceAll("_", " ") ?? "in progress";
+  const labels: Record<keyof typeof checkInCopy, Record<string, string>> = {
+    en: { "not started": "Not started", "in progress": "In progress", completed: "Completed", submitted: "Submitted", reviewed: "Reviewed" },
+    es: { "not started": "Sin empezar", "in progress": "En curso", completed: "Completado", submitted: "Enviado", reviewed: "Revisado" },
+    ca: { "not started": "Sense començar", "in progress": "En curs", completed: "Completat", submitted: "Enviat", reviewed: "Revisat" },
+    de: { "not started": "Nicht gestartet", "in progress": "In Bearbeitung", completed: "Abgeschlossen", submitted: "Gesendet", reviewed: "Geprüft" }
+  };
+
+  return labels[locale][normalized] ?? normalized;
+}
+
 function CheckInTopbar({ title }: { title: string }) {
+  const { locale } = useTranslator();
+  const copy = checkInCopy[locale];
+
   return (
     <header className="progress-review-topbar">
-      <Link href="/progress" className="progress-review-topbar__button focus-ring" aria-label="Close screen">
+      <Link href="/progress" className="progress-review-topbar__button focus-ring" aria-label={copy.closeScreen}>
         <span className="icon" aria-hidden="true">
           close
         </span>
@@ -98,7 +258,8 @@ function SingleChoiceRow({
 
 export function WeeklyCheckInScreen() {
   const router = useRouter();
-  const { t } = useTranslator();
+  const { t, locale } = useTranslator();
+  const copy = checkInCopy[locale];
   const store = useCheckInStore();
   const [activeIndex, setActiveIndex] = useState(0);
   const [noteDraft, setNoteDraft] = useState("");
@@ -143,7 +304,7 @@ export function WeeklyCheckInScreen() {
       await store.submitCheckIn(noteDraft.trim() || null);
       router.push("/progress/check-in/completion");
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : "Unable to save weekly check-in.");
+      setActionError(error instanceof Error ? error.message : copy.unableToLoad);
     } finally {
       setSubmitting(false);
     }
@@ -164,7 +325,7 @@ export function WeeklyCheckInScreen() {
       });
       await moveNext();
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : "Unable to save weekly check-in.");
+      setActionError(error instanceof Error ? error.message : copy.unableToLoad);
     } finally {
       setSavingKey(null);
     }
@@ -181,7 +342,7 @@ export function WeeklyCheckInScreen() {
       });
       await moveNext();
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : "Unable to save weekly check-in.");
+      setActionError(error instanceof Error ? error.message : copy.unableToLoad);
     } finally {
       setSavingKey(null);
     }
@@ -198,7 +359,7 @@ export function WeeklyCheckInScreen() {
       });
       setActiveIndex(store.questions.length - 1);
     } catch (error) {
-      setActionError(error instanceof Error ? error.message : "Unable to save weekly check-in.");
+      setActionError(error instanceof Error ? error.message : copy.unableToLoad);
     } finally {
       setSavingKey(null);
     }
@@ -212,7 +373,7 @@ export function WeeklyCheckInScreen() {
             <Card className="p-16 elevated">
               <div className="eyebrow">{t("common.loading")} {t("common.review").toLowerCase()}</div>
               <div className="headline-md" style={{ marginTop: 10 }}>
-                Restoring your answers
+                {copy.loadingAnswers}
               </div>
             </Card>
           </section>
@@ -223,17 +384,17 @@ export function WeeklyCheckInScreen() {
 
   if (store.error) {
     return (
-      <Screen shellClassName="progress-flow-shell" topbar={<CheckInTopbar title="WEEKLY CHECK-IN" />}>
+      <Screen shellClassName="progress-flow-shell" topbar={<CheckInTopbar title={t("common.review").toUpperCase()} />}>
         <main className="content tight">
           <section className="section">
             <Card className="p-16 elevated">
-              <div className="eyebrow">Unable to load</div>
+              <div className="eyebrow">{copy.unableToLoad}</div>
               <p className="body-md" style={{ marginTop: 10 }}>
                 {store.error}
               </p>
               <div className="stack" style={{ marginTop: 16 }}>
                 <PrimaryButton className="focus-ring" onClick={() => void store.reloadCheckIn()}>
-                  Try again
+                  {copy.tryAgain}
                 </PrimaryButton>
                 <SecondaryButton className="focus-ring" onClick={() => router.push("/progress")}>
                 {t("common.back")} {t("common.progress").toLowerCase()}
@@ -254,12 +415,12 @@ export function WeeklyCheckInScreen() {
             {t("common.review")}
           </h1>
           <p className="caption" style={{ marginTop: 8 }}>
-            Week of {store.weekStartDate} to {store.weekEndDate}
+            {copy.weekOf} {store.weekStartDate} {copy.to} {store.weekEndDate}
           </p>
           <div className="progress-phase-timeline progress-phase-timeline--review" style={{ marginTop: 12 }}>
             <span className="accent">{store.currentQuestionIndex + 1} / {store.questions.length}</span>
-            <span>{store.checkin?.status?.replaceAll("_", " ").toUpperCase() ?? "IN PROGRESS"}</span>
-            <span>{store.source === "remote" ? "Saved" : "Draft"}</span>
+            <span>{localizeCheckInStatus(store.checkin?.status, locale).toUpperCase()}</span>
+            <span>{store.source === "remote" ? copy.saved : copy.draft}</span>
           </div>
         </section>
 
@@ -269,15 +430,15 @@ export function WeeklyCheckInScreen() {
               <div>
               <div className="eyebrow">{t("common.review")}</div>
                 <div className="headline-md" style={{ marginTop: 6 }}>
-                  {store.summary?.adherencePercent.training ?? 0}% training · {store.summary?.adherencePercent.nutrition ?? 0}% nutrition
+                  {store.summary?.adherencePercent.training ?? 0}% {copy.training} · {store.summary?.adherencePercent.nutrition ?? 0}% {copy.nutrition}
                 </div>
               </div>
               <span className="progress-chip progress-chip--accent">
-                {store.summary?.review.recommendationLabel ?? "Pending"}
+                {localizeCheckInReviewCopy(store.summary?.review.recommendationLabel, locale) ?? copy.pending}
               </span>
             </div>
             <p className="caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
-              {store.summary?.review.summary ?? "Your answers and adherence context are being captured."}
+              {localizeCheckInReviewCopy(store.summary?.review.summary, locale) ?? copy.summaryFallback}
             </p>
           </Card>
         </section>
@@ -319,14 +480,14 @@ export function WeeklyCheckInScreen() {
                     rows={5}
                     value={noteDraft}
                     onChange={(event) => setNoteDraft(event.target.value)}
-                    placeholder="Add a short note"
+                    placeholder={copy.addShortNote}
                   />
                   <PrimaryButton
                     className="focus-ring"
                     disabled={savingKey === currentQuestion.key || submitting}
                     onClick={() => void saveNote()}
                   >
-                    Save note
+                    {copy.saveNote}
                   </PrimaryButton>
                 </div>
               )}
@@ -347,7 +508,7 @@ export function WeeklyCheckInScreen() {
 
         <section className="section">
           <Card className="p-16">
-            <div className="eyebrow">What is already saved</div>
+            <div className="eyebrow">{copy.alreadySaved}</div>
             <div className="stack" style={{ gap: 10, marginTop: 12 }}>
               {store.questions
                 .filter((question) => question.key !== "weekly_notes")
@@ -356,7 +517,7 @@ export function WeeklyCheckInScreen() {
                   const label =
                     response?.numeric_value != null
                       ? String(response.numeric_value)
-                      : response?.choice_value ?? response?.text_value ?? "Not answered";
+                      : response?.choice_value ?? response?.text_value ?? copy.notAnswered;
                   return (
                     <div key={question.key} className="row" style={{ alignItems: "flex-start" }}>
                       <div style={{ minWidth: 0, flex: 1 }}>
@@ -385,7 +546,7 @@ export function WeeklyCheckInScreen() {
           <div className="stack" style={{ gap: 12 }}>
             {canSubmit ? (
               <PrimaryButton className="focus-ring" onClick={() => void moveNext()} disabled={submitting}>
-                Submit check-in
+                {copy.submit}
               </PrimaryButton>
             ) : null}
               <SecondaryButton className="focus-ring" onClick={() => router.push("/progress")}>
@@ -400,7 +561,8 @@ export function WeeklyCheckInScreen() {
 
 export function WeeklyCheckInCompletionScreen() {
   const router = useRouter();
-  const { t } = useTranslator();
+  const { t, locale } = useTranslator();
+  const copy = checkInCopy[locale];
   const store = useCheckInStore();
   const review = store.review
     ? {
@@ -408,16 +570,22 @@ export function WeeklyCheckInCompletionScreen() {
         recommendationType: store.review.recommendation_type ?? store.summary?.review.recommendationType ?? "none",
         summary:
           typeof store.review.review_reason === "object" && store.review.review_reason && "summary" in store.review.review_reason
-            ? String((store.review.review_reason as Record<string, unknown>).summary ?? store.summary?.review.summary ?? "")
-            : store.summary?.review.summary ?? "",
-        recommendationLabel: store.summary?.review.recommendationLabel ?? "Pending"
+            ? localizeCheckInReviewCopy(String((store.review.review_reason as Record<string, unknown>).summary ?? store.summary?.review.summary ?? ""), locale) ?? ""
+            : localizeCheckInReviewCopy(store.summary?.review.summary, locale) ?? "",
+        recommendationLabel: localizeCheckInReviewCopy(store.summary?.review.recommendationLabel, locale) ?? copy.pending
       }
-    : store.summary?.review ?? { status: "pending", recommendationType: "none", summary: "No review yet.", recommendationLabel: "Pending" };
+    : store.summary
+      ? {
+          ...store.summary.review,
+          summary: localizeCheckInReviewCopy(store.summary.review.summary, locale) ?? store.summary.review.summary,
+          recommendationLabel: localizeCheckInReviewCopy(store.summary.review.recommendationLabel, locale) ?? store.summary.review.recommendationLabel
+        }
+      : { status: "pending", recommendationType: "none", summary: copy.noReview, recommendationLabel: copy.pending };
 
   const keySignals = [
-    { label: "Training", value: `${store.summary?.adherencePercent.training ?? 0}%` },
-    { label: "Nutrition", value: `${store.summary?.adherencePercent.nutrition ?? 0}%` },
-    { label: "Progress entries", value: String(store.summary?.counts.progressEntries ?? 0) }
+    { label: copy.keyTraining, value: `${store.summary?.adherencePercent.training ?? 0}%` },
+    { label: copy.keyNutrition, value: `${store.summary?.adherencePercent.nutrition ?? 0}%` },
+    { label: copy.keyProgressEntries, value: String(store.summary?.counts.progressEntries ?? 0) }
   ];
 
   const noteResponse = store.responses.find((response) => response.question_key === "weekly_notes");
@@ -433,7 +601,7 @@ export function WeeklyCheckInCompletionScreen() {
               {t("common.review")}
             </h1>
             <p className="caption" style={{ marginTop: 8, lineHeight: 1.6 }}>
-              {store.checkin?.submitted_at ? `Submitted at ${new Date(store.checkin.submitted_at).toLocaleString()}.` : t("common.success")}
+              {store.checkin?.submitted_at ? `${copy.submittedAt} ${new Date(store.checkin.submitted_at).toLocaleString()}.` : t("common.success")}
             </p>
           </Card>
         </section>
@@ -482,7 +650,7 @@ export function WeeklyCheckInCompletionScreen() {
                 const value =
                   response?.numeric_value != null
                     ? String(response.numeric_value)
-                    : response?.choice_value ?? response?.text_value ?? response?.boolean_value?.toString() ?? "Not answered";
+                    : response?.choice_value ?? response?.text_value ?? response?.boolean_value?.toString() ?? copy.notAnswered;
 
                 return (
                   <div key={question.key} className="row" style={{ alignItems: "flex-start" }}>
@@ -508,7 +676,7 @@ export function WeeklyCheckInCompletionScreen() {
               <Card className="p-16">
                 <div className="eyebrow">{t("common.approve")}</div>
                 <p className="caption" style={{ marginTop: 8 }}>
-                  The review state is stored remotely and can later be consumed by the coach workflow.
+                  {copy.reviewStored}
                 </p>
               </Card>
             ) : (

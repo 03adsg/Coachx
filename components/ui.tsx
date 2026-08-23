@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
 
 export function Section({ title, meta, children }: { title: string; meta?: string; children: ReactNode }) {
   if (!title) {
@@ -23,15 +23,16 @@ export function Card({
   children,
   elevated = false,
   className = "",
-  style
+  style,
+  ...props
 }: {
   children: ReactNode;
   elevated?: boolean;
   className?: string;
   style?: CSSProperties;
-}) {
+} & HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={`card ${elevated ? "elevated" : ""} ${className}`.trim()} style={style}>
+    <div {...props} className={`card ${elevated ? "elevated" : ""} ${className}`.trim()} style={style}>
       {children}
     </div>
   );

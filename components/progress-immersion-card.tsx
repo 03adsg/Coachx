@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
+import { useId, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import { gsap } from "gsap";
 import { Card } from "@/components/ui";
 import { useReducedMotion } from "@/motion/useReducedMotion";
@@ -39,6 +39,7 @@ function intensityToStroke(level: ProgressIntensityLevel) {
 function ProgressIntensityRing({ immersion, compact = false }: { immersion: MotivationalImmersionState; compact?: boolean }) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<SVGCircleElement | null>(null);
+  const gradientId = useId().replaceAll(":", "");
   const reducedMotion = useReducedMotion();
   const targetPercent = useMemo(() => {
     const rawPercent = immersion.primaryTarget?.percent ?? (immersion.state === "achieved" ? 100 : 0);
@@ -110,7 +111,7 @@ function ProgressIntensityRing({ immersion, compact = false }: { immersion: Moti
     <div ref={rootRef} className={`progress-immersion-ring progress-immersion-ring--${intensityTone[immersion.state]}${compact ? " compact" : ""}`.trim()}>
       <svg className="progress-immersion-ring__svg" viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`${immersion.stateLabel}. ${immersion.targetLabel}. ${immersion.remainingLabel}`}>
         <defs>
-          <linearGradient id={`immersion-gradient-${immersion.state}`} x1="0" x2="1" y1="0" y2="1">
+          <linearGradient id={`immersion-gradient-${gradientId}-${immersion.state}`} x1="0" x2="1" y1="0" y2="1">
             <stop offset="0%" stopColor={stroke.start} />
             <stop offset="55%" stopColor={stroke.mid} />
             <stop offset="100%" stopColor={stroke.end} />
@@ -131,7 +132,7 @@ function ProgressIntensityRing({ immersion, compact = false }: { immersion: Moti
           cy={center}
           r={radius}
           fill="none"
-          stroke={`url(#immersion-gradient-${immersion.state})`}
+          stroke={`url(#immersion-gradient-${gradientId}-${immersion.state})`}
           strokeLinecap="round"
           strokeWidth={circleStroke}
           vectorEffect="non-scaling-stroke"
