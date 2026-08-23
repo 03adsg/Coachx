@@ -4408,6 +4408,7 @@ img {
 
 .analytics-chart-card {
   overflow: hidden;
+  border-radius: 20px;
 }
 
 .analytics-chart-card--accent {
@@ -4524,6 +4525,7 @@ img {
 .progress-immersion-card {
   position: relative;
   overflow: hidden;
+  border-radius: 20px;
   border-color: rgba(182, 255, 0, 0.18);
   background:
     radial-gradient(circle at top right, rgba(182, 255, 0, 0.09), transparent 28%),
@@ -4572,10 +4574,20 @@ img {
 }
 
 .progress-immersion-target {
-  padding: 14px;
-  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  padding: 18px 16px 16px;
+  border-radius: 20px;
   border: 1px solid var(--border-quiet);
   background: rgba(255, 255, 255, 0.02);
+}
+
+.progress-immersion-target::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: rgba(247, 247, 247, 0.92);
 }
 
 .progress-immersion-target--active {
@@ -4588,14 +4600,27 @@ img {
   background: rgba(255, 193, 87, 0.06);
 }
 
+.progress-immersion-target--close::before {
+  background: #ffb020;
+}
+
 .progress-immersion-target--heat {
   border-color: rgba(255, 155, 61, 0.26);
   background: rgba(255, 155, 61, 0.08);
 }
 
+.progress-immersion-target--heat::before {
+  background: #ff9b3d;
+}
+
 .progress-immersion-target--achieved {
-  border-color: rgba(255, 127, 31, 0.28);
-  background: rgba(255, 127, 31, 0.08);
+  border-color: rgba(182, 255, 0, 0.24);
+  background: rgba(182, 255, 0, 0.07);
+}
+
+.progress-immersion-target--achieved::before,
+.progress-immersion-target--active::before {
+  background: var(--accent-primary);
 }
 
 .progress-immersion-target__row {
@@ -4625,9 +4650,37 @@ img {
 }
 
 .progress-immersion-target--achieved .progress-immersion-target__state {
-  color: #ffe5b5;
-  border-color: rgba(255, 127, 31, 0.24);
-  background: rgba(255, 127, 31, 0.1);
+  color: var(--accent-primary);
+  border-color: rgba(182, 255, 0, 0.2);
+  background: rgba(182, 255, 0, 0.12);
+}
+
+.progress-immersion-target__bar {
+  height: 8px;
+  margin-top: 12px;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.58);
+}
+
+.progress-immersion-target__bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: rgba(247, 247, 247, 0.92);
+}
+
+.progress-immersion-target--close .progress-immersion-target__bar > span {
+  background: #ffb020;
+}
+
+.progress-immersion-target--heat .progress-immersion-target__bar > span {
+  background: #ff9b3d;
+}
+
+.progress-immersion-target--achieved .progress-immersion-target__bar > span,
+.progress-immersion-target--active .progress-immersion-target__bar > span {
+  background: var(--accent-primary);
 }
 
 .progress-immersion-card__milestones {
@@ -5311,7 +5364,8 @@ img {
 
   .progress-immersion-card__header {
     gap: 18px;
-    justify-items: stretch;
+    justify-items: center;
+    text-align: center;
   }
 
   .progress-immersion-card__header > .stack {
@@ -5320,13 +5374,15 @@ img {
 
   .progress-immersion-ring {
     justify-self: center;
-    min-width: 116px;
-    padding: 8px;
+    min-width: 192px;
+    padding: 0 0 8px;
+    border: 0;
+    background: transparent;
   }
 
   .progress-immersion-ring__svg {
-    width: 116px;
-    height: 116px;
+    width: 192px;
+    height: 192px;
   }
 
   .progress-immersion-ring__center {
@@ -5341,14 +5397,17 @@ img {
   }
 
   .progress-immersion-ring__percent {
-    font-size: 30px;
+    font-size: 46px;
     line-height: 1;
   }
 
   .progress-immersion-ring__bottom {
-    max-width: 132px;
+    max-width: 220px;
     margin-inline: auto;
+    margin-top: 10px;
     line-height: 1.35;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
   }
 
   .progress-immersion-card__meta {

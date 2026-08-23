@@ -233,6 +233,9 @@ export function ProgressImmersionCard({ immersion, action, compact = false }: Pr
                 {target.displayValue}
                 {target.displayTarget ? ` / ${target.displayTarget}` : ""}
               </div>
+              <div className="progress-immersion-target__bar" aria-hidden="true">
+                <span style={{ width: `${Math.max(0, Math.min(100, target.percent))}%` }} />
+              </div>
               <div className="caption" style={{ marginTop: 4, lineHeight: 1.5 }}>
                 {target.remainingText ?? target.sourceLabel}
               </div>
