@@ -23,7 +23,7 @@ const intensityTone: Record<ProgressIntensityLevel, string> = {
 function intensityToStroke(level: ProgressIntensityLevel) {
   switch (level) {
     case "achieved":
-      return { start: "#ffd166", mid: "#ff8f2f", end: "#ff5f1f" };
+      return { start: "#dfff67", mid: "#b6ff00", end: "#7fd000" };
     case "heat":
       return { start: "#ffd166", mid: "#ffb347", end: "#ff8f2f" };
     case "close":
@@ -175,7 +175,10 @@ function ProgressIntensityRing({ immersion, compact = false }: { immersion: Moti
         </div>
       ) : null}
 
-      <div className="progress-immersion-ring__bottom caption">{immersion.targetLabel}</div>
+      <div className="progress-immersion-ring__bottom">
+        <span className="caption">{immersion.targetLabel}</span>
+        <strong>{immersion.targetValueLabel}</strong>
+      </div>
     </div>
   );
 }
@@ -187,13 +190,13 @@ export function ProgressImmersionCard({ immersion, action, compact = false }: Pr
     <Card className={`progress-immersion-card progress-immersion-card--${toneClass} p-16${compact ? " compact" : ""}`.trim()}>
       <div className="progress-immersion-card__header">
         <div className="stack">
-          <div className="eyebrow" style={{ marginBottom: 4 }}>
+          <div className="eyebrow progress-immersion-card__eyebrow" style={{ marginBottom: 4 }}>
             {immersion.stateLabel}
           </div>
-          <h2 className={compact ? "headline-md" : "headline-lg"} style={{ margin: 0, lineHeight: 1.05 }}>
+          <h2 className={`${compact ? "headline-md" : "headline-lg"} progress-immersion-card__title`} style={{ margin: 0, lineHeight: 1.05 }}>
             {immersion.heroTitle}
           </h2>
-          <p className="body-md" style={{ marginTop: 8, lineHeight: 1.6 }}>
+          <p className="body-md progress-immersion-card__summary" style={{ marginTop: 8, lineHeight: 1.6 }}>
             {immersion.heroSummary}
           </p>
         </div>
