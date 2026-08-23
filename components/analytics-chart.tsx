@@ -38,14 +38,27 @@ function valueToY(value: number, domain: ReturnType<typeof getValueDomain>) {
   return 100 - ((value - domain.minValue) / domain.range) * 78 - 10;
 }
 
+function pointToX(points: PerformanceAnalyticsSeries["points"], index: number) {
+  if (points.length <= 1) {
+    return 50;
+  }
+
+  return (index / (points.length - 1)) * 100;
+}
+
 function buildPath(points: PerformanceAnalyticsSeries["points"], domain: ReturnType<typeof getValueDomain>) {
   if (points.length === 0) {
     return "";
   }
 
+  if (points.length === 1) {
+    const y = valueToY(points[0].value, domain);
+    return `M0,${y} L100,${y}`;
+  }
+
   return points
     .map((point, index) => {
-      const x = (index / Math.max(1, points.length - 1)) * 100;
+      const x = pointToX(points, index);
       const y = valueToY(point.value, domain);
       return `${index === 0 ? "M" : "L"}${x},${y}`;
     })
@@ -67,7 +80,7 @@ function getPointPosition(points: PerformanceAnalyticsSeries["points"], index: n
   }
 
   const point = points[index] ?? points.at(-1)!;
-  const x = (index / Math.max(1, points.length - 1)) * 100;
+  const x = pointToX(points, index);
   const y = valueToY(point.value, domain);
   return { x, y };
 }

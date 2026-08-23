@@ -108,6 +108,7 @@ Local repairs applied after the authenticated route pass:
 - `components/analytics-chart.tsx` now builds the area fill from the real line path instead of a placeholder bottom-only polygon.
 - `components/analytics-chart.tsx` and `components/progress-immersion-card.tsx` now use per-instance SVG gradient IDs, avoiding collisions when multiple progress charts/rings are mounted together.
 - `components/analytics-chart.tsx` now marks chart cards with `data-feedback-kpi-card`, so the existing GSAP KPI timeline can animate the card, line, and points consistently.
+- Authenticated preview QA found a one-point chart edge case; `components/analytics-chart.tsx` now centers single points and renders a stable horizontal line/area instead of a triangular fill.
 - `app/globals.css` now styles the actual target-state chart classes and keeps progress ring sparks hidden until the GSAP timeline reveals them.
 - Repository design references do not include a physical Stitch export specifically for `/progress`; `docs/STITCH_MASTER_V2.md` still marks `/progress` as provisional until that export exists.
 
