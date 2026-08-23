@@ -47,6 +47,8 @@ import {
 } from "@/lib/notification-browser";
 import type { Locale } from "@/lib/i18n";
 
+const VAPID_PUBLIC_KEY_FALLBACK = "BCuJmO1RpQoC980hNBmbn59Wou_D0iucT0AAYqFAr2RG-XldKzX3kON1q-iDSRmYoJVD7NhW6xqSnirPlAxibaM";
+
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
   prompt(): Promise<void>;
@@ -681,7 +683,9 @@ export function NotificationSettingsScreen() {
       : runtime.permission === "PERMISSION_DENIED"
         ? copy.howToEnableCta
         : runtime.permission === "PERMISSION_GRANTED"
-          ? copy.customizeCta
+          ? runtime.subscription === "SUBSCRIBED"
+            ? copy.customizeCta
+            : copy.enableCta
           : copy.enableCta;
 
   useEffect(() => {
@@ -848,7 +852,7 @@ export function NotificationSettingsScreen() {
         return;
       }
 
-      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim() ?? "";
+      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim() || VAPID_PUBLIC_KEY_FALLBACK;
       if (!publicKey) {
         setRuntime((current) => ({ ...current, subscription: "SUBSCRIPTION_ERROR" }));
         setRequestState("error");
