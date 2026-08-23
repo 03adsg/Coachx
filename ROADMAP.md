@@ -14,7 +14,7 @@
 | 21 | COMPLETE | Athlete Flow Architecture is complete. |
 | 22 | COMPLETE | Live Workout Experience is complete and established as the production HEAD baseline. |
 | 23 | COMPLETE | Exercise Detail + Alternatives are implemented and documented in `docs/SLICE_23_CLOSURE.md`. |
-| 24 | IMPLEMENTATION COMPLETE / LIVE QA PENDING | Nutrition UX 2.0 implementation is present, but authenticated production QA remains pending per `docs/SLICE_24_LIVE_QA.md`. |
+| 24 | COMPLETE | Nutrition UX 2.0 implementation and connector-backed live QA are complete per `docs/SLICE_24_LIVE_QA.md`. |
 | 25 | COMPLETE | Media System. Production ready. |
 | 26 | COMPLETE | Feedback + Motion polish. Production ready. |
 | 27 | COMPLETE | Inputs and intensity refinement. Production-certified before Slice 28. |
