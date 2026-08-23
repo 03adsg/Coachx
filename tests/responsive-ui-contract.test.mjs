@@ -53,3 +53,22 @@ test("workout responsive shell keeps the browser scroll and sticky CTA contract 
   assert.match(numericControls, /const nextHelper = error \?\? helper \?\? "";?/);
   assert.match(numericControls, /const nextHelper = helper \?\? "";?/);
 });
+
+test("progress analytics preserves mobile geometry, touch, and reduced-motion contracts", async () => {
+  const css = await readRepoFile("app/globals.css");
+  const immersionCard = await readRepoFile("components/progress-immersion-card.tsx");
+  const performanceScreen = await readRepoFile("components/performance-analytics-screen.tsx");
+  const trendsScreen = await readRepoFile("components/progress-trends-screen.tsx");
+
+  assert.match(css, /\.analytics-chart-stack\s*\{[\s\S]*?grid-template-columns: minmax\(0, 1fr\);/);
+  assert.match(css, /\.analytics-range-chip\s*\{[\s\S]*?min-height: 44px;/);
+  assert.match(css, /\.progress-mini-action\s*\{[\s\S]*?min-height: 44px;/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(css, /\.progress-immersion-ring__center\s*\{[\s\S]*?inset: 82px auto auto 50%;/);
+
+  assert.match(immersionCard, /pathLength=\{100\}/);
+  assert.match(immersionCard, /strokeDasharray = `\$\{length\} \$\{length\}`/);
+  assert.match(immersionCard, /progress-immersion-card__hero/);
+  assert.match(performanceScreen, /className="analytics-chart-stack"/);
+  assert.match(trendsScreen, /className="analytics-chart-stack"/);
+});
