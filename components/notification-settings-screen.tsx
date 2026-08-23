@@ -71,9 +71,30 @@ type Copy = {
   permissionDetail: string;
   capabilitySection: string;
   masterSection: string;
+  masterOn: string;
+  masterOff: string;
+  masterOnHelp: string;
+  masterOffHelp: string;
+  categoriesSection: string;
+  categoriesMeta: string;
   timingSection: string;
+  timingMeta: string;
+  workoutLeadLabel: string;
+  hydrationLabel: string;
+  quietHoursLabel: string;
+  quietHoursAriaLabel: string;
+  quietHoursDisabled: string;
+  startLabel: string;
+  endLabel: string;
+  timezoneLabel: string;
   fallbackSection: string;
+  noActiveReminder: string;
+  todayFallbackHelp: string;
+  goToTodayCta: string;
+  laterCta: string;
   privacySection: string;
+  privacyMeta: string;
+  privacyBody: string;
   deliverySection: string;
   syncSaved: string;
   syncPending: string;
@@ -100,12 +121,33 @@ const copyByLocale: Record<Locale, Copy> = {
     doneCta: "Done",
     notNowCta: "Not now",
     permissionSection: "Permission",
-    permissionDetail: "Permission must be requested only after an explicit tap.",
-    capabilitySection: "Capability truth",
+    permissionDetail: "",
+    capabilitySection: "Activation",
     masterSection: "Master control",
+    masterOn: "Notifications ON",
+    masterOff: "Notifications OFF",
+    masterOnHelp: "",
+    masterOffHelp: "",
+    categoriesSection: "Categories",
+    categoriesMeta: "",
     timingSection: "Timing",
-    fallbackSection: "Today fallback",
+    timingMeta: "",
+    workoutLeadLabel: "Workout lead",
+    hydrationLabel: "Hydration",
+    quietHoursLabel: "Quiet hours",
+    quietHoursAriaLabel: "Quiet hours",
+    quietHoursDisabled: "Off",
+    startLabel: "Start",
+    endLabel: "End",
+    timezoneLabel: "Timezone",
+    fallbackSection: "In-app reminders",
+    noActiveReminder: "No active in-app reminder",
+    todayFallbackHelp: "",
+    goToTodayCta: "Go to Today",
+    laterCta: "Later",
     privacySection: "Privacy",
+    privacyMeta: "",
+    privacyBody: "Useful reminders only. No ads, no marketing.",
     deliverySection: "Delivery state",
     syncSaved: "Saved",
     syncPending: "Sync pending",
@@ -130,12 +172,33 @@ const copyByLocale: Record<Locale, Copy> = {
     doneCta: "Hecho",
     notNowCta: "Ahora no",
     permissionSection: "Permiso",
-    permissionDetail: "El permiso solo se pide después de un toque explícito.",
-    capabilitySection: "Verdad de la capacidad",
+    permissionDetail: "",
+    capabilitySection: "Activación",
     masterSection: "Control principal",
+    masterOn: "Notificaciones activas",
+    masterOff: "Notificaciones pausadas",
+    masterOnHelp: "",
+    masterOffHelp: "",
+    categoriesSection: "Categorías",
+    categoriesMeta: "",
     timingSection: "Horario",
-    fallbackSection: "Fallback de Today",
+    timingMeta: "",
+    workoutLeadLabel: "Antelación del entrenamiento",
+    hydrationLabel: "Hidratación",
+    quietHoursLabel: "Horas de silencio",
+    quietHoursAriaLabel: "Horas de silencio",
+    quietHoursDisabled: "Desactivado",
+    startLabel: "Inicio",
+    endLabel: "Fin",
+    timezoneLabel: "Zona horaria",
+    fallbackSection: "Recordatorios en la app",
+    noActiveReminder: "Sin recordatorio activo dentro de la app",
+    todayFallbackHelp: "",
+    goToTodayCta: "Ir a Today",
+    laterCta: "Más tarde",
     privacySection: "Privacidad",
+    privacyMeta: "",
+    privacyBody: "Solo recordatorios útiles. Sin anuncios ni marketing.",
     deliverySection: "Estado de entrega",
     syncSaved: "Guardado",
     syncPending: "Sincronización pendiente",
@@ -160,12 +223,33 @@ const copyByLocale: Record<Locale, Copy> = {
     doneCta: "Fet",
     notNowCta: "Ara no",
     permissionSection: "Permís",
-    permissionDetail: "El permís només es demana després d’un toc explícit.",
-    capabilitySection: "Veritat de la capacitat",
+    permissionDetail: "",
+    capabilitySection: "Activació",
     masterSection: "Control principal",
+    masterOn: "Notificacions actives",
+    masterOff: "Notificacions pausades",
+    masterOnHelp: "",
+    masterOffHelp: "",
+    categoriesSection: "Categories",
+    categoriesMeta: "",
     timingSection: "Horari",
-    fallbackSection: "Fallback de Today",
+    timingMeta: "",
+    workoutLeadLabel: "Antelació de l’entrenament",
+    hydrationLabel: "Hidratació",
+    quietHoursLabel: "Hores de silenci",
+    quietHoursAriaLabel: "Hores de silenci",
+    quietHoursDisabled: "Desactivat",
+    startLabel: "Inici",
+    endLabel: "Fi",
+    timezoneLabel: "Zona horària",
+    fallbackSection: "Recordatoris dins l’app",
+    noActiveReminder: "Cap recordatori actiu dins l’app",
+    todayFallbackHelp: "",
+    goToTodayCta: "Anar a Today",
+    laterCta: "Més tard",
     privacySection: "Privacitat",
+    privacyMeta: "",
+    privacyBody: "Només recordatoris útils. Sense anuncis ni màrqueting.",
     deliverySection: "Estat de lliurament",
     syncSaved: "Desat",
     syncPending: "Sincronització pendent",
@@ -190,12 +274,33 @@ const copyByLocale: Record<Locale, Copy> = {
     doneCta: "Fertig",
     notNowCta: "Nicht jetzt",
     permissionSection: "Berechtigung",
-    permissionDetail: "Die Berechtigung wird erst nach einem klaren Tap angefragt.",
-    capabilitySection: "Fähigkeitsstatus",
+    permissionDetail: "",
+    capabilitySection: "Aktivierung",
     masterSection: "Hauptschalter",
+    masterOn: "Benachrichtigungen AN",
+    masterOff: "Benachrichtigungen AUS",
+    masterOnHelp: "",
+    masterOffHelp: "",
+    categoriesSection: "Kategorien",
+    categoriesMeta: "",
     timingSection: "Zeitsteuerung",
-    fallbackSection: "Today-Fallback",
+    timingMeta: "",
+    workoutLeadLabel: "Trainings-Vorlauf",
+    hydrationLabel: "Hydration",
+    quietHoursLabel: "Ruhezeiten",
+    quietHoursAriaLabel: "Ruhezeiten",
+    quietHoursDisabled: "Aus",
+    startLabel: "Start",
+    endLabel: "Ende",
+    timezoneLabel: "Zeitzone",
+    fallbackSection: "In-App-Erinnerungen",
+    noActiveReminder: "Keine aktive In-App-Erinnerung",
+    todayFallbackHelp: "",
+    goToTodayCta: "Zu Today",
+    laterCta: "Später",
     privacySection: "Datenschutz",
+    privacyMeta: "",
+    privacyBody: "Nur nützliche Erinnerungen. Keine Werbung, kein Marketing.",
     deliverySection: "Auslieferungsstatus",
     syncSaved: "Gespeichert",
     syncPending: "Sync ausstehend",
@@ -466,7 +571,7 @@ function SwitchRow({
   disabled = false
 }: {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   checked: boolean;
   onToggle: () => void;
   disabled?: boolean;
@@ -491,9 +596,11 @@ function SwitchRow({
           <div className="body-md" style={{ fontWeight: 700 }}>
             {title}
           </div>
-          <p className="caption" style={{ marginTop: 6 }}>
-            {subtitle}
-          </p>
+          {subtitle ? (
+            <p className="caption" style={{ marginTop: 6 }}>
+              {subtitle}
+            </p>
+          ) : null}
         </div>
         <span
           aria-hidden="true"
@@ -1066,7 +1173,7 @@ export function NotificationSettingsScreen() {
                 <StatePill label={getPermissionLabel(runtime.permission, locale)} tone={runtime.permission === "PERMISSION_GRANTED" ? "accent" : runtime.permission === "PERMISSION_DENIED" ? "error" : "neutral"} />
                 <StatePill label={getSubscriptionLabel(runtime.subscription, locale)} />
               </div>
-              <p className="caption">{permissionHelp}</p>
+              {permissionHelp ? <p className="caption">{permissionHelp}</p> : null}
               <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
                 <PrimaryButton onClick={handleEnableNotifications} className="focus-ring">
                   {nextActionLabel}
@@ -1075,32 +1182,20 @@ export function NotificationSettingsScreen() {
                   {copy.notNowCta}
                 </SecondaryButton>
               </div>
-              <div className="stack" style={{ gap: 8 }}>
-                <div className="eyebrow">System / browser UI</div>
-                <div className="body-md" style={{ fontWeight: 700 }}>
-                  {runtime.permission === "PERMISSION_DEFAULT"
-                    ? copy.defaultHelp
-                    : runtime.permission === "PERMISSION_GRANTED"
-                      ? copy.grantedHelp
-                      : runtime.permission === "PERMISSION_DENIED"
-                        ? copy.deniedHelp
-                        : copy.installHelp}
-                </div>
-              </div>
             </div>
           </Card>
         </Section>
 
         <Section title={copy.masterSection} meta={copy.manageCta}>
           <SwitchRow
-            title={preferences.masterEnabled ? "Notifications ON" : "Notifications OFF"}
-            subtitle={preferences.masterEnabled ? "Category choices stay preserved while delivery is active." : "Preferences stay stored, delivery is paused, and push permission is not revoked."}
+            title={preferences.masterEnabled ? copy.masterOn : copy.masterOff}
+            subtitle={preferences.masterEnabled ? copy.masterOnHelp : copy.masterOffHelp}
             checked={preferences.masterEnabled}
             onToggle={toggleMaster}
           />
         </Section>
 
-        <Section title="Categories" meta="WORKOUT · MEALS · HYDRATION · SUPPLEMENTS · CHECK-IN · SLEEP / WIND DOWN">
+        <Section title={copy.categoriesSection} meta={copy.categoriesMeta}>
           <div className="stack" style={{ gap: 12 }}>
             {preferences.categories.map((category) => (
               <CategoryRow key={category.id} category={category} disabled={!preferences.masterEnabled} onToggle={() => toggleCategory(category.id)} />
@@ -1108,10 +1203,10 @@ export function NotificationSettingsScreen() {
           </div>
         </Section>
 
-        <Section title={copy.timingSection} meta="Workout lead, hydration frequency and quiet hours">
+        <Section title={copy.timingSection} meta={copy.timingMeta}>
           <div className="stack" style={{ gap: 16 }}>
             <SegmentedChoice
-              label="Workout lead"
+              label={copy.workoutLeadLabel}
               value={preferences.workoutLeadMinutes}
               onSelect={updateLeadMinutes}
               options={[
@@ -1121,7 +1216,7 @@ export function NotificationSettingsScreen() {
               ]}
             />
             <SegmentedChoice
-              label="Hydration"
+              label={copy.hydrationLabel}
               value={preferences.hydrationIntervalMinutes}
               onSelect={updateHydrationInterval}
               options={[
@@ -1134,15 +1229,15 @@ export function NotificationSettingsScreen() {
               <div className="stack" style={{ gap: 14 }}>
                 <div className="row" style={{ alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                   <div>
-                    <div className="eyebrow">Quiet hours</div>
+                    <div className="eyebrow">{copy.quietHoursLabel}</div>
                     <div className="body-md" style={{ fontWeight: 700, marginTop: 6 }}>
-                      {preferences.quietHours.enabled ? `${preferences.quietHours.start} – ${preferences.quietHours.end}` : locale === "es" ? "Desactivado" : locale === "ca" ? "Desactivat" : locale === "de" ? "Aus" : "Off"}
+                      {preferences.quietHours.enabled ? `${preferences.quietHours.start} – ${preferences.quietHours.end}` : copy.quietHoursDisabled}
                     </div>
                   </div>
                   <button
                     type="button"
                     role="switch"
-                    aria-label="Quiet hours"
+                    aria-label={copy.quietHoursAriaLabel}
                     aria-checked={preferences.quietHours.enabled}
                     onClick={() => updateQuietHours({ enabled: !preferences.quietHours.enabled })}
                     className="focus-ring"
@@ -1170,11 +1265,11 @@ export function NotificationSettingsScreen() {
                   </button>
                 </div>
                 <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
-                  <TimeField label="Start" value={preferences.quietHours.start} onChange={(value) => updateQuietHours({ start: value })} />
-                  <TimeField label="End" value={preferences.quietHours.end} onChange={(value) => updateQuietHours({ end: value })} />
+                  <TimeField label={copy.startLabel} value={preferences.quietHours.start} onChange={(value) => updateQuietHours({ start: value })} />
+                  <TimeField label={copy.endLabel} value={preferences.quietHours.end} onChange={(value) => updateQuietHours({ end: value })} />
                 </div>
                 <p className="caption">
-                  Timezone: {preferences.quietHours.timezone}
+                  {copy.timezoneLabel}: {preferences.quietHours.timezone}
                 </p>
               </div>
             </Card>
@@ -1194,18 +1289,18 @@ export function NotificationSettingsScreen() {
                 </p>
                 <div className="row" style={{ gap: 12, flexWrap: "wrap", marginTop: 4 }}>
                   <PrimaryButton onClick={() => void handleReminderAction(currentReminder, "done")}>{copy.doneCta}</PrimaryButton>
-                  <SecondaryButton onClick={() => void handleReminderAction(currentReminder, "later")}>Later</SecondaryButton>
+                  <SecondaryButton onClick={() => void handleReminderAction(currentReminder, "later")}>{copy.laterCta}</SecondaryButton>
                 </div>
               </div>
             </Card>
           ) : (
             <Card className="p-16">
               <div className="stack" style={{ gap: 10 }}>
-                <div className="eyebrow">No active in-app reminder</div>
-                <p className="caption">Today will surface the next relevant reminder if push is unavailable or blocked.</p>
+                <div className="eyebrow">{copy.noActiveReminder}</div>
+                {copy.todayFallbackHelp ? <p className="caption">{copy.todayFallbackHelp}</p> : null}
                 <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
                   <PrimaryButton href="/" className="focus-ring">
-                    Go to Today
+                    {copy.goToTodayCta}
                   </PrimaryButton>
                   <SecondaryButton onClick={() => router.push("/profile")} className="focus-ring">
                     {copy.doneCta}
@@ -1216,10 +1311,10 @@ export function NotificationSettingsScreen() {
           )}
         </Section>
 
-        <Section title={copy.privacySection} meta="Notification permission is used only for reminders you enable.">
+        <Section title={copy.privacySection} meta={copy.privacyMeta}>
           <Card className="p-16">
             <p className="body-md" style={{ margin: 0 }}>
-              AthlexForce uses notification permission only for the reminder categories you choose. No ads, no social feed, no coach messaging, no marketing notifications.
+              {copy.privacyBody}
             </p>
             <div className="row" style={{ flexWrap: "wrap", gap: 8, marginTop: 12 }}>
               <StatePill label={copy.syncSaved} tone={syncState === "saved" ? "accent" : "neutral"} />
@@ -1236,7 +1331,7 @@ export function NotificationSettingsScreen() {
               {copy.doneCta}
             </PrimaryButton>
             <SecondaryButton onClick={() => router.push("/")} className="focus-ring">
-              Today
+              {copy.goToTodayCta}
             </SecondaryButton>
           </div>
         </section>
