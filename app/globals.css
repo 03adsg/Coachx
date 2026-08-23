@@ -3775,7 +3775,7 @@ img {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 14px;
   border-radius: 9999px;
   border: 1px solid var(--accent-primary);
@@ -4337,7 +4337,7 @@ img {
 }
 
 .analytics-range-chip {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 14px;
   border-radius: 9999px;
   border: 1px solid var(--border-quiet);
@@ -4511,6 +4511,7 @@ img {
 
 .analytics-point-chip {
   min-width: 88px;
+  min-height: 44px;
   padding: 10px 12px;
   border-radius: 14px;
   border: 1px solid var(--border-quiet);
@@ -4520,6 +4521,17 @@ img {
   display: grid;
   gap: 3px;
   flex: 0 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .analytics-point-chip.active {
