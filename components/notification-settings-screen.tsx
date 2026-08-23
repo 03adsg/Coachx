@@ -110,13 +110,13 @@ type Copy = {
 const copyByLocale: Record<Locale, Copy> = {
   en: {
     title: "Notifications",
-    subtitle: "Useful reminders only. No spam, no streak pressure.",
+    subtitle: "",
     summaryLabel: "Status",
-    manageCta: "Manage notifications",
+    manageCta: "",
     enableCta: "Enable notifications",
     installCta: "Install app",
     howToEnableCta: "How to enable",
-    inAppCta: "Use in-app reminders",
+    inAppCta: "",
     customizeCta: "Customize reminders",
     doneCta: "Done",
     notNowCta: "Not now",
@@ -147,7 +147,7 @@ const copyByLocale: Record<Locale, Copy> = {
     laterCta: "Later",
     privacySection: "Privacy",
     privacyMeta: "",
-    privacyBody: "Useful reminders only. No ads, no marketing.",
+    privacyBody: "",
     deliverySection: "Delivery state",
     syncSaved: "Saved",
     syncPending: "Sync pending",
@@ -161,13 +161,13 @@ const copyByLocale: Record<Locale, Copy> = {
   },
   es: {
     title: "Notificaciones",
-    subtitle: "Solo recordatorios útiles. Sin spam ni presión.",
+    subtitle: "",
     summaryLabel: "Estado",
-    manageCta: "Gestionar notificaciones",
+    manageCta: "",
     enableCta: "Activar notificaciones",
     installCta: "Instalar app",
     howToEnableCta: "Cómo activarlas",
-    inAppCta: "Usar recordatorios dentro de la app",
+    inAppCta: "",
     customizeCta: "Ajustar recordatorios",
     doneCta: "Hecho",
     notNowCta: "Ahora no",
@@ -198,7 +198,7 @@ const copyByLocale: Record<Locale, Copy> = {
     laterCta: "Más tarde",
     privacySection: "Privacidad",
     privacyMeta: "",
-    privacyBody: "Solo recordatorios útiles. Sin anuncios ni marketing.",
+    privacyBody: "",
     deliverySection: "Estado de entrega",
     syncSaved: "Guardado",
     syncPending: "Sincronización pendiente",
@@ -212,13 +212,13 @@ const copyByLocale: Record<Locale, Copy> = {
   },
   ca: {
     title: "Notificacions",
-    subtitle: "Només recordatoris útils. Sense spam ni pressió.",
+    subtitle: "",
     summaryLabel: "Estat",
-    manageCta: "Gestionar notificacions",
+    manageCta: "",
     enableCta: "Activar notificacions",
     installCta: "Instal·lar app",
     howToEnableCta: "Com activar-les",
-    inAppCta: "Usar recordatoris dins l’app",
+    inAppCta: "",
     customizeCta: "Ajustar recordatoris",
     doneCta: "Fet",
     notNowCta: "Ara no",
@@ -249,7 +249,7 @@ const copyByLocale: Record<Locale, Copy> = {
     laterCta: "Més tard",
     privacySection: "Privacitat",
     privacyMeta: "",
-    privacyBody: "Només recordatoris útils. Sense anuncis ni màrqueting.",
+    privacyBody: "",
     deliverySection: "Estat de lliurament",
     syncSaved: "Desat",
     syncPending: "Sincronització pendent",
@@ -263,13 +263,13 @@ const copyByLocale: Record<Locale, Copy> = {
   },
   de: {
     title: "Benachrichtigungen",
-    subtitle: "Nur nützliche Erinnerungen. Kein Spam, kein Druck.",
+    subtitle: "",
     summaryLabel: "Status",
-    manageCta: "Benachrichtigungen verwalten",
+    manageCta: "",
     enableCta: "Benachrichtigungen aktivieren",
     installCta: "App installieren",
     howToEnableCta: "So aktivierst du sie",
-    inAppCta: "In-App-Erinnerungen verwenden",
+    inAppCta: "",
     customizeCta: "Erinnerungen anpassen",
     doneCta: "Fertig",
     notNowCta: "Nicht jetzt",
@@ -300,7 +300,7 @@ const copyByLocale: Record<Locale, Copy> = {
     laterCta: "Später",
     privacySection: "Datenschutz",
     privacyMeta: "",
-    privacyBody: "Nur nützliche Erinnerungen. Keine Werbung, kein Marketing.",
+    privacyBody: "",
     deliverySection: "Auslieferungsstatus",
     syncSaved: "Gespeichert",
     syncPending: "Sync ausstehend",
@@ -1149,9 +1149,11 @@ export function NotificationSettingsScreen() {
               <h1 className="headline-xl" style={{ margin: 0 }}>
                 {copy.title}
               </h1>
-              <p className="body-md" style={{ color: "var(--text-muted)", margin: 0 }}>
-                {copy.subtitle}
-              </p>
+              {copy.subtitle ? (
+                <p className="body-md" style={{ color: "var(--text-muted)", margin: 0 }}>
+                  {copy.subtitle}
+                </p>
+              ) : null}
               <div className="row" style={{ flexWrap: "wrap", gap: 8, marginTop: 4 }}>
                 <StatePill label={getCapabilityLabel(runtime.capability, locale)} tone={runtime.capability === "SUPPORTED" ? "accent" : runtime.capability === "INSTALL_REQUIRED" ? "warning" : "error"} />
                 <StatePill label={getPermissionLabel(runtime.permission, locale)} tone={runtime.permission === "PERMISSION_GRANTED" ? "accent" : runtime.permission === "PERMISSION_DENIED" ? "error" : "neutral"} />
@@ -1313,10 +1315,12 @@ export function NotificationSettingsScreen() {
 
         <Section title={copy.privacySection} meta={copy.privacyMeta}>
           <Card className="p-16">
-            <p className="body-md" style={{ margin: 0 }}>
-              {copy.privacyBody}
-            </p>
-            <div className="row" style={{ flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+            {copy.privacyBody ? (
+              <p className="body-md" style={{ margin: 0 }}>
+                {copy.privacyBody}
+              </p>
+            ) : null}
+            <div className="row" style={{ flexWrap: "wrap", gap: 8, marginTop: copy.privacyBody ? 12 : 0 }}>
               <StatePill label={copy.syncSaved} tone={syncState === "saved" ? "accent" : "neutral"} />
               <StatePill label={syncState === "offline" ? copy.syncPending : syncState === "error" ? copy.syncFailed : copy.syncSaved} tone={syncState === "error" ? "warning" : syncState === "offline" ? "warning" : "neutral"} />
               <StatePill label={deliveryTruth === "DISABLED_BY_USER" ? "Disabled by user" : getDeliveryLabel(deliveryTruth, locale)} tone={deliveryTruth === "READY" ? "accent" : deliveryTruth === "OFFLINE_SYNC" ? "warning" : "neutral"} />
