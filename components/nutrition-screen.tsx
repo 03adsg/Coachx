@@ -507,6 +507,8 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
   const activeSlot = day.mealSlots.find((slot) => slot.id === openSlotId) ?? null;
   const safeOptions = activeSlot ? getSafeMealOptions(activeSlot, day.safetyProfile) : [];
   const nextMeal = useMemo(() => day.mealSlots.find((slot) => resolveNutritionMealUiState(slot) === "next") ?? day.mealSlots.find((slot) => slot.state !== "completed") ?? null, [day.mealSlots]);
+  const nextMealPresentation = nextMeal ? presentation?.mealSlots[nextMeal.id] ?? null : null;
+  const nextMealLabel = nextMeal ? nextMealPresentation?.label ?? copy.mealLabels[nextMeal.id as keyof typeof copy.mealLabels] ?? nextMeal.label : "";
   const completedMeals = useMemo(() => day.mealSlots.filter((slot) => slot.state === "completed").length, [day.mealSlots]);
   const totalMeals = day.mealSlots.length;
   const remainingCalories = Math.max(0, day.target.calories - day.progress.calories);
@@ -591,10 +593,10 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
               {nextMeal ? (
                 <>
                   <div className="body-md" style={{ fontWeight: 700, textTransform: "uppercase" }}>
-                    {nextMeal.timeLabel} · {nextMeal.label}
+                    {nextMeal.timeLabel} · {nextMealLabel}
                   </div>
                   <div className="headline-md" style={{ marginTop: 6 }}>
-                    {nextMeal.selectedOptionId ? nextMeal.options.find((option) => option.id === nextMeal.selectedOptionId)?.name ?? nextMeal.label : nextMeal.label}
+                    {nextMeal.selectedOptionId ? nextMeal.options.find((option) => option.id === nextMeal.selectedOptionId)?.name ?? nextMealLabel : nextMealLabel}
                   </div>
                 </>
               ) : (
