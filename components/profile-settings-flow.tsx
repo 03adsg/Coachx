@@ -116,8 +116,8 @@ function profileSettingsCopyFor(locale: string) {
     {
       en: {
         languageTitle: "Language",
-        languageSubtitle: "App-wide language preference",
-        languageCopy: "Choose the language used across athlete navigation and settings.",
+        languageSubtitle: "",
+        languageCopy: "",
         profileSaved: "Profile saved",
         notificationsTitle: "Notifications",
         notificationsSubtitle: "Choose what AthlexForce should remind you about.",
@@ -145,8 +145,8 @@ function profileSettingsCopyFor(locale: string) {
       },
       es: {
         languageTitle: "Idioma",
-        languageSubtitle: "Preferencia de idioma de toda la app",
-        languageCopy: "Elige el idioma que se usará en la navegación y los ajustes del atleta.",
+        languageSubtitle: "",
+        languageCopy: "",
         profileSaved: "Perfil guardado",
         notificationsTitle: "Notificaciones",
         notificationsSubtitle: "Elige qué debe recordarte AthlexForce.",
@@ -174,8 +174,8 @@ function profileSettingsCopyFor(locale: string) {
       },
       ca: {
         languageTitle: "Idioma",
-        languageSubtitle: "Preferència d'idioma de tota l'app",
-        languageCopy: "Tria l'idioma que s'utilitzarà a la navegació i els ajustos de l'atleta.",
+        languageSubtitle: "",
+        languageCopy: "",
         profileSaved: "Perfil desat",
         notificationsTitle: "Notificacions",
         notificationsSubtitle: "Tria què t'ha de recordar AthlexForce.",
@@ -203,8 +203,8 @@ function profileSettingsCopyFor(locale: string) {
       },
       de: {
         languageTitle: "Sprache",
-        languageSubtitle: "App-weite Spracheinstellung",
-        languageCopy: "Wähle die Sprache für Navigation und Einstellungen der Athletenansicht.",
+        languageSubtitle: "",
+        languageCopy: "",
         profileSaved: "Profil gespeichert",
         notificationsTitle: "Benachrichtigungen",
         notificationsSubtitle: "Wähle aus, woran dich AthlexForce erinnern soll.",
@@ -232,8 +232,8 @@ function profileSettingsCopyFor(locale: string) {
       }
     }[locale as "en" | "es" | "ca" | "de"] ?? {
       languageTitle: "Language",
-      languageSubtitle: "App-wide language preference",
-      languageCopy: "Choose the language used across athlete navigation and settings.",
+      languageSubtitle: "",
+      languageCopy: "",
       profileSaved: "Profile saved",
       notificationsTitle: "Notifications",
       notificationsSubtitle: "Choose what AthlexForce should remind you about.",
@@ -877,7 +877,6 @@ export function ProfileLanguageScreen() {
     <EditorShell backHref="/profile/preferences" title={copy.languageTitle} subtitle={copy.languageSubtitle}>
       <section className="section">
         <Card className="p-16 language-settings-card" style={{ borderRadius: 20 }}>
-          <p className="caption language-settings-card__copy">{copy.languageCopy}</p>
           <LanguageSelector value={saved.profile.locale} onChange={commitLocale} compact />
         </Card>
       </section>
