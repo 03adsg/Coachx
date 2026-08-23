@@ -149,7 +149,7 @@ export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScre
         </section>
 
         <section className="section">
-          <div className="grid-2">
+          <div className="analytics-chart-stack">
             <AnalyticsChartCard
               title={dashboard.charts.weight.title}
               subtitle={dashboard.charts.weight.subtitle}
@@ -173,7 +173,7 @@ export function ProgressTrendsScreen({ dashboard, basePath }: ProgressTrendsScre
         </section>
 
         <section className="section">
-          <div className="grid-2">
+          <div className="analytics-chart-stack">
             <AnalyticsChartCard
               title={dashboard.charts.nutrition.title}
               subtitle={dashboard.charts.nutrition.subtitle}

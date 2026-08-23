@@ -202,19 +202,19 @@ export function PerformanceAnalyticsScreen({ dashboard, basePath }: PerformanceA
         </section>
 
         <section className="section">
-          <div className="grid-2">
-          <AnalyticsChartCard
-            title={dashboard.charts.nutrition.title}
-            subtitle={dashboard.charts.nutrition.subtitle}
-            unit={dashboard.charts.nutrition.unit}
-            series={dashboard.charts.nutrition.series[0] ?? { id: "nutrition-empty", label: dashboard.charts.nutrition.title, unit: "%", accent: "#FFFFFF", points: [] }}
-            pointsLabel={dashboard.copy.dataPoints}
-            emptyTitle={dashboard.charts.nutrition.emptyTitle}
-            emptyCopy={dashboard.charts.nutrition.emptyCopy}
-            targetValue={dashboard.immersion.targets.find((target) => target.kind === "nutrition_adherence")?.target ?? null}
-            targetLabel={dashboard.immersion.targets.find((target) => target.kind === "nutrition_adherence")?.label ?? null}
-            targetState={dashboard.immersion.targets.find((target) => target.kind === "nutrition_adherence")?.state ?? null}
-          />
+          <div className="analytics-chart-stack">
+            <AnalyticsChartCard
+              title={dashboard.charts.nutrition.title}
+              subtitle={dashboard.charts.nutrition.subtitle}
+              unit={dashboard.charts.nutrition.unit}
+              series={dashboard.charts.nutrition.series[0] ?? { id: "nutrition-empty", label: dashboard.charts.nutrition.title, unit: "%", accent: "#FFFFFF", points: [] }}
+              pointsLabel={dashboard.copy.dataPoints}
+              emptyTitle={dashboard.charts.nutrition.emptyTitle}
+              emptyCopy={dashboard.charts.nutrition.emptyCopy}
+              targetValue={dashboard.immersion.targets.find((target) => target.kind === "nutrition_adherence")?.target ?? null}
+              targetLabel={dashboard.immersion.targets.find((target) => target.kind === "nutrition_adherence")?.label ?? null}
+              targetState={dashboard.immersion.targets.find((target) => target.kind === "nutrition_adherence")?.state ?? null}
+            />
             <AnalyticsChartCard
               title={dashboard.charts.recovery.title}
               subtitle={dashboard.charts.recovery.subtitle}
