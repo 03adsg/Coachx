@@ -730,9 +730,6 @@ function CategoryRow({
           <div className="body-md" style={{ fontWeight: 700 }}>
             {category.label}
           </div>
-          <p className="caption" style={{ marginTop: 6 }}>
-            {category.description}
-          </p>
         </div>
         <span
           aria-hidden="true"
