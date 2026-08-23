@@ -457,11 +457,6 @@ function MealCard({
                   ? selectedOptionName
                   : slotLabel}
           </h3>
-          <p className="caption nutrition-meal-card__subtitle">
-            {selectedOption
-              ? presentation?.options[selectedOption.id]?.summary ?? selectedOption.summary
-              : localizedSlot?.description ?? slot.description}
-          </p>
         </div>
         <span className="nutrition-meal-card__macro">{slot.target.calories} kcal</span>
       </div>
@@ -601,9 +596,6 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
                   <div className="headline-md" style={{ marginTop: 6 }}>
                     {nextMeal.selectedOptionId ? nextMeal.options.find((option) => option.id === nextMeal.selectedOptionId)?.name ?? nextMeal.label : nextMeal.label}
                   </div>
-                  <p className="caption" style={{ marginTop: 6 }}>
-                    {nextMeal.description}
-                  </p>
                 </>
               ) : (
                 <div className="body-md" style={{ fontWeight: 700 }}>
