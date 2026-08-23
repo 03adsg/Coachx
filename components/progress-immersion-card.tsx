@@ -3,6 +3,7 @@
 import { useId, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import { gsap } from "gsap";
 import { Card } from "@/components/ui";
+import { useLocale } from "@/components/locale-provider";
 import { useReducedMotion } from "@/motion/useReducedMotion";
 import type { MotivationalImmersionState, ProgressIntensityLevel } from "@/lib/motivational-immersion";
 
@@ -184,6 +185,13 @@ function ProgressIntensityRing({ immersion, compact = false }: { immersion: Moti
 
 export function ProgressImmersionCard({ immersion, action, compact = false }: ProgressImmersionCardProps) {
   const toneClass = immersion.backgroundTone ?? immersion.state;
+  const { locale } = useLocale();
+  const fallbackCopy = {
+    en: { targetStatus: "Target status", noTarget: "No target yet", noTargetBody: "Add a measurable target to activate this progress view." },
+    es: { targetStatus: "Estado del objetivo", noTarget: "Aún no hay objetivo", noTargetBody: "Añade un objetivo medible para activar esta vista de progreso." },
+    ca: { targetStatus: "Estat de l'objectiu", noTarget: "Encara no hi ha objectiu", noTargetBody: "Afegeix un objectiu mesurable per activar aquesta vista de progrés." },
+    de: { targetStatus: "Zielstatus", noTarget: "Noch kein Ziel", noTargetBody: "Füge ein messbares Ziel hinzu, um diese Fortschrittsansicht zu aktivieren." }
+  }[locale];
 
   return (
     <Card className={`progress-immersion-card progress-immersion-card--${toneClass} p-16${compact ? " compact" : ""}`.trim()}>
@@ -214,7 +222,7 @@ export function ProgressImmersionCard({ immersion, action, compact = false }: Pr
           </div>
           <div>
             <div className="caption" style={{ textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              Target status
+              {fallbackCopy.targetStatus}
             </div>
             <div className="body-md" style={{ marginTop: 6, fontWeight: 700 }}>
               {immersion.remainingLabel}
@@ -248,10 +256,10 @@ export function ProgressImmersionCard({ immersion, action, compact = false }: Pr
         ) : (
           <div className="progress-immersion-target progress-immersion-target--calm">
             <div className="body-md" style={{ fontWeight: 700 }}>
-              No target yet
+              {fallbackCopy.noTarget}
             </div>
             <div className="caption" style={{ marginTop: 6, lineHeight: 1.5 }}>
-              AthlexForce stays calm until a real target is available.
+              {fallbackCopy.noTargetBody}
             </div>
           </div>
         )}

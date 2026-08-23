@@ -138,6 +138,56 @@ const localeCopy: Record<Locale, Record<"steady" | "building" | "close" | "heat"
   }
 };
 
+const immersionLabels: Record<Locale, {
+  trainingAdherence: string;
+  nutritionAdherence: string;
+  hydration: string;
+  weeklyCheckIn: string;
+  nutritionPlan: string;
+  dailyNutrition: string;
+  phaseMilestone: string;
+  phaseCompletion: string;
+  phaseReview: string;
+  workoutsLogged: (count: string) => string;
+  bestLoadMatched: (weight: string) => string;
+  newBestSummary: string;
+  achievedSummary: string;
+  phaseCompleteSummary: (phaseLabel: string) => string;
+  heatSummary: string;
+  closeSummary: string;
+  activeSummary: string;
+  calmSummary: string;
+}> = {
+  en: {
+    trainingAdherence: "Training adherence", nutritionAdherence: "Nutrition adherence", hydration: "Hydration",
+    weeklyCheckIn: "Weekly check-in", nutritionPlan: "Nutrition plan", dailyNutrition: "Daily nutrition", phaseMilestone: "Phase milestone", phaseCompletion: "Phase completion", phaseReview: "Phase review",
+    workoutsLogged: (count) => `${count} workouts logged`, bestLoadMatched: (weight) => `${weight} matched the best completed load`, newBestSummary: "A new best has landed. Keep the line moving.",
+    achievedSummary: "The target has been hit.", phaseCompleteSummary: (phaseLabel) => `${phaseLabel} is complete. Now we build from here.`,
+    heatSummary: "The last stretch is warm now.", closeSummary: "You are almost there.", activeSummary: "The target is building steadily.", calmSummary: "No target is close enough yet to heat the screen."
+  },
+  es: {
+    trainingAdherence: "Adherencia al entrenamiento", nutritionAdherence: "Adherencia nutricional", hydration: "Hidratación",
+    weeklyCheckIn: "Check-in semanal", nutritionPlan: "Plan nutricional", dailyNutrition: "Nutrición diaria", phaseMilestone: "Hito de fase", phaseCompletion: "Fase completada", phaseReview: "Revisión de fase",
+    workoutsLogged: (count) => `${count} entrenamientos registrados`, bestLoadMatched: (weight) => `${weight} iguala la mejor carga completada`, newBestSummary: "Has alcanzado una nueva mejor marca. Mantén la progresión.",
+    achievedSummary: "Has alcanzado el objetivo.", phaseCompleteSummary: (phaseLabel) => `${phaseLabel} está completada. Ahora seguimos construyendo.`,
+    heatSummary: "El último tramo ya está cerca.", closeSummary: "Ya casi has llegado.", activeSummary: "El objetivo avanza de forma constante.", calmSummary: "Sigue registrando datos para acercarte al objetivo."
+  },
+  ca: {
+    trainingAdherence: "Adherència a l'entrenament", nutritionAdherence: "Adherència nutricional", hydration: "Hidratació",
+    weeklyCheckIn: "Check-in setmanal", nutritionPlan: "Pla nutricional", dailyNutrition: "Nutrició diària", phaseMilestone: "Fita de fase", phaseCompletion: "Fase completada", phaseReview: "Revisió de fase",
+    workoutsLogged: (count) => `${count} entrenaments registrats`, bestLoadMatched: (weight) => `${weight} iguala la millor càrrega completada`, newBestSummary: "Has assolit una nova millor marca. Mantén la progressió.",
+    achievedSummary: "Has assolit l'objectiu.", phaseCompleteSummary: (phaseLabel) => `${phaseLabel} està completada. Ara continuem construint.`,
+    heatSummary: "L'últim tram ja és a prop.", closeSummary: "Ja gairebé hi ets.", activeSummary: "L'objectiu avança de manera constant.", calmSummary: "Continua registrant dades per apropar-te a l'objectiu."
+  },
+  de: {
+    trainingAdherence: "Trainingstreue", nutritionAdherence: "Ernährungstreue", hydration: "Flüssigkeitszufuhr",
+    weeklyCheckIn: "Wöchentlicher Check-in", nutritionPlan: "Ernährungsplan", dailyNutrition: "Tägliche Ernährung", phaseMilestone: "Phasenziel", phaseCompletion: "Phasenabschluss", phaseReview: "Phasenprüfung",
+    workoutsLogged: (count) => `${count} Trainings erfasst`, bestLoadMatched: (weight) => `${weight} entspricht der besten abgeschlossenen Last`, newBestSummary: "Eine neue Bestleistung ist erreicht. Halte die Entwicklung auf Kurs.",
+    achievedSummary: "Das Ziel wurde erreicht.", phaseCompleteSummary: (phaseLabel) => `${phaseLabel} ist abgeschlossen. Darauf bauen wir jetzt auf.`,
+    heatSummary: "Die letzte Etappe ist in Reichweite.", closeSummary: "Du bist fast am Ziel.", activeSummary: "Das Ziel entwickelt sich stetig.", calmSummary: "Erfasse weiter Daten, um dem Ziel näherzukommen."
+  }
+};
+
 function createId(prefix: string) {
   return `${prefix}-${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`}`;
 }
@@ -270,6 +320,7 @@ function getCopy(locale: Locale) {
 
 export function buildMotivationalImmersion(locale: Locale, input: MotivationalImmersionInput): MotivationalImmersionState {
   const copy = getCopy(locale);
+  const labels = immersionLabels[locale];
   const targets: MotivationalTarget[] = [];
 
   if (typeof input.trainingAdherencePercent === "number") {
@@ -277,8 +328,8 @@ export function buildMotivationalImmersion(locale: Locale, input: MotivationalIm
       buildTarget(locale, {
         id: createId("training-adherence"),
         kind: "training_adherence",
-        label: "Training adherence",
-        sourceLabel: "Weekly check-in",
+        label: labels.trainingAdherence,
+        sourceLabel: labels.weeklyCheckIn,
         value: input.trainingAdherencePercent,
         target: 100,
         unit: "%",
@@ -292,8 +343,8 @@ export function buildMotivationalImmersion(locale: Locale, input: MotivationalIm
       buildTarget(locale, {
         id: createId("nutrition-adherence"),
         kind: "nutrition_adherence",
-        label: "Nutrition adherence",
-        sourceLabel: "Nutrition plan",
+        label: labels.nutritionAdherence,
+        sourceLabel: labels.nutritionPlan,
         value: input.nutritionAdherencePercent,
         target: 100,
         unit: "%",
@@ -307,8 +358,8 @@ export function buildMotivationalImmersion(locale: Locale, input: MotivationalIm
       buildTarget(locale, {
         id: createId("hydration"),
         kind: "hydration",
-        label: "Hydration",
-        sourceLabel: "Daily nutrition",
+        label: labels.hydration,
+        sourceLabel: labels.dailyNutrition,
         value: input.hydrationMl,
         target: input.hydrationTargetMl,
         unit: "ml",
@@ -324,11 +375,11 @@ export function buildMotivationalImmersion(locale: Locale, input: MotivationalIm
   const milestones: MotivationalMilestone[] = [];
 
   if (input.workoutSessionCount >= 1) {
-    milestones.push(buildMilestone(locale, "first-workout", copy.firstWorkout, `${input.workoutSessionCount} workouts logged`, true, "neutral"));
+    milestones.push(buildMilestone(locale, "first-workout", copy.firstWorkout, labels.workoutsLogged(formatValue(locale, input.workoutSessionCount, 0)), true, "neutral"));
   }
 
   if (input.workoutSessionCount >= 10) {
-    milestones.push(buildMilestone(locale, "ten-workouts", copy.tenWorkouts, `${formatValue(locale, input.workoutSessionCount, 0)} workouts logged`, true, "warm"));
+    milestones.push(buildMilestone(locale, "ten-workouts", copy.tenWorkouts, labels.workoutsLogged(formatValue(locale, input.workoutSessionCount, 0)), true, "warm"));
   }
 
   if (input.phaseComplete) {
@@ -337,7 +388,7 @@ export function buildMotivationalImmersion(locale: Locale, input: MotivationalIm
 
   if (hasNewBest && workoutLatest != null && workoutBest != null) {
     const weightLabel = `${formatValue(locale, workoutLatest, 0)} kg`;
-    milestones.push(buildMilestone(locale, "new-best-load", copy.newBestLoad, `${weightLabel} matched the best completed load`, true, "hot"));
+    milestones.push(buildMilestone(locale, "new-best-load", copy.newBestLoad, labels.bestLoadMatched(weightLabel), true, "hot"));
   }
 
   const primaryTarget = pickPrimaryTarget(targets);
@@ -359,20 +410,20 @@ export function buildMotivationalImmersion(locale: Locale, input: MotivationalIm
   const heroSummary =
     primaryState === "achieved"
       ? input.phaseComplete
-        ? `${input.phaseLabel} is complete. Now we build from here.`
+        ? labels.phaseCompleteSummary(input.phaseLabel)
         : milestones.some((milestone) => milestone.id === "new-best-load")
-          ? "A new best has landed. Keep the line moving."
-          : "The target has been hit."
+          ? labels.newBestSummary
+          : labels.achievedSummary
       : primaryState === "heat"
-        ? "The last stretch is warm now."
+        ? labels.heatSummary
         : primaryState === "close"
-          ? "You are almost there."
+          ? labels.closeSummary
           : primaryState === "active"
-            ? "The target is building steadily."
-            : "No target is close enough yet to heat the screen.";
+            ? labels.activeSummary
+            : labels.calmSummary;
 
   const remainingLabel = primaryTarget?.remainingText ?? (primaryState === "achieved" ? copy.achieved : copy.noTarget);
-  const targetLabel = primaryTarget?.label ?? (input.phaseComplete ? "Phase milestone" : copy.target);
+  const targetLabel = primaryTarget?.label ?? (input.phaseComplete ? labels.phaseMilestone : copy.target);
   const targetValueLabel = primaryTarget ? `${primaryTarget.displayValue} / ${primaryTarget.displayTarget ?? "—"}` : input.phaseComplete ? copy.achieved : copy.noTarget;
 
   return {
@@ -402,6 +453,7 @@ export function buildMotivationalImmersion(locale: Locale, input: MotivationalIm
 
 export function buildPhaseAchievementImmersion(locale: Locale, input: { phaseLabel: string; phaseComplete: boolean; reviewSummary: string; workoutSessionCount: number }) {
   const copy = getCopy(locale);
+  const labels = immersionLabels[locale];
   const heroTitle = input.phaseComplete ? copy.achieved.toUpperCase() : copy.building.toUpperCase();
   const heroSummary = input.phaseComplete ? input.reviewSummary : copy.steady;
 
@@ -410,15 +462,15 @@ export function buildPhaseAchievementImmersion(locale: Locale, input: { phaseLab
     stateLabel: heroTitle,
     heroTitle,
     heroSummary,
-    targetLabel: input.phaseComplete ? "Phase milestone" : copy.target,
+    targetLabel: input.phaseComplete ? labels.phaseMilestone : copy.target,
     targetValueLabel: input.phaseComplete ? input.phaseLabel : copy.noTarget,
     remainingLabel: input.phaseComplete ? copy.achieved : copy.noTarget,
     primaryTarget: input.phaseComplete
       ? buildTarget(locale, {
           id: createId("phase-completion"),
           kind: "phase_completion",
-          label: "Phase completion",
-          sourceLabel: "Phase review",
+          label: labels.phaseCompletion,
+          sourceLabel: labels.phaseReview,
           value: 100,
           target: 100,
           unit: "%",
@@ -430,8 +482,8 @@ export function buildPhaseAchievementImmersion(locale: Locale, input: { phaseLab
           buildTarget(locale, {
             id: createId("phase-completion"),
             kind: "phase_completion",
-            label: "Phase completion",
-            sourceLabel: "Phase review",
+            label: labels.phaseCompletion,
+            sourceLabel: labels.phaseReview,
             value: 100,
             target: 100,
             unit: "%",
@@ -441,7 +493,7 @@ export function buildPhaseAchievementImmersion(locale: Locale, input: { phaseLab
       : [],
     milestones: [
       buildMilestone(locale, "phase-complete", copy.phaseComplete, input.phaseLabel, input.phaseComplete, "hot"),
-      buildMilestone(locale, "workout-count", input.workoutSessionCount >= 10 ? copy.tenWorkouts : copy.firstWorkout, `${formatValue(locale, input.workoutSessionCount, 0)} workouts logged`, input.workoutSessionCount >= 1, "warm")
+      buildMilestone(locale, "workout-count", input.workoutSessionCount >= 10 ? copy.tenWorkouts : copy.firstWorkout, labels.workoutsLogged(formatValue(locale, input.workoutSessionCount, 0)), input.workoutSessionCount >= 1, "warm")
     ],
     showParticles: input.phaseComplete,
     backgroundTone: input.phaseComplete ? "achieved" : "active"
