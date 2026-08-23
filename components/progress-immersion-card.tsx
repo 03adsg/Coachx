@@ -57,8 +57,8 @@ function ProgressIntensityRing({ immersion, compact = false }: { immersion: Moti
       return;
     }
 
-    const length = track.getTotalLength();
-    track.style.strokeDasharray = `${length}`;
+    const length = 100;
+    track.style.strokeDasharray = `${length} ${length}`;
     track.style.strokeDashoffset = `${length}`;
 
     if (reducedMotion) {
@@ -103,8 +103,6 @@ function ProgressIntensityRing({ immersion, compact = false }: { immersion: Moti
   const size = compact ? 124 : 148;
   const center = size / 2;
   const circleStroke = compact ? 11 : 12;
-  const circumference = 2 * Math.PI * radius;
-  const dashOffset = circumference - (circumference * targetPercent) / 100;
   const percentLabel = immersion.primaryTarget?.percent != null ? `${Math.round(immersion.primaryTarget.percent)}%` : immersion.state === "achieved" ? "100%" : "—";
 
   return (
@@ -135,6 +133,7 @@ function ProgressIntensityRing({ immersion, compact = false }: { immersion: Moti
           stroke={`url(#immersion-gradient-${gradientId}-${immersion.state})`}
           strokeLinecap="round"
           strokeWidth={circleStroke}
+          pathLength={100}
           vectorEffect="non-scaling-stroke"
           transform={`rotate(-90 ${center} ${center})`}
         />
@@ -188,36 +187,38 @@ export function ProgressImmersionCard({ immersion, action, compact = false }: Pr
 
   return (
     <Card className={`progress-immersion-card progress-immersion-card--${toneClass} p-16${compact ? " compact" : ""}`.trim()}>
-      <div className="progress-immersion-card__header">
-        <div className="stack">
-          <div className="eyebrow progress-immersion-card__eyebrow" style={{ marginBottom: 4 }}>
-            {immersion.stateLabel}
+      <div className="progress-immersion-card__hero">
+        <div className="progress-immersion-card__header">
+          <div className="stack">
+            <div className="eyebrow progress-immersion-card__eyebrow" style={{ marginBottom: 4 }}>
+              {immersion.stateLabel}
+            </div>
+            <h2 className={`${compact ? "headline-md" : "headline-lg"} progress-immersion-card__title`} style={{ margin: 0, lineHeight: 1.05 }}>
+              {immersion.heroTitle}
+            </h2>
+            <p className="body-md progress-immersion-card__summary" style={{ marginTop: 8, lineHeight: 1.6 }}>
+              {immersion.heroSummary}
+            </p>
           </div>
-          <h2 className={`${compact ? "headline-md" : "headline-lg"} progress-immersion-card__title`} style={{ margin: 0, lineHeight: 1.05 }}>
-            {immersion.heroTitle}
-          </h2>
-          <p className="body-md progress-immersion-card__summary" style={{ marginTop: 8, lineHeight: 1.6 }}>
-            {immersion.heroSummary}
-          </p>
+          <ProgressIntensityRing immersion={immersion} compact={compact} />
         </div>
-        <ProgressIntensityRing immersion={immersion} compact={compact} />
-      </div>
 
-      <div className="progress-immersion-card__meta">
-        <div>
-          <div className="caption" style={{ textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            {immersion.targetLabel}
+        <div className="progress-immersion-card__meta">
+          <div>
+            <div className="caption" style={{ textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              {immersion.targetLabel}
+            </div>
+            <div className="body-md" style={{ marginTop: 6, fontWeight: 700 }}>
+              {immersion.targetValueLabel}
+            </div>
           </div>
-          <div className="body-md" style={{ marginTop: 6, fontWeight: 700 }}>
-            {immersion.targetValueLabel}
-          </div>
-        </div>
-        <div>
-          <div className="caption" style={{ textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Target status
-          </div>
-          <div className="body-md" style={{ marginTop: 6, fontWeight: 700 }}>
-            {immersion.remainingLabel}
+          <div>
+            <div className="caption" style={{ textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              Target status
+            </div>
+            <div className="body-md" style={{ marginTop: 6, fontWeight: 700 }}>
+              {immersion.remainingLabel}
+            </div>
           </div>
         </div>
       </div>

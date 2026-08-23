@@ -5365,7 +5365,20 @@ img {
   }
 
   .progress-immersion-card {
-    padding: 14px;
+    overflow: visible;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .progress-immersion-card__hero {
+    padding: 20px 14px;
+    border: 1px solid rgba(182, 255, 0, 0.3);
+    border-radius: 20px;
+    background:
+      radial-gradient(circle at top right, rgba(182, 255, 0, 0.12), transparent 32%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(13, 13, 13, 0.98));
   }
 
   .progress-immersion-card__header {
@@ -5413,6 +5426,7 @@ img {
   }
 
   .progress-immersion-ring__center {
+    inset: 82px auto auto 50%;
     width: calc(100% - 42px);
     transform: translate(-50%, -50%);
   }
@@ -5451,6 +5465,10 @@ img {
 
   .progress-immersion-card__meta {
     display: none;
+  }
+
+  .progress-immersion-card__targets {
+    margin-top: 12px;
   }
 
   .progress-immersion-target {
