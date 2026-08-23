@@ -141,16 +141,16 @@ function ProgressIntensityRing({ immersion, compact = false }: { immersion: Moti
       </svg>
 
       <div className="progress-immersion-ring__center">
-        <div className="eyebrow" style={{ marginBottom: 4 }}>
+        <div className="eyebrow progress-immersion-ring__state" style={{ marginBottom: 4 }}>
           {immersion.stateLabel}
         </div>
-        <div className={compact ? "headline-md" : "headline-lg"} style={{ lineHeight: 1 }}>
+        <div className={`${compact ? "headline-md" : "headline-lg"} progress-immersion-ring__percent`} style={{ lineHeight: 1 }}>
           {percentLabel}
         </div>
-        <div className="caption" style={{ marginTop: 6, lineHeight: 1.4 }}>
+        <div className="caption progress-immersion-ring__value" style={{ marginTop: 6, lineHeight: 1.4 }}>
           {immersion.targetValueLabel}
         </div>
-        <div className="caption" style={{ marginTop: 4, color: "var(--text-muted)" }}>
+        <div className="caption progress-immersion-ring__remaining" style={{ marginTop: 4, color: "var(--text-muted)" }}>
           {immersion.remainingLabel}
         </div>
       </div>
