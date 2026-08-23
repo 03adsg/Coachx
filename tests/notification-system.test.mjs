@@ -452,6 +452,22 @@ test("reminder upsert dedupes by logical key", async () => {
   assert.equal(second.payload.retry, true);
 });
 
+test("reminder actions update an existing row without inserting a replacement", async () => {
+  const reminder = buildReminderRow();
+  const client = createFakeReminderClient([reminder]);
+  const snoozedUntil = "2026-08-20T08:30:00.000Z";
+
+  const updated = await notificationPreferences.updateNotificationReminderStatus(client, reminder.id, {
+    status: "snoozed",
+    snoozed_until: snoozedUntil
+  });
+
+  assert.equal(client.state.notification_reminders.length, 1);
+  assert.equal(updated.id, reminder.id);
+  assert.equal(updated.status, "snoozed");
+  assert.equal(updated.snoozed_until, snoozedUntil);
+});
+
 test("successfully sent reminder remains SENT", async () => {
   const client = createFakeReminderClient(
     [buildReminderRow()],

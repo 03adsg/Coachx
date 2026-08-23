@@ -17,8 +17,8 @@ import {
   loadNotificationReminders,
   loadPushSubscription,
   saveNotificationPreferences,
-  saveNotificationReminder,
   savePushSubscription,
+  updateNotificationReminderStatus,
   type NotificationPreferencesRow,
   type NotificationReminderRow,
   type PushSubscriptionRow
@@ -971,18 +971,14 @@ export function NotificationSettingsScreen() {
 
     try {
       if (action === "done") {
-        await saveNotificationReminder(client, {
-          ...reminder,
-          user_id: auth.user.id,
+        await updateNotificationReminderStatus(client, reminder.id, {
           status: "dismissed",
           dismissed_at: new Date().toISOString()
         });
         setReminders((current) => current.filter((item) => item.id !== reminder.id));
         publishFeedbackSuccess("profile.notifications", "Reminder dismissed", "The in-app reminder has been cleared.");
       } else {
-        await saveNotificationReminder(client, {
-          ...reminder,
-          user_id: auth.user.id,
+        await updateNotificationReminderStatus(client, reminder.id, {
           status: "snoozed",
           snoozed_until: new Date(Date.now() + 30 * 60 * 1000).toISOString()
         });

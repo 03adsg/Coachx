@@ -23,10 +23,12 @@ Slice 28 treats notifications as a scoped capability, not a blanket permission.
 - Blocked or unsupported browsers stay on in-app reminders.
 - Expired or gone subscriptions are deactivated rather than retried indefinitely.
 - The dispatch function must never expose raw server secrets to the browser.
+- The dispatcher accepts only the dedicated `automations` Secret API Key through the `apikey` header.
+- Authenticated clients may insert only their own initial `scheduled` reminders with no delivery or interaction timestamps.
+- Dismiss and snooze actions update an existing reminder; they do not use insert/upsert semantics.
 
 ## Threat model notes
 
 - No open redirects from notification clicks.
 - No direct network calls from the browser to push endpoints.
 - No reliance on permission state alone; delivery truth is derived from capability, permission, subscription, and online state.
-

@@ -39,7 +39,8 @@ async function sendPush(
 }
 
 export default {
-  fetch: withSupabase({ auth: "secret" }, async (_req, ctx) => {
+  // Runtime supports named Secret API Keys; the current package type still narrows this field to `secret`.
+  fetch: withSupabase({ auth: "secret:automations" as "secret" }, async (_req, ctx) => {
     const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY")?.trim() ?? "";
     const vapidSubject = Deno.env.get("VAPID_SUBJECT")?.trim() ?? "mailto:support@athlexforce.app";
 

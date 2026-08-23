@@ -11,6 +11,7 @@ Slice 28 adds a canonical notification stack for web and PWA delivery without cl
 5. Delivery work items live in `notification_reminders`.
 6. Delivery attempts are written to `notification_delivery_attempts`.
 7. The Today surface shows in-app fallback reminders when push is unavailable or blocked.
+8. One global `pg_cron` job invokes the dispatcher every two minutes through `pg_net`.
 
 ## Canonical state model
 
@@ -40,5 +41,5 @@ Slice 28 adds a canonical notification stack for web and PWA delivery without cl
 
 - Browser push: service worker + VAPID subscription.
 - In-app fallback: Today screen and notification settings screen.
-- Dispatch: Supabase Edge Function.
-
+- Dispatch: Supabase Edge Function authenticated with the dedicated `automations` Secret API Key.
+- Scheduling: one global Supabase Cron job reads the dispatcher key from Vault and sends it only in the `apikey` header.
