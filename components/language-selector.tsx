@@ -18,7 +18,7 @@ type LanguageSelectorProps = {
 };
 
 export function LanguageSelector({ value, onChange, compact = false }: LanguageSelectorProps) {
-  const { locale, t } = useTranslator();
+  const { t } = useTranslator();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const optionRefs = useRef<Record<Locale, HTMLButtonElement | null>>({
@@ -34,14 +34,6 @@ export function LanguageSelector({ value, onChange, compact = false }: LanguageS
   const selectedLocale = useMemo(() => supportedLocales.find((entry) => entry === value) ?? "es", [value]);
   const selectedName = t(`locale.${selectedLocale}`);
   const selectedFlagSrc = LANGUAGE_META[selectedLocale].flagSrc;
-  const appliedInstantlyCopy =
-    {
-      en: "Applied instantly",
-      es: "Se aplica al instante",
-      ca: "S'aplica a l'instant",
-      de: "Wird sofort angewendet"
-    }[locale as "en" | "es" | "ca" | "de"] ?? "Applied instantly";
-
   useEffect(() => {
     if (!open) {
       return;
@@ -124,7 +116,6 @@ export function LanguageSelector({ value, onChange, compact = false }: LanguageS
             <img className="language-selector__flag" src={selectedFlagSrc} alt="" aria-hidden="true" draggable={false} />
             <span className="language-selector__value">{selectedName}</span>
           </span>
-          <span className="caption language-selector__status">{appliedInstantlyCopy}</span>
         </span>
         <span className="icon language-selector__chevron" aria-hidden="true">
           {open ? "expand_less" : "expand_more"}
