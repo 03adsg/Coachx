@@ -64,7 +64,9 @@ test("progress analytics preserves mobile geometry, touch, and reduced-motion co
   assert.match(css, /\.analytics-range-chip\s*\{[\s\S]*?min-height: 44px;/);
   assert.match(css, /\.progress-mini-action\s*\{[\s\S]*?min-height: 44px;/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.match(css, /\.progress-immersion-ring__center\s*\{[\s\S]*?inset: 82px auto auto 50%;/);
+  assert.match(css, /\.progress-immersion-ring\s*\{[\s\S]*?order: 2;[\s\S]*?justify-self: start;/);
+  assert.match(css, /\.progress-immersion-ring__svg\s*\{[\s\S]*?width: 108px;[\s\S]*?height: 108px;/);
+  assert.match(css, /\.progress-immersion-ring__center\s*\{[\s\S]*?inset: 62px auto auto 50%;/);
 
   assert.match(immersionCard, /pathLength=\{100\}/);
   assert.match(immersionCard, /strokeDasharray = `\$\{length\} \$\{length\}`/);
