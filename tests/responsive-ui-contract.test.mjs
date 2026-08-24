@@ -69,6 +69,8 @@ test("progress analytics preserves mobile geometry, touch, and reduced-motion co
   assert.match(immersionCard, /pathLength=\{100\}/);
   assert.match(immersionCard, /strokeDasharray = `\$\{length\} \$\{length\}`/);
   assert.match(immersionCard, /progress-immersion-card__hero/);
+  assert.match(immersionCard, /targetStateCopy/);
+  assert.doesNotMatch(immersionCard, /target\.state\.toUpperCase\(\)/);
   assert.match(performanceScreen, /className="analytics-chart-stack"/);
   assert.match(trendsScreen, /className="analytics-chart-stack"/);
 });
