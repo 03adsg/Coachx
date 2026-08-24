@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { Card } from "@/components/ui";
 import { useLocale } from "@/components/locale-provider";
 import { useReducedMotion } from "@/motion/useReducedMotion";
+import type { Locale } from "@/lib/i18n";
 import type { MotivationalImmersionState, ProgressIntensityLevel } from "@/lib/motivational-immersion";
 
 interface ProgressImmersionCardProps {
@@ -19,6 +20,13 @@ const intensityTone: Record<ProgressIntensityLevel, string> = {
   close: "close",
   heat: "heat",
   achieved: "achieved"
+};
+
+const targetStateCopy: Record<Locale, Record<ProgressIntensityLevel, string>> = {
+  en: { calm: "Calm", active: "Active", close: "Close", heat: "Heat", achieved: "Achieved" },
+  es: { calm: "Calma", active: "Activo", close: "Cerca", heat: "Intenso", achieved: "Conseguido" },
+  ca: { calm: "Calma", active: "Actiu", close: "A prop", heat: "Intens", achieved: "Assolit" },
+  de: { calm: "Ruhig", active: "Aktiv", close: "Nah dran", heat: "Heiss", achieved: "Erreicht" }
 };
 
 function intensityToStroke(level: ProgressIntensityLevel) {
@@ -186,6 +194,7 @@ function ProgressIntensityRing({ immersion, compact = false }: { immersion: Moti
 export function ProgressImmersionCard({ immersion, action, compact = false }: ProgressImmersionCardProps) {
   const toneClass = immersion.backgroundTone ?? immersion.state;
   const { locale } = useLocale();
+  const stateCopy = targetStateCopy[locale];
   const fallbackCopy = {
     en: { targetStatus: "Target status", noTarget: "No target yet", noTargetBody: "Add a measurable target to activate this progress view." },
     es: { targetStatus: "Estado del objetivo", noTarget: "Aún no hay objetivo", noTargetBody: "Añade un objetivo medible para activar esta vista de progreso." },
@@ -239,7 +248,7 @@ export function ProgressImmersionCard({ immersion, action, compact = false }: Pr
                 <div className="body-md" style={{ fontWeight: 700 }}>
                   {target.label}
                 </div>
-                <span className="progress-immersion-target__state">{target.state.toUpperCase()}</span>
+                <span className="progress-immersion-target__state">{stateCopy[target.state].toUpperCase()}</span>
               </div>
               <div className="caption" style={{ marginTop: 6, lineHeight: 1.5 }}>
                 {target.displayValue}
