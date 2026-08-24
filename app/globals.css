@@ -5404,61 +5404,69 @@ img {
   }
 
   .progress-immersion-card__hero {
-    padding: 20px 14px;
+    padding: 16px 14px;
     border: 1px solid rgba(182, 255, 0, 0.3);
     border-radius: 20px;
     background:
       radial-gradient(circle at top right, rgba(182, 255, 0, 0.12), transparent 32%),
+      radial-gradient(circle at 72% 70%, rgba(182, 255, 0, 0.06), transparent 28%),
       linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(13, 13, 13, 0.98));
   }
 
   .progress-immersion-card__header {
-    gap: 18px;
-    justify-items: center;
-    text-align: center;
+    gap: 16px;
+    justify-items: stretch;
+    text-align: left;
   }
 
   .progress-immersion-card__header > .stack {
-    order: 2;
+    order: 1;
     max-width: 100%;
   }
 
   .progress-immersion-card__eyebrow {
-    display: none;
+    display: block;
+    color: var(--accent-primary);
+    font-size: 10px;
+    line-height: 14px;
+    letter-spacing: 0.08em;
   }
 
   .progress-immersion-card__title {
-    color: var(--accent-primary);
+    color: var(--text-primary);
     font-size: 24px;
-    line-height: 28px !important;
+    line-height: 25px !important;
     text-transform: uppercase;
   }
 
   .progress-immersion-card__summary {
-    max-width: 310px;
-    margin-inline: auto;
+    max-width: 100%;
+    margin-inline: 0;
     font-size: 14px;
     line-height: 20px !important;
     color: var(--text-muted);
   }
 
   .progress-immersion-ring {
-    order: 1;
-    justify-self: center;
-    min-width: 164px;
-    padding: 0 0 8px;
-    border: 0;
-    background: transparent;
+    order: 2;
+    justify-self: start;
+    min-width: 124px;
+    padding: 8px 8px 10px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    background:
+      radial-gradient(circle at 68% 28%, rgba(182, 255, 0, 0.08), transparent 30%),
+      rgba(255, 255, 255, 0.025);
   }
 
   .progress-immersion-ring__svg {
-    width: 164px;
-    height: 164px;
+    width: 108px;
+    height: 108px;
   }
 
   .progress-immersion-ring__center {
-    inset: 82px auto auto 50%;
-    width: calc(100% - 42px);
+    inset: 62px auto auto 50%;
+    width: 86px;
     transform: translate(-50%, -50%);
   }
 
@@ -5469,29 +5477,23 @@ img {
   }
 
   .progress-immersion-ring__percent {
-    font-size: 40px;
+    font-size: 24px;
     line-height: 1;
   }
 
   .progress-immersion-ring__bottom {
     display: grid;
     gap: 2px;
-    max-width: 220px;
+    max-width: 108px;
     margin-inline: auto;
-    margin-top: 8px;
+    margin-top: 4px;
     line-height: 1.35;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .progress-immersion-ring__bottom strong {
-    color: var(--text-primary);
-    font-size: 14px;
-    line-height: 20px;
+    letter-spacing: 0;
   }
 
   .progress-immersion-ring__sparks {
-    display: none;
+    inset: 8px 8px 30px;
   }
 
   .progress-immersion-card__meta {
