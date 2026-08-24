@@ -4593,6 +4593,12 @@ img {
   display: grid;
   gap: 16px;
   align-items: center;
+  justify-items: start;
+  text-align: left;
+}
+
+.progress-immersion-card__header > .stack {
+  order: 1;
 }
 
 .progress-immersion-card__meta {
@@ -4771,10 +4777,14 @@ img {
 .progress-immersion-ring {
   position: relative;
   width: fit-content;
+  order: 2;
+  justify-self: start;
   min-width: 124px;
-  padding: 10px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.02);
+  padding: 8px 8px 10px;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 68% 28%, rgba(182, 255, 0, 0.08), transparent 30%),
+    rgba(255, 255, 255, 0.025);
   border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
@@ -4785,13 +4795,15 @@ img {
 
 .progress-immersion-ring__svg {
   display: block;
+  width: 108px;
+  height: 108px;
 }
 
 .progress-immersion-ring__center {
   position: absolute;
-  inset: 50% auto auto 50%;
-  transform: translate(-50%, -54%);
-  width: calc(100% - 34px);
+  inset: 62px auto auto 50%;
+  transform: translate(-50%, -50%);
+  width: 86px;
   text-align: center;
   pointer-events: none;
 }
@@ -4813,8 +4825,20 @@ img {
 }
 
 .progress-immersion-ring__bottom {
-  margin-top: 8px;
+  display: grid;
+  gap: 2px;
+  max-width: 108px;
+  margin-inline: auto;
+  margin-top: 4px;
   text-align: center;
+  line-height: 1.35;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.progress-immersion-ring__percent {
+  font-size: 24px;
+  line-height: 1;
 }
 
 .analytics-point-chip__label {
