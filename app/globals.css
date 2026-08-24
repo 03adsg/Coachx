@@ -4589,6 +4589,17 @@ img {
     linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(13, 13, 13, 0.98));
 }
 
+.progress-immersion-card__hero {
+  margin: -16px -16px 0;
+  padding: 16px;
+  border: 1px solid rgba(182, 255, 0, 0.3);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top right, rgba(182, 255, 0, 0.12), transparent 32%),
+    radial-gradient(circle at 72% 70%, rgba(182, 255, 0, 0.06), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(13, 13, 13, 0.98));
+}
+
 .progress-immersion-card__header {
   display: grid;
   gap: 16px;
@@ -5428,6 +5439,7 @@ img {
   }
 
   .progress-immersion-card__hero {
+    margin: 0;
     padding: 16px 14px;
     border: 1px solid rgba(182, 255, 0, 0.3);
     border-radius: 20px;
