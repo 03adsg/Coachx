@@ -200,6 +200,24 @@ function formatPercent(locale: Locale, value: number, maximumFractionDigits = 0)
   return `${formatValue(locale, value, maximumFractionDigits)}%`;
 }
 
+function formatPhaseLabel(locale: Locale, phaseLabel: string) {
+  const match = phaseLabel.match(/^Phase\s+(.+)$/i);
+  if (!match) {
+    return phaseLabel;
+  }
+
+  switch (locale) {
+    case "es":
+      return `Fase ${match[1]}`;
+    case "ca":
+      return `Fase ${match[1]}`;
+    case "de":
+      return `Phase ${match[1]}`;
+    default:
+      return phaseLabel;
+  }
+}
+
 function normalizePercent(value: number | null | undefined, target: number | null | undefined) {
   if (typeof value !== "number" || !Number.isFinite(value) || typeof target !== "number" || !Number.isFinite(target) || target <= 0) {
     return null;
@@ -321,6 +339,7 @@ function getCopy(locale: Locale) {
 export function buildMotivationalImmersion(locale: Locale, input: MotivationalImmersionInput): MotivationalImmersionState {
   const copy = getCopy(locale);
   const labels = immersionLabels[locale];
+  const phaseLabel = formatPhaseLabel(locale, input.phaseLabel);
   const targets: MotivationalTarget[] = [];
 
   if (typeof input.trainingAdherencePercent === "number") {
@@ -383,7 +402,7 @@ export function buildMotivationalImmersion(locale: Locale, input: MotivationalIm
   }
 
   if (input.phaseComplete) {
-    milestones.push(buildMilestone(locale, "phase-complete", copy.phaseComplete, input.phaseLabel, true, "hot"));
+    milestones.push(buildMilestone(locale, "phase-complete", copy.phaseComplete, phaseLabel, true, "hot"));
   }
 
   if (hasNewBest && workoutLatest != null && workoutBest != null) {
@@ -410,7 +429,7 @@ export function buildMotivationalImmersion(locale: Locale, input: MotivationalIm
   const heroSummary =
     primaryState === "achieved"
       ? input.phaseComplete
-        ? labels.phaseCompleteSummary(input.phaseLabel)
+        ? labels.phaseCompleteSummary(phaseLabel)
         : milestones.some((milestone) => milestone.id === "new-best-load")
           ? labels.newBestSummary
           : labels.achievedSummary
@@ -454,6 +473,7 @@ export function buildMotivationalImmersion(locale: Locale, input: MotivationalIm
 export function buildPhaseAchievementImmersion(locale: Locale, input: { phaseLabel: string; phaseComplete: boolean; reviewSummary: string; workoutSessionCount: number }) {
   const copy = getCopy(locale);
   const labels = immersionLabels[locale];
+  const phaseLabel = formatPhaseLabel(locale, input.phaseLabel);
   const heroTitle = input.phaseComplete ? copy.achieved.toUpperCase() : copy.building.toUpperCase();
   const heroSummary = input.phaseComplete ? input.reviewSummary : copy.steady;
 
@@ -463,7 +483,7 @@ export function buildPhaseAchievementImmersion(locale: Locale, input: { phaseLab
     heroTitle,
     heroSummary,
     targetLabel: input.phaseComplete ? labels.phaseMilestone : copy.target,
-    targetValueLabel: input.phaseComplete ? input.phaseLabel : copy.noTarget,
+    targetValueLabel: input.phaseComplete ? phaseLabel : copy.noTarget,
     remainingLabel: input.phaseComplete ? copy.achieved : copy.noTarget,
     primaryTarget: input.phaseComplete
       ? buildTarget(locale, {
@@ -492,7 +512,7 @@ export function buildPhaseAchievementImmersion(locale: Locale, input: { phaseLab
         ]
       : [],
     milestones: [
-      buildMilestone(locale, "phase-complete", copy.phaseComplete, input.phaseLabel, input.phaseComplete, "hot"),
+      buildMilestone(locale, "phase-complete", copy.phaseComplete, phaseLabel, input.phaseComplete, "hot"),
       buildMilestone(locale, "workout-count", input.workoutSessionCount >= 10 ? copy.tenWorkouts : copy.firstWorkout, labels.workoutsLogged(formatValue(locale, input.workoutSessionCount, 0)), input.workoutSessionCount >= 1, "warm")
     ],
     showParticles: input.phaseComplete,
