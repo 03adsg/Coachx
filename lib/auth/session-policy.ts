@@ -7,7 +7,8 @@ const identityIntentStorageKey = "athlexforce-identity-intent";
 const trustedAppOrigins = [
   "http://localhost:3000",
   "https://coachxsync1.vercel.app",
-  "https://coachxsync1-zeta.vercel.app"
+  "https://coachxsync1-zeta.vercel.app",
+  "https://coachxsync1-m3yzmpr0s.vercel.app"
 ] as const;
 
 export function readRememberSessionPreference(defaultValue = true) {
