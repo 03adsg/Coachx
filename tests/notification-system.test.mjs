@@ -330,6 +330,8 @@ test("notification path allowlist blocks external destinations", () => {
   assert.equal(notificationSystem.isAllowedNotificationPath("/nutrition"), true);
   assert.equal(notificationSystem.isAllowedNotificationPath("/workout/abc"), true);
   assert.equal(notificationSystem.isAllowedNotificationPath("https://evil.example"), false);
+  assert.equal(notificationSystem.resolveNotificationDestination("meals"), "/nutrition");
+  assert.equal(notificationSystem.resolveNotificationDestination("workout", "/fallback"), "/");
 });
 
 test("delivery truth preserves master-off and blocked-browser states", () => {
