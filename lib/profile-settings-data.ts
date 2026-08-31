@@ -1,4 +1,4 @@
-import { getCurrentLocale, type Locale } from "@/lib/i18n";
+import { getCurrentLocale, getDeviceLocalTimezoneLabel, type Locale } from "@/lib/i18n";
 import {
   createOnboardingDemoState,
   type AthleteProfile,
@@ -519,7 +519,7 @@ export function createNotificationSettings(locale: Locale = getCurrentLocale()):
       enabled: true,
       start: "22:00",
       end: "07:00",
-      timezone: "Device local"
+      timezone: getDeviceLocalTimezoneLabel(locale)
     },
     categories: notificationCopy[locale] ?? notificationCopy.en
   };

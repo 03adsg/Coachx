@@ -5,6 +5,7 @@
 - Baseline commit: `750947236c04479e23d2174a71c19e8946ab663d`
 - Canonical production: `https://coachxsync1.vercel.app`
 - Canonical Supabase project: `zlblnezbbiimapruazvc`
+- Mandatory cross-cutting gate: `docs/GLOBAL_LANGUAGE_I18N_CERTIFICATION.md`
 
 ## Slice Status
 
@@ -27,12 +28,14 @@
 - Then test with real athletes.
 - Then resume the full coach <-> athlete product.
 - Coach foundation and security exist now so athlete modes stay architecturally correct.
+- Do not declare Slice 29 or any athlete Private Alpha release ready until the global language and i18n certification gate passes across all athlete-facing surfaces.
 
 ## Roadmap Order
 
 1. Keep the current athlete surface stable.
 2. Add only the next slice when the current slice is visually and functionally converged.
 3. Do not move coach analytics or post-alpha coach scope ahead of Athlete Private Alpha.
+4. Execute the global language and i18n certification gate before Slice 28 final web certification closes and again before Slice 29 Private Alpha can be declared ready.
 
 ## Notes
 

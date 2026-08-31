@@ -319,6 +319,13 @@ test("quiet hours resolve across midnight without flipping the wrong window", ()
   assert.equal(notificationSystem.resolveQuietHoursActive(new Date(2026, 7, 20, 6, 30), quietHours), true);
 });
 
+test("device-local timezone label is localized in notification defaults", () => {
+  assert.equal(notificationSystem.createNotificationPreferences("en").quietHours.timezone, "Device local");
+  assert.equal(notificationSystem.createNotificationPreferences("es").quietHours.timezone, "Zona local del dispositivo");
+  assert.equal(notificationSystem.createNotificationPreferences("ca").quietHours.timezone, "Zona local del dispositiu");
+  assert.equal(notificationSystem.createNotificationPreferences("de").quietHours.timezone, "Lokale Gerätezeit");
+});
+
 test("notification path allowlist blocks external destinations", () => {
   assert.equal(notificationSystem.isAllowedNotificationPath("/nutrition"), true);
   assert.equal(notificationSystem.isAllowedNotificationPath("/workout/abc"), true);

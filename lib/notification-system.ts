@@ -1,4 +1,4 @@
-import { getCurrentLocale, type Locale } from "@/lib/i18n";
+import { getCurrentLocale, getDeviceLocalTimezoneLabel, type Locale } from "@/lib/i18n";
 import { resolveSafeInternalPath } from "@/lib/auth/session-policy";
 
 export type NotificationCategoryId = "workout" | "meals" | "hydration" | "supplements" | "check-in" | "sleep";
@@ -120,7 +120,7 @@ export function createNotificationPreferences(locale: Locale = getCurrentLocale(
       enabled: true,
       start: "22:00",
       end: "07:00",
-      timezone: "Device local"
+      timezone: getDeviceLocalTimezoneLabel(locale)
     },
     inAppEnabled: true,
     intensity: "recommended",

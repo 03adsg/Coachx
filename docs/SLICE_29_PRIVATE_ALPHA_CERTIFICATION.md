@@ -24,6 +24,12 @@ Slice 29 is not a new feature slice. It is the final athlete-alpha audit across:
 - reduced motion;
 - security invariants and RLS-sensitive flows.
 
+## Mandatory prerequisite
+
+Before Slice 29 can be declared ready, the global language gate in `docs/GLOBAL_LANGUAGE_I18N_CERTIFICATION.md` must pass across the athlete-facing product.
+
+This gate is also required before Slice 28 final web certification is closed.
+
 ## Non-goals
 
 Do not start:
@@ -99,6 +105,7 @@ Physical iPhone Home Screen Web Push remains an out-of-band device check and doe
 - [ ] Reduced motion.
 - [ ] Touch targets remain usable.
 - [ ] No development-facing copy appears in athlete screens.
+- [ ] Global language and i18n certification gate passes across athlete-facing surfaces.
 
 ### Security and data
 

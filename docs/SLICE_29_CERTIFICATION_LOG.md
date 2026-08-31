@@ -136,6 +136,25 @@ Local dependency installation is unavailable in the current workspace, so local 
 - Preview deployment/build validation requires publishing the local Slice 29 repairs to the authorized branch.
 - Exact `/progress` Stitch matching requires the missing physical Stitch export for progress/analytics screens.
 
+## Language defects observed during certification
+
+- `/program` on the athlete surface shows mixed localization in the authenticated production session.
+  - route/screen: `/program`
+  - locale: ES shell with EN program copy
+  - actual text: `RESUMEN DEL PROGRAMA`, `MI PROGRAMA`, `ESTRUCTURA SEMANAL` alongside `Phase 1 · ACTIVE`, `Body Recomposition`, `8 weeks`, and English program body copy
+  - expected behavior: a single consistent locale or an explicit semantic fallback policy
+  - source type: generated program content / database-mapped program copy
+  - severity: P1 for the future global i18n gate, non-blocking for the current notification QA continuation
+  - shared across locales: likely yes until the program data mapping is fixed
+- `/profile/notifications` showed mixed locale copy in the authenticated Spanish session before the local fix in this turn.
+  - route/screen: `/profile/notifications`
+  - locale: ES
+  - actual text: `Device local`, `Ir a Today`
+  - expected behavior: localized device timezone label and localized Today CTA
+  - source type: hardcoded UI fallback / translation copy
+  - severity: P2, small obvious regression
+  - status: fixed in-session in `lib/i18n.ts`, `lib/notification-system.ts`, `lib/profile-settings-data.ts`, `lib/notification-dispatcher.ts`, and `components/notification-settings-screen.tsx`
+
 ## Slice 29 security hardening applied
 
 - Live migration: `slice_29_private_alpha_security_hardening`.

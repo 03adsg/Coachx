@@ -1197,3 +1197,17 @@ export function formatDate(date: Date, options: Intl.DateTimeFormatOptions & { l
 export function formatNumber(value: number, options: Intl.NumberFormatOptions = {}) {
   return new Intl.NumberFormat(currentLocale, options).format(value);
 }
+
+export function getDeviceLocalTimezoneLabel(locale: Locale = currentLocale) {
+  switch (locale) {
+    case "es":
+      return "Zona local del dispositivo";
+    case "ca":
+      return "Zona local del dispositiu";
+    case "de":
+      return "Lokale Gerätezeit";
+    case "en":
+    default:
+      return "Device local";
+  }
+}

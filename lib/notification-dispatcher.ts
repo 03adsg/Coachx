@@ -1,4 +1,5 @@
 import { coerceQuietHours, getNotificationCategoryLabels, resolveQuietHoursActive, type NotificationCategoryId } from "@/lib/notification-system";
+import { getDeviceLocalTimezoneLabel } from "@/lib/i18n";
 
 export type NotificationReminderStatus =
   | "scheduled"
@@ -245,13 +246,13 @@ export async function dispatchNotificationReminders(options: DispatchNotificatio
         enabled: preferenceRow.quiet_hours_enabled,
         start: preferenceRow.quiet_start ?? "22:00",
         end: preferenceRow.quiet_end ?? "07:00",
-        timezone: preferenceRow.timezone ?? "Device local"
+        timezone: preferenceRow.timezone ?? getDeviceLocalTimezoneLabel()
       },
       {
         enabled: true,
         start: "22:00",
         end: "07:00",
-        timezone: "Device local"
+        timezone: getDeviceLocalTimezoneLabel()
       }
     );
 
