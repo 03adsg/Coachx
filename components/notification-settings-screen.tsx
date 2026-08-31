@@ -1130,11 +1130,11 @@ export function NotificationSettingsScreen() {
         <header className="topbar">
           <IconButton icon="arrow_back" label="Back" onClick={() => router.push("/profile")} />
           <BrandLogo variant="horizontal" width={128} alt="AthlexForce" />
-          <Link href="/profile" aria-label="Profile" className="focus-ring">
-            <span className="icon" aria-hidden="true">
-              person
-            </span>
-          </Link>
+                  <Link href="/profile" aria-label="Profile" className="tap-target focus-ring" style={{ color: "inherit" }}>
+                    <span className="icon" aria-hidden="true">
+                      person
+                    </span>
+                  </Link>
         </header>
       }
     >
@@ -1239,10 +1239,10 @@ export function NotificationSettingsScreen() {
                     aria-label={copy.quietHoursAriaLabel}
                     aria-checked={preferences.quietHours.enabled}
                     onClick={() => updateQuietHours({ enabled: !preferences.quietHours.enabled })}
-                    className="focus-ring"
+                    className="tap-target focus-ring"
                     style={{
-                      width: 58,
-                      height: 34,
+                      width: 64,
+                      height: 44,
                       borderRadius: 9999,
                       background: preferences.quietHours.enabled ? "var(--accent-primary)" : "#2a2a2a",
                       position: "relative",
@@ -1253,10 +1253,10 @@ export function NotificationSettingsScreen() {
                       aria-hidden="true"
                       style={{
                         position: "absolute",
-                        top: 4,
-                        left: preferences.quietHours.enabled ? 30 : 4,
-                        width: 26,
-                        height: 26,
+                        top: 6,
+                        left: preferences.quietHours.enabled ? 26 : 6,
+                        width: 32,
+                        height: 32,
                         borderRadius: 9999,
                         background: preferences.quietHours.enabled ? "#050505" : "#f7f7f7"
                       }}
