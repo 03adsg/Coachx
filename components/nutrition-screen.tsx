@@ -544,7 +544,7 @@ function NutritionDayContent({ dateKey }: { dateKey: string }) {
 
   return (
     <Screen
-      activeTab="calendar"
+        activeTab="nutrition"
       shellClassName="nutrition-shell"
       topbar={
         <header className="topbar nutrition-topbar">
@@ -759,7 +759,7 @@ function NutritionStateScreen({
 
   return (
     <Screen
-      activeTab="calendar"
+      activeTab="nutrition"
       shellClassName="nutrition-shell"
       topbar={
         <header className="topbar nutrition-topbar">

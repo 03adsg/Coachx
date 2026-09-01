@@ -76,3 +76,15 @@ test("progress analytics preserves mobile geometry, touch, and reduced-motion co
   assert.match(performanceScreen, /className="analytics-chart-stack"/);
   assert.match(trendsScreen, /className="analytics-chart-stack"/);
 });
+
+test("bottom navigation keeps route ownership and current semantics aligned", async () => {
+  const bottomNav = await readRepoFile("components/bottom-nav.tsx");
+  const nutritionScreen = await readRepoFile("components/nutrition-screen.tsx");
+
+  for (const tab of ["today", "calendar", "nutrition", "progress", "profile"]) {
+    assert.match(bottomNav, new RegExp(`id: \"${tab}\"`));
+  }
+  assert.match(bottomNav, /aria-current=\{tab\.id === active \? \"page\" : undefined\}/);
+  assert.equal((nutritionScreen.match(/activeTab=\"nutrition\"/g) ?? []).length, 2);
+  assert.doesNotMatch(nutritionScreen, /activeTab=\"calendar\"/);
+});

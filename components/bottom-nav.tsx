@@ -19,7 +19,7 @@ export function BottomNav({ active }: BottomNavProps) {
   return (
     <nav className="bottom-nav" aria-label="Primary">
       {tabs.map((tab) => (
-        <Link key={tab.id} href={tab.href} className={`nav-item ${tab.id === active ? "active" : ""}`}>
+        <Link key={tab.id} href={tab.href} className={`nav-item ${tab.id === active ? "active" : ""}`} aria-current={tab.id === active ? "page" : undefined}>
           <span className={`icon ${tab.id === active ? "filled" : ""}`} aria-hidden="true">
             {tab.icon}
           </span>
