@@ -686,6 +686,7 @@ function TimeField({
       <span className="eyebrow">{label}</span>
       <input
         type="time"
+        aria-label={label}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="focus-ring"
