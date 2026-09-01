@@ -195,6 +195,25 @@ function createId() {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function createStableId(seed: string) {
+  let hash = 2166136261;
+  for (const character of seed) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  let hex = "";
+  for (let index = 0; index < 8; index += 1) {
+    hash ^= hash << 13;
+    hash ^= hash >>> 17;
+    hash ^= hash << 5;
+    hex += (hash >>> 0).toString(16).padStart(8, "0");
+  }
+
+  const normalized = hex.slice(0, 32);
+  return `${normalized.slice(0, 8)}-${normalized.slice(8, 12)}-4${normalized.slice(13, 16)}-8${normalized.slice(17, 20)}-${normalized.slice(20, 32)}`;
+}
+
 function cloneNutritionDay(day: NutritionDay): NutritionDay {
   return JSON.parse(JSON.stringify(day)) as NutritionDay;
 }
@@ -262,7 +281,7 @@ function optionSelectionScore(slot: MealSlot, option: MealOption) {
 
 export function createNutritionPlanSnapshot(userId: string, day: NutritionDay, programId: string | null): NutritionPlanSnapshot {
   return {
-    id: createId(),
+    id: createStableId(`${userId}:${day.dateKey}:plan`),
     userId,
     programId,
     status: "active",
@@ -270,7 +289,7 @@ export function createNutritionPlanSnapshot(userId: string, day: NutritionDay, p
     dailyTargets: { ...day.target },
     fiberTargetG: null,
     waterTargetMl: day.hydration.targetMl,
-    startedAt: new Date().toISOString(),
+    startedAt: `${day.dateKey}T00:00:00.000Z`,
     endedAt: null,
     metadata: {
       dayType: day.dayType,
@@ -280,7 +299,7 @@ export function createNutritionPlanSnapshot(userId: string, day: NutritionDay, p
   };
 }
 
-function selectionRecordFromMealSlot(slot: NutritionDay["mealSlots"][number]): NutritionSelectionRecord | null {
+function selectionRecordFromMealSlot(slot: NutritionDay["mealSlots"][number], timestamp: string): NutritionSelectionRecord | null {
   if (!slot.selectedOptionId) {
     return null;
   }
@@ -289,19 +308,19 @@ function selectionRecordFromMealSlot(slot: NutritionDay["mealSlots"][number]): N
     mealSlotId: slot.id,
     mealOptionId: slot.selectedOptionId,
     status: slot.state === "completed" ? "eaten" : slot.state === "eaten" ? "eaten" : "selected",
-    selectedAt: new Date().toISOString(),
-    eatenAt: slot.state === "selected" ? null : new Date().toISOString(),
-    completedAt: slot.state === "completed" ? new Date().toISOString() : null
+    selectedAt: timestamp,
+    eatenAt: slot.state === "selected" ? null : timestamp,
+    completedAt: slot.state === "completed" ? timestamp : null
   };
 }
 
-function supplementRecordFromReminder(reminder: NutritionDay["supplements"][number]): NutritionSupplementLog {
+function supplementRecordFromReminder(reminder: NutritionDay["supplements"][number], timestamp: string): NutritionSupplementLog {
   return {
     supplementId: reminder.id,
     label: reminder.label,
     dosage: reminder.dosage,
     status: reminder.checked ? "completed" : "pending",
-    completedAt: reminder.checked ? new Date().toISOString() : null
+    completedAt: reminder.checked ? timestamp : null
   };
 }
 
@@ -309,15 +328,16 @@ export function createNutritionStoreSnapshot(dateKey: string, daySummary?: Progr
   const context = resolveNutritionDayContext(dateKey, daySummary);
   const sourceDay = createNutritionDayForDate(dateKey, context.dayType);
   const plan = createNutritionPlanSnapshot(userId, sourceDay, programId);
-  const selections = sourceDay.mealSlots.map(selectionRecordFromMealSlot).filter(Boolean) as NutritionSelectionRecord[];
-  const hydrationLogs: NutritionHydrationLog[] = sourceDay.hydration.currentMl > 0 ? [{ id: createId(), amountMl: sourceDay.hydration.currentMl, loggedAt: new Date().toISOString() }] : [];
-  const supplementLogs = sourceDay.supplements.map(supplementRecordFromReminder);
+  const seedTimestamp = `${sourceDay.dateKey}T00:00:00.000Z`;
+  const selections = sourceDay.mealSlots.map((slot) => selectionRecordFromMealSlot(slot, seedTimestamp)).filter(Boolean) as NutritionSelectionRecord[];
+  const hydrationLogs: NutritionHydrationLog[] = sourceDay.hydration.currentMl > 0 ? [{ id: createStableId(`${userId}:${sourceDay.dateKey}:hydration`), amountMl: sourceDay.hydration.currentMl, loggedAt: seedTimestamp }] : [];
+  const supplementLogs = sourceDay.supplements.map((reminder) => supplementRecordFromReminder(reminder, seedTimestamp));
 
   return {
     version: 1,
     plan,
     day: {
-      id: createId(),
+      id: createStableId(`${userId}:${sourceDay.dateKey}:day`),
       userId,
       nutritionPlanId: plan.id,
       programPhaseId: null,
@@ -354,7 +374,7 @@ export function createNutritionStoreSnapshot(dateKey: string, daySummary?: Progr
     selections,
     hydrationLogs,
     supplementLogs,
-    updatedAt: new Date().toISOString()
+    updatedAt: seedTimestamp
   };
 }
 
@@ -780,7 +800,7 @@ function buildDayInsert(snapshot: NutritionStoreSnapshot): NutritionDaysInsert {
     user_id: snapshot.day.userId,
     nutrition_plan_id: snapshot.day.nutritionPlanId,
     program_phase_id: snapshot.day.programPhaseId,
-    scheduled_workout_id: snapshot.day.scheduledWorkoutId,
+    scheduled_workout_id: snapshot.day.scheduledWorkoutId || null,
     calendar_date: snapshot.day.calendarDate,
     day_type: snapshot.day.dayType,
     status: snapshot.day.status,
@@ -1204,6 +1224,40 @@ export async function loadOrCreateNutritionStoreSnapshot(
   }
 
   if (!dayResult.data) {
+    const activePlanResult = await client
+      .from("nutrition_plans")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .maybeSingle();
+    if (activePlanResult.error) {
+      throw activePlanResult.error;
+    }
+
+    if (activePlanResult.data) {
+      const activePlan = activePlanResult.data as NutritionPlansRow;
+      fallback.plan = {
+        ...fallback.plan,
+        id: activePlan.id,
+        userId: activePlan.user_id,
+        programId: activePlan.program_id,
+        status: activePlan.status,
+        name: activePlan.name,
+        dailyTargets: {
+          calories: activePlan.daily_calorie_target,
+          protein: activePlan.protein_target_g,
+          carbs: activePlan.carb_target_g,
+          fat: activePlan.fat_target_g
+        },
+        fiberTargetG: activePlan.fiber_target_g,
+        waterTargetMl: activePlan.water_target_ml,
+        startedAt: activePlan.started_at,
+        endedAt: activePlan.ended_at,
+        metadata: isPlainObject(activePlan.plan_metadata) ? activePlan.plan_metadata : null
+      };
+      fallback.day.nutritionPlanId = activePlan.id;
+    }
+
     await persistNutritionStoreSnapshot(client, fallback);
     return {
       snapshot: fallback,

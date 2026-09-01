@@ -100,25 +100,24 @@ export function NutritionProvider({ children, dateKey }: { children: ReactNode; 
 
     async function hydrateRemote() {
       try {
-        if (currentAuth.user && client) {
-          const identity = await loadIdentityResolution(client, currentAuth.user.id).catch(() => null);
-          if (active && identity) {
-            setManagementMode(identity.managementMode);
-          }
-        }
-
-        const result = await loadOrCreateNutritionStoreSnapshot(
-          client!,
-          userId,
-          dateKey,
-          currentProgram.getDaySummary(dateKey),
-          currentProgram.activeProgram?.id ?? null
-        );
+        const [identity, result] = await Promise.all([
+          currentAuth.user && client ? loadIdentityResolution(client, currentAuth.user.id).catch(() => null) : Promise.resolve(null),
+          loadOrCreateNutritionStoreSnapshot(
+            client!,
+            userId,
+            dateKey,
+            currentProgram.getDaySummary(dateKey),
+            currentProgram.activeProgram?.id ?? null
+          )
+        ]);
 
         if (!active) {
           return;
         }
 
+        if (identity) {
+          setManagementMode(identity.managementMode);
+        }
         remoteReadyRef.current = true;
         setSnapshot(result.snapshot);
       } catch {
