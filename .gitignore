@@ -12,3 +12,4 @@ progress*.png
 
 .vercel
 .env*
+.qa-runtime/
