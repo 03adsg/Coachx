@@ -1,4 +1,4 @@
-const ALLOWED_PREFIXES = ["/", "/calendar", "/day", "/nutrition", "/progress", "/profile", "/workout"];
+const ALLOWED_PREFIXES = ["/calendar", "/day", "/nutrition", "/progress", "/profile", "/workout"];
 
 function sanitizePath(pathname) {
   if (typeof pathname !== "string" || !pathname.startsWith("/")) {
@@ -9,7 +9,7 @@ function sanitizePath(pathname) {
     return "/";
   }
 
-  return ALLOWED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)) ? pathname : "/";
+  return pathname === "/" || ALLOWED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)) ? pathname : "/";
 }
 
 function defaultPayload() {

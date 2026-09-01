@@ -99,7 +99,7 @@ const routeMap: Record<NotificationCategoryId, string> = {
   sleep: "/"
 };
 
-const allowlistedPathPrefixes = ["/", "/calendar", "/day", "/nutrition", "/progress", "/profile", "/workout"];
+const allowlistedPathPrefixes = ["/calendar", "/day", "/nutrition", "/progress", "/profile", "/workout"];
 
 export function createNotificationCategories(locale: Locale = getCurrentLocale()) {
   return categoryCopy[locale] ?? categoryCopy.en;
@@ -232,7 +232,7 @@ export function createNotificationRuntimeState(partial: Partial<NotificationRunt
 }
 
 export function isAllowedNotificationPath(pathname: string) {
-  return allowlistedPathPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  return pathname === "/" || allowlistedPathPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
 export function resolveNotificationDestination(category: NotificationCategoryId, fallback = "/") {

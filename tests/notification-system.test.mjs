@@ -335,8 +335,11 @@ test("legacy device-local timezone values are normalized to the active locale", 
 });
 
 test("notification path allowlist blocks external destinations", () => {
+  assert.equal(notificationSystem.isAllowedNotificationPath("/"), true);
   assert.equal(notificationSystem.isAllowedNotificationPath("/nutrition"), true);
   assert.equal(notificationSystem.isAllowedNotificationPath("/workout/abc"), true);
+  assert.equal(notificationSystem.isAllowedNotificationPath("/__athlexforce_invalid_notification_test__"), false);
+  assert.equal(notificationSystem.isAllowedNotificationPath("/**athlexforce-invalid-notification-route"), false);
   assert.equal(notificationSystem.isAllowedNotificationPath("https://evil.example"), false);
   assert.equal(notificationSystem.resolveNotificationDestination("meals"), "/nutrition");
   assert.equal(notificationSystem.resolveNotificationDestination("workout", "/fallback"), "/");
