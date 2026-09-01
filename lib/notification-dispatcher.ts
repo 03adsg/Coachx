@@ -1,5 +1,5 @@
 import { coerceQuietHours, getNotificationCategoryLabels, resolveQuietHoursActive, type NotificationCategoryId } from "@/lib/notification-system";
-import { getDeviceLocalTimezoneLabel } from "@/lib/i18n";
+import { getDeviceLocalTimezoneLabel, type Locale } from "@/lib/i18n";
 
 export type NotificationReminderStatus =
   | "scheduled"
@@ -47,6 +47,11 @@ export interface NotificationPreferenceRow {
   in_app_enabled: boolean;
 }
 
+export interface AthleteLocaleRow {
+  id: string;
+  locale: Locale | null;
+}
+
 export interface PushSubscriptionRow {
   id: string;
   user_id: string;
@@ -92,7 +97,8 @@ export interface DispatchNotificationRemindersOptions {
     reminder: NotificationReminderRow,
     destinationPath: string,
     vapidPrivateKey: string,
-    vapidSubject: string
+    vapidSubject: string,
+    locale?: Locale
   ) => Promise<Response>;
   now?: Date;
   vapidPrivateKey?: string;
@@ -125,16 +131,20 @@ function categoryEnabledForReminder(row: NotificationPreferenceRow, category: No
             : row.sleep_enabled;
 }
 
-export function buildNotificationPushPayload(reminder: NotificationReminderRow, destinationPath: string) {
-  const categoryLabel = getNotificationCategoryLabels("en")[reminder.category]?.label ?? reminder.category;
+function resolveLocale(locale: string | null | undefined): Locale {
+  return locale === "es" || locale === "ca" || locale === "en" || locale === "de" ? locale : "en";
+}
+
+export function buildNotificationPushPayload(reminder: NotificationReminderRow, destinationPath: string, locale?: string | null) {
+  const categoryCopy = getNotificationCategoryLabels(resolveLocale(locale))[reminder.category as NotificationCategoryId];
   return {
-    title: reminder.title || "AthlexForce",
-    body: reminder.body || "Reminder ready.",
+    title: `AthlexForce · ${categoryCopy?.label ?? reminder.category}`,
+    body: (categoryCopy?.description ?? reminder.body) || "Reminder ready.",
     destinationPath,
     category: reminder.category,
     tag: reminder.dedupe_key,
     reminderId: reminder.id,
-    titleLabel: categoryLabel
+    titleLabel: categoryCopy?.label ?? reminder.category
   };
 }
 
@@ -198,10 +208,11 @@ export async function dispatchNotificationReminders(options: DispatchNotificatio
     return { ok: false, error: "Missing VAPID_PRIVATE_KEY" };
   }
 
-  const [remindersResult, preferencesResult, subscriptionsResult] = await Promise.all([
+  const [remindersResult, preferencesResult, subscriptionsResult, localesResult] = await Promise.all([
     options.supabaseAdmin.from("notification_reminders").select("*").in("status", ["scheduled", "ready", "snoozed"]) as any,
     options.supabaseAdmin.from("notification_preferences").select("*") as any,
-    options.supabaseAdmin.from("push_subscriptions").select("*").eq("active", true) as any
+    options.supabaseAdmin.from("push_subscriptions").select("*").eq("active", true) as any,
+    options.supabaseAdmin.from("athlete_profiles").select("id, locale") as any
   ]);
 
   if (remindersResult.error) {
@@ -216,9 +227,14 @@ export async function dispatchNotificationReminders(options: DispatchNotificatio
     throw subscriptionsResult.error;
   }
 
+  if (localesResult.error) {
+    throw localesResult.error;
+  }
+
   const reminders = ((remindersResult.data ?? []) as NotificationReminderRow[]).filter((reminder) => isDueReminder(reminder, now));
   const preferences = (preferencesResult.data ?? []) as NotificationPreferenceRow[];
   const subscriptions = (subscriptionsResult.data ?? []) as PushSubscriptionRow[];
+  const locales = new Map((localesResult.data ?? []).map((row: AthleteLocaleRow) => [row.id, resolveLocale(row.locale)]));
 
   const byUserPreferences = new Map(preferences.map((row) => [row.user_id, row]));
   const byUserSubscriptions = new Map<string, PushSubscriptionRow[]>();
@@ -274,7 +290,7 @@ export async function dispatchNotificationReminders(options: DispatchNotificatio
 
     for (const subscription of userSubscriptions) {
       try {
-        const response = await options.sendPush(subscription, claimedReminder, destinationPath, vapidPrivateKey, vapidSubject);
+        const response = await options.sendPush(subscription, claimedReminder, destinationPath, vapidPrivateKey, vapidSubject, locales.get(claimedReminder.user_id) as Locale | undefined);
         const result = response.ok ? "sent" : response.status === 410 || response.status === 404 ? "gone" : "failed";
 
         await options.supabaseAdmin.from("notification_delivery_attempts").insert({

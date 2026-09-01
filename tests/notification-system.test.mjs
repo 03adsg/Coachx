@@ -91,12 +91,13 @@ const {
   notificationBrowser
 } = await transpileLibraryChain();
 
-function createFakeReminderClient(initialRows = [], initialPreferences = [], initialSubscriptions = [], initialAttempts = []) {
+function createFakeReminderClient(initialRows = [], initialPreferences = [], initialSubscriptions = [], initialAttempts = [], initialAthleteProfiles = []) {
   const state = {
     notification_reminders: structuredClone(initialRows),
     notification_preferences: structuredClone(initialPreferences),
     push_subscriptions: structuredClone(initialSubscriptions),
-    notification_delivery_attempts: structuredClone(initialAttempts)
+    notification_delivery_attempts: structuredClone(initialAttempts),
+    athlete_profiles: structuredClone(initialAthleteProfiles)
   };
 
   function createQuery(tableName) {
@@ -343,6 +344,32 @@ test("notification path allowlist blocks external destinations", () => {
   assert.equal(notificationSystem.isAllowedNotificationPath("https://evil.example"), false);
   assert.equal(notificationSystem.resolveNotificationDestination("meals"), "/nutrition");
   assert.equal(notificationSystem.resolveNotificationDestination("workout", "/fallback"), "/");
+});
+
+test("push payloads localize every notification category for every supported locale", () => {
+  const categories = ["workout", "meals", "hydration", "supplements", "check-in", "sleep"];
+  const locales = ["es", "ca", "en", "de"];
+
+  for (const locale of locales) {
+    const labels = notificationSystem.getNotificationCategoryLabels(locale);
+    for (const category of categories) {
+      const payload = notificationDispatcher.buildNotificationPushPayload(buildReminderRow({ category }), "/", locale);
+      assert.equal(payload.title, `AthlexForce · ${labels[category].label}`);
+      assert.equal(payload.body, labels[category].description);
+      assert.doesNotMatch(`${payload.title} ${payload.body}`, /notification_|CHECK_IN|WORKOUT|MEALS|HYDRATION|SUPPLEMENTS|SLEEP/);
+    }
+  }
+});
+
+test("push payloads fall back safely for missing or unsupported locales", () => {
+  const reminder = buildReminderRow({ category: "check-in", title: "Legacy title", body: "Legacy body" });
+  const expected = notificationSystem.getNotificationCategoryLabels("en")["check-in"];
+
+  for (const locale of [undefined, null, "fr", ""]) {
+    const payload = notificationDispatcher.buildNotificationPushPayload(reminder, "/", locale);
+    assert.equal(payload.title, `AthlexForce · ${expected.label}`);
+    assert.equal(payload.body, expected.description);
+  }
 });
 
 test("delivery truth preserves master-off and blocked-browser states", () => {

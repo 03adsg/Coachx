@@ -12,7 +12,8 @@ async function sendPush(
   reminder: NotificationReminderRow,
   destinationPath: string,
   vapidPrivateKey: string,
-  vapidSubject: string
+  vapidSubject: string,
+  locale?: string
 ) {
   const privateJwk = JSON.parse(vapidPrivateKey) as JsonWebKey;
   const { endpoint, headers, body } = await buildPushHTTPRequest({
@@ -26,7 +27,7 @@ async function sendPush(
       expirationTime: subscription.expiration_time ? Date.parse(subscription.expiration_time) : undefined
     },
     message: {
-      payload: buildNotificationPushPayload(reminder, destinationPath),
+      payload: buildNotificationPushPayload(reminder, destinationPath, locale),
       adminContact: vapidSubject
     }
   });
