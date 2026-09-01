@@ -41,6 +41,7 @@ try {
 
       const errors = [];
       const httpErrors = [];
+      const programRequests = [];
       page.on("console", (message) => {
         if (message.type() === "error" || isHydrationMessage(message.text())) {
           const location = message.location().url;
@@ -48,6 +49,11 @@ try {
         }
       });
       page.on("pageerror", (error) => errors.push(error.message));
+      page.on("request", (request) => {
+        if (new URL(request.url()).pathname.endsWith("/rest/v1/programs")) {
+          programRequests.push({ method: request.method(), url: request.url() });
+        }
+      });
       page.on("response", async (response) => {
         if (response.status() >= 400 && response.status() < 600) {
           let body = "";
@@ -95,7 +101,9 @@ try {
         url: page.url(),
         errors: [...new Set(errors)],
         hydrationErrors: [...new Set(errors.filter(isHydrationMessage))],
-        httpErrors: [...new Map(httpErrors.map((error) => [`${error.status}:${error.url}`, error])).values()]
+        httpErrors: [...new Map(httpErrors.map((error) => [`${error.status}:${error.url}`, error])).values()],
+        programRequestMethods: programRequests.map((request) => request.method),
+        programPostCount: programRequests.filter((request) => request.method === "POST").length
       });
       await page.close();
     }
