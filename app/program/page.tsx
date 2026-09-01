@@ -4,7 +4,8 @@ import type { ReactNode } from "react";
 import { Card } from "@/components/ui";
 import { Screen } from "@/components/screen";
 import { useProgramStore } from "@/components/program-provider";
-import { useTranslator } from "@/components/locale-provider";
+import { useLocale, useTranslator } from "@/components/locale-provider";
+import { localizeProgramState, localizeProgramStatus } from "@/lib/program-service";
 
 function SectionCard({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -152,11 +153,14 @@ function ProgramPageSkeleton() {
 
 export default function ProgramPage() {
   const { program, loading, ready } = useProgramStore();
+  const { locale } = useLocale();
   const { t } = useTranslator();
 
   if (loading || !ready || !program) {
     return <ProgramPageSkeleton />;
   }
+
+  const localizedProgram = localizeProgramState(program, locale);
 
   return (
     <Screen
@@ -174,41 +178,41 @@ export default function ProgramPage() {
         <section className="section">
           <div className="eyebrow">{t("program.myProgram")}</div>
           <h1 className="headline-lg" style={{ marginTop: 6 }}>
-            {program.phaseLabel} · {program.status.toUpperCase()}
+            {localizedProgram.phaseLabel} · {localizeProgramStatus(localizedProgram.status, locale)}
           </h1>
         </section>
 
         <section className="section stack">
           <Card className="program-hero-card p-16">
             <div className="stack" style={{ gap: 12 }}>
-              <span className="program-template-chip">{program.goal}</span>
-              <h2 className="headline-md">{program.duration}</h2>
-              <p className="body-md muted">{program.whyItFits}</p>
+              <span className="program-template-chip">{localizedProgram.goal}</span>
+              <h2 className="headline-md">{localizedProgram.duration}</h2>
+              <p className="body-md muted">{localizedProgram.whyItFits}</p>
             </div>
           </Card>
         </section>
 
         <section className="section stack">
-          <SectionCard title={t("program.weeklyStructure")}>{program.weeklyStructure.join(" · ")}</SectionCard>
-          <SectionCard title={t("program.workoutTemplates")}>{program.workoutTemplates.join(" · ")}</SectionCard>
-          <SectionCard title={t("program.keyMovements")}>{program.keyMovements.join(" · ")}</SectionCard>
+          <SectionCard title={t("program.weeklyStructure")}>{localizedProgram.weeklyStructure.join(" · ")}</SectionCard>
+          <SectionCard title={t("program.workoutTemplates")}>{localizedProgram.workoutTemplates.join(" · ")}</SectionCard>
+          <SectionCard title={t("program.keyMovements")}>{localizedProgram.keyMovements.join(" · ")}</SectionCard>
         </section>
 
         <section className="section stack">
-          <SectionCard title={t("program.progression")}>{program.progressionSystem}</SectionCard>
-          <SectionCard title={t("program.nutrition")}>{program.nutrition}</SectionCard>
-          <SectionCard title={t("program.cardio")}>{program.cardio}</SectionCard>
-          <SectionCard title={t("program.recovery")}>{program.recovery}</SectionCard>
-          <SectionCard title={t("program.habits")}>{program.habits}</SectionCard>
-          <SectionCard title={t("program.checkIn")}>{program.checkIn}</SectionCard>
-          <SectionCard title={t("program.reviewTimeline")}>{program.baselineTimeline.join(" · ")}</SectionCard>
+          <SectionCard title={t("program.progression")}>{localizedProgram.progressionSystem}</SectionCard>
+          <SectionCard title={t("program.nutrition")}>{localizedProgram.nutrition}</SectionCard>
+          <SectionCard title={t("program.cardio")}>{localizedProgram.cardio}</SectionCard>
+          <SectionCard title={t("program.recovery")}>{localizedProgram.recovery}</SectionCard>
+          <SectionCard title={t("program.habits")}>{localizedProgram.habits}</SectionCard>
+          <SectionCard title={t("program.checkIn")}>{localizedProgram.checkIn}</SectionCard>
+          <SectionCard title={t("program.reviewTimeline")}>{localizedProgram.baselineTimeline.join(" · ")}</SectionCard>
         </section>
 
         <section className="section stack">
           <Card className="program-section-card">
             <div className="eyebrow">{t("program.recentAdjustments")}</div>
             <div className="stack" style={{ marginTop: 12 }}>
-              {program.recentAdjustments.map((item) => (
+              {localizedProgram.recentAdjustments.map((item) => (
                 <div key={item} className="row">
                   <div className="body-md" style={{ fontWeight: 700 }}>
                     {item}

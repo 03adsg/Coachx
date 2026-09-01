@@ -720,6 +720,25 @@ test("program change previews stay typed and preserve the before/after boundary"
   assert.ok(draft.afterSnapshot.headline.length > 0);
 });
 
+test("program presentation localizes canonical program data without changing stored values", () => {
+  const bundle = programService.createDemoProgramBundle("00000000-0000-4000-8000-000000000099");
+  const storedGoal = bundle.program.goal;
+  const current = programService.createProgramBundleFromRows(
+    bundle.program,
+    bundle.phase,
+    bundle.templates,
+    bundle.templateExercises,
+    bundle.scheduledWorkouts
+  ).program;
+  const localized = programService.localizeProgramState(current, "es");
+
+  assert.equal(storedGoal, "Body Recomposition");
+  assert.equal(localized.goal, "Recomposición corporal");
+  assert.equal(localized.duration, "8 semanas");
+  assert.equal(localized.weeklyStructure[0], "4 días de entrenamiento");
+  assert.equal(programService.localizeProgramStatus("active", "ca"), "ACTIU");
+});
+
 function createFakeProgramChangeClient(seedState) {
   const state = structuredClone(seedState);
 

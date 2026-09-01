@@ -17,7 +17,7 @@ import type {
   WorkoutTemplatesInsert
 } from "@/lib/supabase/database.types";
 import { createOnboardingDemoState, type ProgramState } from "@/lib/onboarding-data";
-import { formatDate, getCurrentLocale } from "@/lib/i18n";
+import { formatDate, getCurrentLocale, type Locale } from "@/lib/i18n";
 import { getExerciseDefinition, type SessionAdjustmentState, type WorkoutSessionState } from "@/lib/workout-data";
 import { resolveAnatomyVisual } from "@/lib/anatomy";
 import { resolveExerciseThumbnailMedia } from "@/lib/media";
@@ -495,6 +495,143 @@ function buildInsight(templateCode: string) {
     default:
       return copy.DEFAULT;
   }
+}
+
+const programPresentationCopy: Record<Locale, Record<string, string>> = {
+  en: {},
+  es: {
+    "Phase 1": "Fase 1",
+    "Body Recomposition": "Recomposición corporal",
+    "8 weeks": "8 semanas",
+    "The plan matches the selected priorities, training history, and schedule while keeping the progressions controlled and repeatable.": "El plan encaja con tus prioridades, historial de entrenamiento y horario, manteniendo progresiones controladas y repetibles.",
+    "4 training days": "4 días de entrenamiento",
+    "2 lower-body anchors": "2 sesiones principales de tren inferior",
+    "1 upper-body balance day": "1 día de equilibrio de tren superior",
+    "1 recovery / cardio slot": "1 bloque de recuperación / cardio",
+    "Glutes + Hamstrings · Workout A": "Glúteos + isquiotibiales · Entrenamiento A",
+    "Sleep, hydration, and weekend consistency stay visible.": "El sueño, la hidratación y la constancia del fin de semana se mantienen visibles.",
+    "Track meals, hit reminders, and keep the baseline repeatable.": "Registra tus comidas, sigue los recordatorios y mantén una base repetible.",
+    "Weekly check-in and Week 8 review": "Check-in semanal y revisión de la semana 8",
+    "Week 0 baseline": "Base de la semana 0",
+    "Week 4 comparison": "Comparación de la semana 4",
+    "Week 8 review": "Revisión de la semana 8",
+    "No recent active adjustments": "Sin ajustes activos recientes",
+    "Progress reps before load where possible and keep main movements stable.": "Prioriza progresar repeticiones antes que carga cuando sea posible y mantén estables los movimientos principales.",
+    "Initial setup": "Configuración inicial",
+    "Baseline collected": "Base recopilada",
+    "Lower A": "Tren inferior A",
+    "Upper": "Tren superior",
+    "Lower B": "Tren inferior B",
+    "Recovery": "Recuperación",
+    "Hip Thrust": "Hip thrust",
+    "Romanian Deadlift": "Peso muerto rumano",
+    "Bulgarian Split Squat": "Sentadilla búlgara",
+    "Lat Pulldown": "Jalón al pecho"
+  },
+  ca: {
+    "Phase 1": "Fase 1",
+    "Body Recomposition": "Recomposició corporal",
+    "8 weeks": "8 setmanes",
+    "The plan matches the selected priorities, training history, and schedule while keeping the progressions controlled and repeatable.": "El pla encaixa amb les teves prioritats, historial d'entrenament i horari, mantenint progressions controlades i repetibles.",
+    "4 training days": "4 dies d'entrenament",
+    "2 lower-body anchors": "2 sessions principals de tren inferior",
+    "1 upper-body balance day": "1 dia d'equilibri de tren superior",
+    "1 recovery / cardio slot": "1 bloc de recuperació / cardio",
+    "Glutes + Hamstrings · Workout A": "Glutis + isquiotibials · Entrenament A",
+    "Sleep, hydration, and weekend consistency stay visible.": "El son, la hidratació i la constància del cap de setmana es mantenen visibles.",
+    "Track meals, hit reminders, and keep the baseline repeatable.": "Registra els àpats, segueix els recordatoris i mantén una base repetible.",
+    "Weekly check-in and Week 8 review": "Check-in setmanal i revisió de la setmana 8",
+    "Week 0 baseline": "Base de la setmana 0",
+    "Week 4 comparison": "Comparació de la setmana 4",
+    "Week 8 review": "Revisió de la setmana 8",
+    "No recent active adjustments": "Sense ajustos actius recents",
+    "Progress reps before load where possible and keep main movements stable.": "Prioritza progressar repeticions abans que càrrega quan sigui possible i mantén estables els moviments principals.",
+    "Initial setup": "Configuració inicial",
+    "Baseline collected": "Base recopilada",
+    "Lower A": "Tren inferior A",
+    "Upper": "Tren superior",
+    "Lower B": "Tren inferior B",
+    "Recovery": "Recuperació",
+    "Hip Thrust": "Hip thrust",
+    "Romanian Deadlift": "Pes mort romanès",
+    "Bulgarian Split Squat": "Esquat búlgar",
+    "Lat Pulldown": "Jaló al pit"
+  },
+  de: {
+    "Phase 1": "Phase 1",
+    "Body Recomposition": "Körperrekomposition",
+    "8 weeks": "8 Wochen",
+    "The plan matches the selected priorities, training history, and schedule while keeping the progressions controlled and repeatable.": "Der Plan passt zu deinen Prioritäten, deiner Trainingserfahrung und deinem Zeitplan und hält die Progression kontrolliert und wiederholbar.",
+    "4 training days": "4 Trainingstage",
+    "2 lower-body anchors": "2 Schwerpunkteinheiten für den Unterkörper",
+    "1 upper-body balance day": "1 Ausgleichstag für den Oberkörper",
+    "1 recovery / cardio slot": "1 Regenerations- / Cardioeinheit",
+    "Glutes + Hamstrings · Workout A": "Gesäß + hintere Oberschenkel · Training A",
+    "Sleep, hydration, and weekend consistency stay visible.": "Schlaf, Flüssigkeitszufuhr und Konstanz am Wochenende bleiben im Blick.",
+    "Track meals, hit reminders, and keep the baseline repeatable.": "Erfasse deine Mahlzeiten, halte die Erinnerungen ein und bewahre eine wiederholbare Basis.",
+    "Weekly check-in and Week 8 review": "Wöchentlicher Check-in und Prüfung in Woche 8",
+    "Week 0 baseline": "Basis in Woche 0",
+    "Week 4 comparison": "Vergleich in Woche 4",
+    "Week 8 review": "Prüfung in Woche 8",
+    "No recent active adjustments": "Keine aktuellen aktiven Anpassungen",
+    "Progress reps before load where possible and keep main movements stable.": "Steigere nach Möglichkeit zuerst die Wiederholungen und halte die Hauptübungen stabil.",
+    "Initial setup": "Ersteinrichtung",
+    "Baseline collected": "Basis erfasst",
+    "Lower A": "Unterkörper A",
+    "Upper": "Oberkörper",
+    "Lower B": "Unterkörper B",
+    "Recovery": "Regeneration",
+    "Hip Thrust": "Hip Thrust",
+    "Romanian Deadlift": "Rumänisches Kreuzheben",
+    "Bulgarian Split Squat": "Bulgarische Kniebeuge",
+    "Lat Pulldown": "Latzug"
+  }
+};
+
+function localizeProgramValue(value: string, locale: Locale) {
+  return programPresentationCopy[locale][value] ?? value;
+}
+
+export function localizeProgramState(program: ProgramState, locale: Locale): ProgramState {
+  return {
+    ...program,
+    phaseLabel: localizeProgramValue(program.phaseLabel, locale),
+    goal: localizeProgramValue(program.goal, locale),
+    duration: localizeProgramValue(program.duration, locale),
+    whyItFits: localizeProgramValue(program.whyItFits, locale),
+    weeklyStructure: program.weeklyStructure.map((value) => localizeProgramValue(value, locale)),
+    firstWorkout: localizeProgramValue(program.firstWorkout, locale),
+    nutrition: program.nutrition,
+    cardio: program.cardio,
+    recovery: localizeProgramValue(program.recovery, locale),
+    habits: localizeProgramValue(program.habits, locale),
+    checkIn: localizeProgramValue(program.checkIn, locale),
+    baselineTimeline: program.baselineTimeline.map((value) => localizeProgramValue(value, locale)),
+    recentAdjustments: program.recentAdjustments.map((value) => localizeProgramValue(value, locale)),
+    workoutTemplates: program.workoutTemplates.map((value) => localizeProgramValue(value, locale)),
+    keyMovements: program.keyMovements.map((value) => localizeProgramValue(value, locale)),
+    progressionSystem: localizeProgramValue(program.progressionSystem, locale),
+    previousPhase: localizeProgramValue(program.previousPhase, locale),
+    currentPhase: localizeProgramValue(program.currentPhase, locale),
+    completedPhase: localizeProgramValue(program.completedPhase, locale),
+    recommendation: {
+      ...program.recommendation,
+      title: localizeProgramValue(program.recommendation.title, locale),
+      duration: localizeProgramValue(program.recommendation.duration, locale),
+      summary: localizeProgramValue(program.recommendation.summary, locale),
+      changes: program.recommendation.changes.map((value) => localizeProgramValue(value, locale))
+    }
+  };
+}
+
+export function localizeProgramStatus(status: ProgramState["status"], locale: Locale) {
+  const labels: Record<Locale, Record<ProgramState["status"], string>> = {
+    en: { proposed: "PROPOSED", active: "ACTIVE" },
+    es: { proposed: "PROPUESTO", active: "ACTIVO" },
+    ca: { proposed: "PROPOSAT", active: "ACTIU" },
+    de: { proposed: "VORGESCHLAGEN", active: "AKTIV" }
+  };
+  return labels[locale][status];
 }
 
 function buildCurrentProgram(program: ProgramsRow, phase: ProgramPhasesRow, templates: WorkoutTemplatesRow[], templateExercises: WorkoutTemplateExercisesRow[]): ProgramState {
