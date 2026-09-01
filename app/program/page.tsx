@@ -33,6 +33,8 @@ function SkeletonBlock({ width, height = 12 }: { width: string; height?: number 
 }
 
 function ProgramPageSkeleton() {
+  const { t } = useTranslator();
+
   return (
     <Screen
       activeTab={undefined}
@@ -40,14 +42,14 @@ function ProgramPageSkeleton() {
       topbar={
         <header className="topbar center">
           <div className="eyebrow" style={{ margin: 0, color: "#c6c6c7" }}>
-            RESUMEN DEL PROGRAMA
+            {t("program.overview")}
           </div>
         </header>
       }
     >
       <main className="content tight" aria-busy="true">
         <section className="section">
-          <div className="eyebrow">MI PROGRAMA</div>
+          <div className="eyebrow">{t("program.myProgram")}</div>
           <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
             <SkeletonBlock width="42%" height={18} />
             <SkeletonBlock width="28%" height={14} />
@@ -66,19 +68,19 @@ function ProgramPageSkeleton() {
         </section>
 
         <section className="section stack">
-          <SectionCard title="ESTRUCTURA SEMANAL">
+          <SectionCard title={t("program.weeklyStructure")}>
             <div style={{ display: "grid", gap: 10 }}>
               <SkeletonBlock width="96%" />
               <SkeletonBlock width="82%" />
             </div>
           </SectionCard>
-          <SectionCard title="PLANTILLAS DE ENTRENAMIENTO">
+          <SectionCard title={t("program.workoutTemplates")}>
             <div style={{ display: "grid", gap: 10 }}>
               <SkeletonBlock width="72%" />
               <SkeletonBlock width="64%" />
             </div>
           </SectionCard>
-          <SectionCard title="MOVIMIENTOS CLAVE">
+          <SectionCard title={t("program.keyMovements")}>
             <div style={{ display: "grid", gap: 10 }}>
               <SkeletonBlock width="84%" />
               <SkeletonBlock width="58%" />
@@ -88,49 +90,49 @@ function ProgramPageSkeleton() {
 
         <section className="section stack">
           <Card className="program-section-card">
-            <div className="eyebrow">PROGRESIÓN</div>
+            <div className="eyebrow">{t("program.progression")}</div>
             <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
               <SkeletonBlock width="92%" />
               <SkeletonBlock width="66%" />
             </div>
           </Card>
           <Card className="program-section-card">
-            <div className="eyebrow">NUTRICIÓN</div>
+            <div className="eyebrow">{t("program.nutrition")}</div>
             <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
               <SkeletonBlock width="54%" />
               <SkeletonBlock width="68%" />
             </div>
           </Card>
           <Card className="program-section-card">
-            <div className="eyebrow">CARDIO</div>
+            <div className="eyebrow">{t("program.cardio")}</div>
             <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
               <SkeletonBlock width="38%" />
               <SkeletonBlock width="60%" />
             </div>
           </Card>
           <Card className="program-section-card">
-            <div className="eyebrow">RECUPERACIÓN</div>
+            <div className="eyebrow">{t("program.recovery")}</div>
             <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
               <SkeletonBlock width="76%" />
               <SkeletonBlock width="62%" />
             </div>
           </Card>
           <Card className="program-section-card">
-            <div className="eyebrow">HÁBITOS</div>
+            <div className="eyebrow">{t("program.habits")}</div>
             <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
               <SkeletonBlock width="84%" />
               <SkeletonBlock width="70%" />
             </div>
           </Card>
           <Card className="program-section-card">
-            <div className="eyebrow">CHECK-IN</div>
+            <div className="eyebrow">{t("program.checkIn")}</div>
             <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
               <SkeletonBlock width="58%" />
               <SkeletonBlock width="72%" />
             </div>
           </Card>
           <Card className="program-section-card">
-            <div className="eyebrow">CALENDARIO DE REVISIÓN</div>
+            <div className="eyebrow">{t("program.reviewTimeline")}</div>
             <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
               <SkeletonBlock width="90%" />
               <SkeletonBlock width="64%" />
@@ -140,7 +142,7 @@ function ProgramPageSkeleton() {
 
         <section className="section stack">
           <Card className="program-section-card">
-            <div className="eyebrow">AJUSTES RECIENTES</div>
+            <div className="eyebrow">{t("program.recentAdjustments")}</div>
             <div className="stack" style={{ marginTop: 12 }}>
               <SkeletonBlock width="74%" />
             </div>

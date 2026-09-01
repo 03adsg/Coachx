@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { useTranslator } from "@/components/locale-provider";
 
 function SkeletonBlock({ width, height = 12 }: { width: string; height?: number }) {
   return (
@@ -26,18 +29,20 @@ function SkeletonCard({ title, children }: { title: string; children: ReactNode 
 }
 
 export default function ProgramLoading() {
+  const { t } = useTranslator();
+
   return (
     <div className="app-frame">
       <div className="screen screen-shell">
         <header className="topbar center">
           <div className="eyebrow" style={{ margin: 0, color: "#c6c6c7" }}>
-            RESUMEN DEL PROGRAMA
+            {t("program.overview")}
           </div>
         </header>
 
         <main className="content tight" aria-busy="true">
           <section className="section">
-            <div className="eyebrow">MI PROGRAMA</div>
+            <div className="eyebrow">{t("program.myProgram")}</div>
             <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
               <SkeletonBlock width="42%" height={18} />
               <SkeletonBlock width="28%" height={14} />
@@ -55,24 +60,24 @@ export default function ProgramLoading() {
             </div>
           </section>
 
-          <SkeletonCard title="ESTRUCTURA SEMANAL">
+          <SkeletonCard title={t("program.weeklyStructure")}>
             <SkeletonBlock width="96%" />
             <SkeletonBlock width="82%" />
           </SkeletonCard>
 
-          <SkeletonCard title="PLANTILLAS DE ENTRENAMIENTO">
+          <SkeletonCard title={t("program.workoutTemplates")}>
             <SkeletonBlock width="72%" />
             <SkeletonBlock width="64%" />
           </SkeletonCard>
 
-          <SkeletonCard title="MOVIMIENTOS CLAVE">
+          <SkeletonCard title={t("program.keyMovements")}>
             <SkeletonBlock width="84%" />
             <SkeletonBlock width="58%" />
           </SkeletonCard>
 
           <section className="section stack">
             <div className="program-section-card card p-16">
-              <div className="eyebrow">PROGRESIÓN</div>
+              <div className="eyebrow">{t("program.progression")}</div>
               <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
                 <SkeletonBlock width="92%" />
                 <SkeletonBlock width="66%" />
