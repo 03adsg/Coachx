@@ -148,6 +148,7 @@ img {
 .tap-target {
   width: 44px;
   height: 44px;
+  flex: 0 0 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2195,7 +2196,7 @@ img {
 
 .nutrition-support-card__button {
   flex: 1;
-  min-height: 40px;
+  min-height: 44px;
   font-size: 12px;
 }
 
@@ -4266,7 +4267,8 @@ img {
 }
 
 .progress-choice-chip {
-  min-height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0 12px;
   border-radius: 9999px;
   border: 1px solid var(--border-quiet);

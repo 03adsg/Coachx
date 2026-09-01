@@ -253,7 +253,7 @@ function CalendarContent({ todayKey }: { todayKey: string }) {
                 {monthLabel ? formatMonthLabel(viewMonthKey, locale) : monthTitle}
               </h1>
               <IconButton icon="chevron_right" label={t("calendar.nextMonth")} onClick={() => updateCalendarQuery(addMonths(viewMonthKey, 1), summaryDateKey)} />
-              <button className="button-secondary focus-ring" type="button" onClick={openToday} style={{ minHeight: 36, padding: "0 12px", whiteSpace: "nowrap" }}>
+              <button className="button-secondary focus-ring" type="button" onClick={openToday} style={{ minHeight: 44, padding: "0 12px", whiteSpace: "nowrap" }}>
                 {t("common.today")}
               </button>
             </div>
