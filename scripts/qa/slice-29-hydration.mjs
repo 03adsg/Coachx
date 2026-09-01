@@ -73,9 +73,9 @@ try {
         await emailField.fill(credential.email);
         await page.getByRole("textbox", { name: "Contraseña" }).fill(credential.password);
         await page.getByRole("button", { name: "Entrar" }).click();
-        await page.waitForTimeout(1500);
+        await page.waitForTimeout(5000);
         if (new URL(page.url()).pathname === "/entry") {
-          throw new Error("QA authentication did not leave the entry route");
+          throw new Error(`QA authentication did not leave the entry route: ${(await page.locator("body").innerText()).slice(0, 700)}`);
         }
         authenticated = true;
       }
