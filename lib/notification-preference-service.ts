@@ -14,7 +14,7 @@ import {
   type QuietHoursState,
   type WorkoutLeadMinutes
 } from "@/lib/notification-system";
-import type { Locale } from "@/lib/i18n";
+import { normalizeDeviceLocalTimezoneLabel, type Locale } from "@/lib/i18n";
 
 const preferencesRowSchema = z.object({
   id: z.string().uuid(),
@@ -225,7 +225,7 @@ export function notificationPreferencesRowToSettings(
       enabled: row.quiet_hours_enabled,
       start: row.quiet_start ?? row.quiet_hours_start ?? defaults.quietHours.start,
       end: row.quiet_end ?? row.quiet_hours_end ?? defaults.quietHours.end,
-      timezone: row.timezone ?? row.preferred_timezone ?? defaults.quietHours.timezone
+      timezone: normalizeDeviceLocalTimezoneLabel(row.timezone ?? row.preferred_timezone, locale)
     },
     inAppEnabled: row.in_app_enabled ?? defaults.inAppEnabled,
     intensity: row.reminder_intensity ?? defaults.intensity,

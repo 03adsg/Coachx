@@ -84,6 +84,7 @@ async function transpileLibraryChain() {
 }
 
 const {
+  i18n,
   notificationSystem,
   notificationDispatcher,
   notificationPreferences,
@@ -324,6 +325,13 @@ test("device-local timezone label is localized in notification defaults", () => 
   assert.equal(notificationSystem.createNotificationPreferences("es").quietHours.timezone, "Zona local del dispositivo");
   assert.equal(notificationSystem.createNotificationPreferences("ca").quietHours.timezone, "Zona local del dispositiu");
   assert.equal(notificationSystem.createNotificationPreferences("de").quietHours.timezone, "Lokale Gerätezeit");
+});
+
+test("legacy device-local timezone values are normalized to the active locale", () => {
+  assert.equal(i18n.normalizeDeviceLocalTimezoneLabel("Device local", "es"), "Zona local del dispositivo");
+  assert.equal(i18n.normalizeDeviceLocalTimezoneLabel("Device local", "ca"), "Zona local del dispositiu");
+  assert.equal(i18n.normalizeDeviceLocalTimezoneLabel("Device local", "de"), "Lokale Gerätezeit");
+  assert.equal(i18n.normalizeDeviceLocalTimezoneLabel("Europe/Madrid", "es"), "Europe/Madrid");
 });
 
 test("notification path allowlist blocks external destinations", () => {

@@ -1211,3 +1211,19 @@ export function getDeviceLocalTimezoneLabel(locale: Locale = currentLocale) {
       return "Device local";
   }
 }
+
+export function normalizeDeviceLocalTimezoneLabel(value: string | null | undefined, locale: Locale = currentLocale) {
+  const normalized = value?.trim();
+  if (!normalized) {
+    return getDeviceLocalTimezoneLabel(locale);
+  }
+
+  const deviceLocalLabels = new Set([
+    "Device local",
+    "Zona local del dispositivo",
+    "Zona local del dispositiu",
+    "Lokale Gerätezeit"
+  ]);
+
+  return deviceLocalLabels.has(normalized) ? getDeviceLocalTimezoneLabel(locale) : normalized;
+}

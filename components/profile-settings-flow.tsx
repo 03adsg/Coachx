@@ -18,6 +18,7 @@ import { type NotificationCategory, type NotificationSettings, type ProfileSnaps
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { uploadProfileAvatar, validateProfileAvatarFile } from "@/lib/profile-avatar";
 import { LanguageSelector } from "@/components/language-selector";
+import { normalizeDeviceLocalTimezoneLabel } from "@/lib/i18n";
 
 function ProfileHeader({
   backHref,
@@ -1448,7 +1449,7 @@ export function ProfileNotificationsScreen() {
               </div>
             </div>
             <div className="caption">
-              {copy.timezonePrefix} {draft.quietHours.timezone}
+              {copy.timezonePrefix} {normalizeDeviceLocalTimezoneLabel(draft.quietHours.timezone)}
             </div>
           </div>
         </SectionCard>
