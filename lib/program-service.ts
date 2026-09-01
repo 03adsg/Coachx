@@ -526,7 +526,11 @@ const programPresentationCopy: Record<Locale, Record<string, string>> = {
     "Hip Thrust": "Hip thrust",
     "Romanian Deadlift": "Peso muerto rumano",
     "Bulgarian Split Squat": "Sentadilla búlgara",
-    "Lat Pulldown": "Jalón al pecho"
+    "Lat Pulldown": "Jalón al pecho",
+    "Chest Press": "Press de pecho",
+    "Glute Drive Machine": "Máquina de empuje de glúteos",
+    "Walking Lunge": "Zancada caminando",
+    "Zone 2": "Zona 2"
   },
   ca: {
     "Phase 1": "Fase 1",
@@ -555,7 +559,11 @@ const programPresentationCopy: Record<Locale, Record<string, string>> = {
     "Hip Thrust": "Hip thrust",
     "Romanian Deadlift": "Pes mort romanès",
     "Bulgarian Split Squat": "Esquat búlgar",
-    "Lat Pulldown": "Jaló al pit"
+    "Lat Pulldown": "Jaló al pit",
+    "Chest Press": "Press de pit",
+    "Glute Drive Machine": "Màquina d'empenta de glutis",
+    "Walking Lunge": "Zancada caminant",
+    "Zone 2": "Zona 2"
   },
   de: {
     "Phase 1": "Phase 1",
@@ -584,7 +592,11 @@ const programPresentationCopy: Record<Locale, Record<string, string>> = {
     "Hip Thrust": "Hip Thrust",
     "Romanian Deadlift": "Rumänisches Kreuzheben",
     "Bulgarian Split Squat": "Bulgarische Kniebeuge",
-    "Lat Pulldown": "Latzug"
+    "Lat Pulldown": "Latzug",
+    "Chest Press": "Brustpresse",
+    "Glute Drive Machine": "Glute-Drive-Maschine",
+    "Walking Lunge": "Gehende Ausfallschritte",
+    "Zone 2": "Zone 2"
   }
 };
 
@@ -602,7 +614,7 @@ export function localizeProgramState(program: ProgramState, locale: Locale): Pro
     weeklyStructure: program.weeklyStructure.map((value) => localizeProgramValue(value, locale)),
     firstWorkout: localizeProgramValue(program.firstWorkout, locale),
     nutrition: program.nutrition,
-    cardio: program.cardio,
+    cardio: localizeProgramValue(program.cardio, locale),
     recovery: localizeProgramValue(program.recovery, locale),
     habits: localizeProgramValue(program.habits, locale),
     checkIn: localizeProgramValue(program.checkIn, locale),
