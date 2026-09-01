@@ -530,7 +530,8 @@ const programPresentationCopy: Record<Locale, Record<string, string>> = {
     "Chest Press": "Press de pecho",
     "Glute Drive Machine": "Máquina de empuje de glúteos",
     "Walking Lunge": "Zancada caminando",
-    "Zone 2": "Zona 2"
+    "Zone 2": "Zona 2",
+    "Zone 2 · 20 min": "Zona 2 · 20 min"
   },
   ca: {
     "Phase 1": "Fase 1",
@@ -563,7 +564,8 @@ const programPresentationCopy: Record<Locale, Record<string, string>> = {
     "Chest Press": "Press de pit",
     "Glute Drive Machine": "Màquina d'empenta de glutis",
     "Walking Lunge": "Zancada caminant",
-    "Zone 2": "Zona 2"
+    "Zone 2": "Zona 2",
+    "Zone 2 · 20 min": "Zona 2 · 20 min"
   },
   de: {
     "Phase 1": "Phase 1",
@@ -596,12 +598,22 @@ const programPresentationCopy: Record<Locale, Record<string, string>> = {
     "Chest Press": "Brustpresse",
     "Glute Drive Machine": "Glute-Drive-Maschine",
     "Walking Lunge": "Gehende Ausfallschritte",
-    "Zone 2": "Zone 2"
+    "Zone 2": "Zone 2",
+    "Zone 2 · 20 min": "Zone 2 · 20 Min."
   }
 };
 
 function localizeProgramValue(value: string, locale: Locale) {
-  return programPresentationCopy[locale][value] ?? value;
+  const localized = programPresentationCopy[locale][value];
+  if (localized) {
+    return localized;
+  }
+
+  if (locale === "es" || locale === "ca") {
+    return value.replaceAll("Zone 2", "Zona 2");
+  }
+
+  return value;
 }
 
 export function localizeProgramState(program: ProgramState, locale: Locale): ProgramState {
