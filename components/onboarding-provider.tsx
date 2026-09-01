@@ -264,7 +264,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (programStoreRef.current.source === "remote") {
+    const programStoreState = programStoreRef.current;
+    if (!programStoreState.ready || programStoreState.loading || programStoreState.source !== "empty") {
       return;
     }
 
@@ -274,7 +275,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
     programActivationRequestedRef.current = true;
     void programStoreRef.current.activateProgram(state.program);
-  }, [auth.isConfigured, auth.ready, auth.user?.id, state.progress.status, state.program]);
+  }, [auth.isConfigured, auth.ready, auth.user?.id, state.progress.status, state.program, programStore.ready, programStore.loading, programStore.source]);
 
   async function persistCurrentSnapshot(nextState: OnboardingState) {
     const client = getSupabaseBrowserClient();
