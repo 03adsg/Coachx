@@ -50,7 +50,15 @@ try {
       page.on("pageerror", (error) => errors.push(error.message));
       page.on("response", async (response) => {
         if (response.status() >= 400 && response.status() < 600) {
-          httpErrors.push({ status: response.status(), url: response.url() });
+          let body = "";
+          if (response.status() === 409) {
+            try {
+              body = (await response.text()).slice(0, 500);
+            } catch {
+              body = "<unreadable>";
+            }
+          }
+          httpErrors.push({ status: response.status(), url: response.url(), body });
         }
       });
 
