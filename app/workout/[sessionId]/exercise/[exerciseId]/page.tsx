@@ -391,9 +391,9 @@ export default function ActiveExercisePage() {
   const secondaryMuscle = localizedDefinition.secondaryMuscles[0] ?? "";
   const heroMedia = resolveExerciseHeroMedia({
     exerciseKey: definition.id,
-    exerciseName: definition.name,
-    primaryMuscles: definition.primaryMuscles,
-    secondaryMuscles: definition.secondaryMuscles,
+    exerciseName: localizedDefinition.name,
+    primaryMuscles: localizedDefinition.primaryMuscles,
+    secondaryMuscles: localizedDefinition.secondaryMuscles,
     equipment: definition.equipment
   });
   const nextExerciseMedia = nextExercise

@@ -15,9 +15,15 @@ const walkingLunge = {
   coachCues: ["Controla la longitud del paso", "Mantén el equilibrio", "Empuja el suelo"],
   commonMistakes: ["Paso demasiado corto", "La rodilla se desplaza hacia dentro", "Inclinar demasiado el torso hacia delante"]
 };
+const gluteDriveMachine = {
+  setup: ["Siéntate y fija bien la pelvis", "Coloca el apoyo sobre el pliegue de la cadera", "Sitúa los pies para mantener las tibias verticales al bloquear"],
+  howToDo: ["Empuja con los talones", "Contrae los glúteos", "Controla la fase de descenso"],
+  coachCues: ["Mantén las costillas abajo", "No arquees la espalda en exceso", "Haz una pausa arriba"],
+  commonMistakes: ["Acelerar las repeticiones", "No completar el bloqueo", "Cargar demasiado la zona lumbar"]
+};
 export function getLocalizedExercisePresentation(definition: ExerciseDefinition, locale: string) {
   if (locale !== "es") return { ...definition, equipmentLabel: definition.equipment.toUpperCase() };
-  return { ...definition, ...(definition.id === "walking-lunge" ? walkingLunge : {}), name: names[definition.name] ?? definition.name, equipmentLabel: equipment[definition.equipment], primaryMuscles: definition.primaryMuscles.map((muscle) => muscles[muscle] ?? muscle), secondaryMuscles: definition.secondaryMuscles.map((muscle) => muscles[muscle] ?? muscle), label: definition.equipment === "bodyweight" ? "PESO CORPORAL" : definition.label };
+  return { ...definition, ...(definition.id === "walking-lunge" ? walkingLunge : definition.id === "glute-drive-machine" ? gluteDriveMachine : {}), name: names[definition.name] ?? definition.name, equipmentLabel: equipment[definition.equipment], primaryMuscles: definition.primaryMuscles.map((muscle) => muscles[muscle] ?? muscle), secondaryMuscles: definition.secondaryMuscles.map((muscle) => muscles[muscle] ?? muscle), label: definition.equipment === "bodyweight" ? "PESO CORPORAL" : definition.label };
 }
 export function getLocalizedAlternativePresentation(alternative: ExerciseAlternative, locale: string) {
   return { ...alternative, equipmentLabel: locale === "es" ? equipment[alternative.equipment] : alternative.equipment.toUpperCase(), label: locale === "es" ? (alternative.label === "EXCELLENT" ? "EXCELENTE" : "BUENA OPCIÓN") : alternative.label };

@@ -322,12 +322,12 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
   const mediaContext = useMemo(
     () => ({
       exerciseKey: definition.id,
-      exerciseName: definition.name,
-      primaryMuscles: definition.primaryMuscles,
-      secondaryMuscles: definition.secondaryMuscles,
+      exerciseName: localizedDefinition.name,
+      primaryMuscles: localizedDefinition.primaryMuscles,
+      secondaryMuscles: localizedDefinition.secondaryMuscles,
       equipment: definition.equipment
     }),
-    [definition.equipment, definition.id, definition.name, definition.primaryMuscles, definition.secondaryMuscles]
+    [definition.equipment, definition.id, localizedDefinition.name, localizedDefinition.primaryMuscles, localizedDefinition.secondaryMuscles]
   );
 
   const startMedia = useMemo(() => resolveExerciseStartMedia(mediaContext), [mediaContext]);
