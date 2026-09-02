@@ -23,7 +23,7 @@ const gluteDriveMachine = {
 };
 export function getLocalizedExercisePresentation(definition: ExerciseDefinition, locale: string) {
   if (locale !== "es") return { ...definition, equipmentLabel: definition.equipment.toUpperCase() };
-  return { ...definition, ...(definition.id === "walking-lunge" ? walkingLunge : definition.id === "glute-drive-machine" ? gluteDriveMachine : {}), name: names[definition.name] ?? definition.name, equipmentLabel: equipment[definition.equipment], primaryMuscles: definition.primaryMuscles.map((muscle) => muscles[muscle] ?? muscle), secondaryMuscles: definition.secondaryMuscles.map((muscle) => muscles[muscle] ?? muscle), label: definition.equipment === "bodyweight" ? "PESO CORPORAL" : definition.label };
+  return { ...definition, ...(definition.id === "walking-lunge" ? walkingLunge : definition.id === "glute-drive-machine" ? gluteDriveMachine : {}), name: names[definition.name] ?? definition.name, equipmentLabel: equipment[definition.equipment], primaryMuscles: definition.primaryMuscles.map((muscle) => muscles[muscle] ?? muscle), secondaryMuscles: definition.secondaryMuscles.map((muscle) => muscles[muscle] ?? muscle), label: equipment[definition.equipment] };
 }
 export function getLocalizedAlternativePresentation(alternative: ExerciseAlternative, locale: string) {
   return { ...alternative, equipmentLabel: locale === "es" ? equipment[alternative.equipment] : alternative.equipment.toUpperCase(), label: locale === "es" ? (alternative.label === "EXCELLENT" ? "EXCELENTE" : "BUENA OPCIÓN") : alternative.label };
