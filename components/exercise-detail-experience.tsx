@@ -556,10 +556,10 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
                 {copy.lastSession}
               </div>
               <div className="headline-md" style={{ marginTop: 8 }}>
-                {definition.lastPerformance}
+                {localizedDefinition.lastPerformance}
               </div>
               <p className="caption" style={{ marginTop: 8 }}>
-                {exercise.lastComparableSession}
+                {localizedDefinition.lastPerformance}
               </p>
             </Card>
             <Card className="exercise-detail-card">
