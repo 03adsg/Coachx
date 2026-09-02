@@ -196,7 +196,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, [auth.isConfigured, auth.ready, auth.user?.id, locale]);
+  }, [auth.isConfigured, auth.ready, auth.user?.id]);
 
   async function persistSnapshot(nextSnapshot: ProfileSnapshot) {
     const client = getSupabaseBrowserClient();
