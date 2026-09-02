@@ -55,5 +55,6 @@ export function getLocalizedExercisePresentation(definition: ExerciseDefinition,
 }
 export function getLocalizedAlternativePresentation(alternative: ExerciseAlternative, locale: string) {
   const presentation = localePresentation[locale] ?? localePresentation.en;
-  return { ...alternative, equipmentLabel: presentation.equipment[alternative.equipment] ?? humanizeSemanticValue(alternative.equipment), label: locale === "es" ? (alternative.label === "EXCELLENT" ? "EXCELENTE" : "BUENA OPCIÓN") : locale === "ca" ? (alternative.label === "EXCELLENT" ? "EXCEL·LENT" : "BONA OPCIÓ") : locale === "de" ? (alternative.label === "EXCELLENT" ? "AUSGEZEICHNET" : "GUTE OPTION") : alternative.label };
+  const equipmentLabel = presentation.equipment[alternative.equipment] ?? humanizeSemanticValue(alternative.equipment);
+  return { ...alternative, equipmentLabel, lastPerformance: alternative.lastPerformance.replace(/^Bodyweight/i, equipmentLabel), label: locale === "es" ? (alternative.label === "EXCELLENT" ? "EXCELENTE" : "BUENA OPCIÓN") : locale === "ca" ? (alternative.label === "EXCELLENT" ? "EXCEL·LENT" : "BONA OPCIÓ") : locale === "de" ? (alternative.label === "EXCELLENT" ? "AUSGEZEICHNET" : "GUTE OPTION") : alternative.label };
 }

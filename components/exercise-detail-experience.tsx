@@ -271,7 +271,7 @@ function AlternativeCard({
             {localeCopy.lastSession}
           </div>
           <div className="body-md" style={{ fontWeight: 700 }}>
-            {alternative.lastPerformance}
+            {localizedAlternative.lastPerformance}
           </div>
         </div>
         <button className="button-secondary focus-ring" type="button" onClick={onSelect}>
