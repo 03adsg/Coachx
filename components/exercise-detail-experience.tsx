@@ -16,7 +16,7 @@ import {
   getWorkoutExercise,
   type ExerciseAlternative
 } from "@/lib/workout-data";
-import { getLocalizedExercisePresentation } from "@/lib/workout-presentation";
+import { getLocalizedAlternativePresentation, getLocalizedExercisePresentation } from "@/lib/workout-presentation";
 import {
   resolveExerciseEndMedia,
   resolveExerciseFullscreenMedia,
@@ -235,10 +235,10 @@ function AlternativeCard({
   source: DetailSource;
   locale: string;
 }) {
-  const equipmentLabel = locale === "es"
-    ? { barbell: "BARRA", machine: "MÁQUINA", smith: "SMITH", dumbbells: "MANCUERNAS", cable: "POLEA", bodyweight: "PESO CORPORAL" }[alternative.equipment]
-    : alternative.equipment.toUpperCase();
-  const compatibilityLabel = locale === "es" ? (alternative.label === "EXCELLENT" ? "EXCELENTE" : "BUENA OPCIÓN") : alternative.label;
+  const localizedDefinition = getLocalizedExercisePresentation(definition, locale);
+  const localizedAlternative = getLocalizedAlternativePresentation(alternative, locale);
+  const equipmentLabel = localizedAlternative.equipmentLabel;
+  const compatibilityLabel = localizedAlternative.label;
   return (
     <Card className={`exercise-alt-card ${selected ? "selected" : ""}`.trim()}>
       <div className="row start">
@@ -246,9 +246,9 @@ function AlternativeCard({
           <AthlexMedia
             resolution={resolveExerciseThumbnailMedia({
               exerciseKey: definition.id,
-              exerciseName: definition.name,
-              primaryMuscles: definition.primaryMuscles,
-              secondaryMuscles: definition.secondaryMuscles,
+              exerciseName: localizedDefinition.name,
+              primaryMuscles: localizedDefinition.primaryMuscles,
+              secondaryMuscles: localizedDefinition.secondaryMuscles,
               equipment: definition.equipment,
               equipmentLabel: getLocalizedExercisePresentation(definition, locale).equipmentLabel
             })}
@@ -257,7 +257,7 @@ function AlternativeCard({
         <div style={{ minWidth: 0, flex: 1 }}>
           <div className="workout-status-pill workout-status-pill--match">{compatibilityLabel}</div>
           <div className="headline-md" style={{ marginTop: 8, textTransform: "uppercase" }}>
-            {definition.name}
+            {localizedDefinition.name}
           </div>
           <p className="caption" style={{ marginTop: 4 }}>
             {equipmentLabel} · {alternative.summary}

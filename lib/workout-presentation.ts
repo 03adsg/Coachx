@@ -53,5 +53,6 @@ export function getLocalizedExercisePresentation(definition: ExerciseDefinition,
   return { ...definition, ...instructionOverrides, name: localizedNames[definition.name] ?? definition.name, equipmentLabel, primaryMuscles: definition.primaryMuscles.map((muscle) => presentation.muscles[muscle] ?? humanizeSemanticValue(muscle)), secondaryMuscles: definition.secondaryMuscles.map((muscle) => presentation.muscles[muscle] ?? humanizeSemanticValue(muscle)), label: equipmentLabel };
 }
 export function getLocalizedAlternativePresentation(alternative: ExerciseAlternative, locale: string) {
-  return { ...alternative, equipmentLabel: locale === "es" ? equipment[alternative.equipment] : alternative.equipment.toUpperCase(), label: locale === "es" ? (alternative.label === "EXCELLENT" ? "EXCELENTE" : "BUENA OPCIÓN") : alternative.label };
+  const presentation = localePresentation[locale] ?? localePresentation.en;
+  return { ...alternative, equipmentLabel: presentation.equipment[alternative.equipment] ?? humanizeSemanticValue(alternative.equipment), label: locale === "es" ? (alternative.label === "EXCELLENT" ? "EXCELENTE" : "BUENA OPCIÓN") : locale === "ca" ? (alternative.label === "EXCELLENT" ? "EXCEL·LENT" : "BONA OPCIÓ") : locale === "de" ? (alternative.label === "EXCELLENT" ? "AUSGEZEICHNET" : "GUTE OPTION") : alternative.label };
 }

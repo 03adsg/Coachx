@@ -49,7 +49,7 @@ export default function DayDetailPage() {
             />
             <div style={{ textAlign: "left" }}>
               <div className="eyebrow" style={{ margin: 0, color: "#c6c6c7" }}>
-                Day Detail
+                {t("common.today")}
               </div>
               <div className="caption" style={{ marginTop: 2 }}>
                 {saved.profile.name}
@@ -79,7 +79,7 @@ export default function DayDetailPage() {
           <Card className="p-16 elevated" style={{ background: "var(--background-charcoal)" }}>
             <div className="row" style={{ marginBottom: 14 }}>
               <div>
-                <div className="eyebrow">Workout focus</div>
+                <div className="eyebrow">{t("today.targetZones")}</div>
                 <div className="headline-md" style={{ marginTop: 6 }}>
                   {day.workoutTitle}
                 </div>
@@ -95,26 +95,26 @@ export default function DayDetailPage() {
               <div>
                 <div className="headline-md">{day.workoutCount}</div>
                 <div className="caption" style={{ marginTop: 4 }}>
-                  Session volume
+                  {t("today.volume")}
                 </div>
               </div>
               <div>
                 <div className="headline-md">{day.duration}</div>
                 <div className="caption" style={{ marginTop: 4 }}>
-                  Total time
+                  {t("today.duration")}
                 </div>
               </div>
               <div>
                 <div className="headline-md">{day.cardio}</div>
                 <div className="caption" style={{ marginTop: 4 }}>
-                  Cardio block
+                  {t("today.cardio")}
                 </div>
               </div>
             </div>
           </Card>
         </section>
 
-        <Section title="Workout" meta={day.primaryTarget}>
+        <Section title={t("common.startWorkout")} meta={day.primaryTarget}>
           <div className="stack">
             {day.movements.map((movement) => {
               const presentation = getLocalizedExercisePresentation(getExerciseDefinition(movement.exerciseKey), locale);
@@ -144,11 +144,11 @@ export default function DayDetailPage() {
           </div>
         </Section>
 
-        <Section title="Nutrition" meta={day.calendarLabel}>
+        <Section title={t("common.nutrition")} meta={day.calendarLabel}>
           <Card className="p-16">
             <div className="row start">
               <div>
-                <div className="eyebrow">Calories</div>
+                <div className="eyebrow">{t("today.calories")}</div>
                 <div className="headline-md" style={{ marginTop: 6 }}>
                   {day.nutritionCalories}
                 </div>
@@ -157,7 +157,7 @@ export default function DayDetailPage() {
                 </div>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div className="eyebrow">Habits</div>
+                <div className="eyebrow">{t("program.habits")}</div>
                 <div className="headline-md" style={{ marginTop: 6 }}>
                   {day.habits}
                 </div>
@@ -165,13 +165,13 @@ export default function DayDetailPage() {
             </div>
             <div style={{ marginTop: 16 }}>
               <Link href={`/nutrition?date=${day.dateKey}`} className="workout-secondary-button focus-ring">
-                Open Nutrition
+                {t("common.nutrition")}
               </Link>
             </div>
           </Card>
         </Section>
 
-        <Section title="Coach insight" meta="Session cues">
+        <Section title={t("common.coachPanel")} meta={t("today.nextWorkout")}>
           <Card className="p-16">
             <p className="body-md" style={{ color: "var(--text-secondary)" }}>
               {day.coachInsight}
@@ -182,11 +182,11 @@ export default function DayDetailPage() {
         <div className="stack">
           {day.isRestDay ? (
             <PrimaryButton href={`/calendar?date=${day.dateKey}&month=${monthDateKey}`} className="focus-ring">
-              Add Workout
+              {t("common.startWorkout")}
             </PrimaryButton>
           ) : (
             <PrimaryButton href={`/workout/${day.scheduledWorkoutId}`} className="focus-ring">
-              Start Workout
+              {t("common.startWorkout")}
             </PrimaryButton>
           )}
           {!day.isRestDay ? (
