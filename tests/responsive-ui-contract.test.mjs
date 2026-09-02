@@ -37,6 +37,9 @@ test("workout responsive shell keeps the browser scroll and sticky CTA contract 
   assert.match(css, /\.workout-complete-set-dock \{/);
   assert.match(css, /position: fixed;/);
   assert.match(css, /bottom: max\(8px, var\(--safe-bottom\)\);/);
+  assert.match(css, /\.numeric-rir__label \{/);
+  assert.match(css, /white-space: normal;/);
+  assert.match(css, /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/);
   assert.match(css, /\.card\.workout-set-row--editing \{/);
   assert.match(css, /display: grid;/);
   assert.match(css, /background: transparent;/);

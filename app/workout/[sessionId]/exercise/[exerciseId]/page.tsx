@@ -89,6 +89,20 @@ function muscleLabel(locale: string, muscle: string) {
   return copy[muscle as keyof typeof copy] ?? muscle;
 }
 
+function workoutLabel(locale: string, value: string) {
+  if (locale !== "es") {
+    return value;
+  }
+
+  return {
+    "WORKOUT A": "ENTRENAMIENTO A",
+    "WORKOUT B": "ENTRENAMIENTO B",
+    "WORKOUT C": "ENTRENAMIENTO C",
+    "GLUTES + HAMSTRINGS": "GLÚTEOS + ISQUIOTIBIALES",
+    "GLUTES + LEGS": "GLÚTEOS + PIERNAS"
+  }[value] ?? value;
+}
+
 function resolveSupportedLocale(locale: string): SupportedLocale {
   return locale === "es" || locale === "ca" || locale === "de" ? locale : "en";
 }
@@ -922,7 +936,7 @@ export default function ActiveExercisePage() {
   const workoutStartCopy = routeReady
     ? null
     : {
-        title: session.workoutType,
+        title: workoutLabel(locale, session.workoutType),
         exercises: `${session.totalExercises} ${copy.exerciseCount}`,
         duration: session.summary.duration
       };
@@ -997,7 +1011,7 @@ export default function ActiveExercisePage() {
             <div className="eyebrow" style={{ margin: 0 }}>
               {copy.workoutSession}
             </div>
-            <div className="workout-active-topbar__title">{session.phaseLabel}</div>
+            <div className="workout-active-topbar__title">{workoutLabel(locale, session.phaseLabel)}</div>
             <div className="workout-active-topbar__meta">
               <span>{copy.globalTimer}</span>
               <span>{formatElapsed(live.elapsedSeconds)}</span>
@@ -1038,7 +1052,7 @@ export default function ActiveExercisePage() {
               <div className="workout-start-card__copy">
                 <div className="eyebrow workout-start-card__eyebrow">{copy.workoutStart}</div>
                 <h1 className="headline-lg workout-start-card__title" style={{ marginTop: 8, textTransform: "uppercase" }}>
-                  {workoutStartCopy?.title ?? session.workoutType}
+                  {workoutStartCopy?.title ?? workoutLabel(locale, session.workoutType)}
                 </h1>
                 <p className="body-md workout-start-card__meta">
                   {workoutStartCopy?.exercises ?? `${session.totalExercises} ${copy.exerciseCount}`} · {workoutStartCopy?.duration ?? session.summary.duration}
