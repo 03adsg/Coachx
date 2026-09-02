@@ -937,6 +937,17 @@ export function resolvePerformanceAnalyticsRange(rangeId: PerformanceAnalyticsRa
   return resolveRange("8w", locale);
 }
 
+function localizeAnalyticsIdentity(value: string, locale: Locale) {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "phase 1") {
+    return { es: "Fase 1", ca: "Fase 1", en: "Phase 1", de: "Phase 1" }[locale];
+  }
+  if (normalized === "body recomposition") {
+    return { es: "Recomposición corporal", ca: "Recomposició corporal", en: "Body Recomposition", de: "Körperrekomposition" }[locale];
+  }
+  return value;
+}
+
 export function buildPerformanceAnalyticsDashboardFromSnapshot(
   snapshot: {
     athleteName: string;
@@ -954,6 +965,8 @@ export function buildPerformanceAnalyticsDashboardFromSnapshot(
   }
 ): PerformanceAnalyticsDashboard {
   const copy = getCopy(snapshot.locale);
+  const phaseLabel = localizeAnalyticsIdentity(snapshot.phaseLabel, snapshot.locale);
+  const goal = localizeAnalyticsIdentity(snapshot.goal, snapshot.locale);
   const progressSeries = buildProgressSeries(snapshot.progressState, snapshot.locale, copy.weight, copy.waist);
   const training = buildWorkoutLoadSeries(snapshot.workout.sessions, snapshot.workout.exercises, snapshot.workout.sets, snapshot.locale, copy.totalVolume);
   const nutrition = buildNutritionSeries(snapshot.nutrition.days, snapshot.nutrition.selections, snapshot.nutrition.hydration, snapshot.nutrition.supplements, snapshot.locale, copy.nutritionAdherence, copy.hydration);
@@ -1107,7 +1120,7 @@ export function buildPerformanceAnalyticsDashboardFromSnapshot(
   const phaseComplete = snapshot.progressState.phaseReview.status === "NEXT PHASE";
   const immersion = buildMotivationalImmersion(snapshot.locale, {
     locale: snapshot.locale,
-    phaseLabel: snapshot.phaseLabel,
+    phaseLabel,
     trainingAdherencePercent,
     nutritionAdherencePercent,
     hydrationMl,
@@ -1152,8 +1165,8 @@ export function buildPerformanceAnalyticsDashboardFromSnapshot(
     range: snapshot.range,
     generatedAt: new Date().toISOString(),
     athleteName: snapshot.athleteName,
-    phaseLabel: snapshot.phaseLabel,
-    goal: snapshot.goal,
+    phaseLabel,
+    goal,
     currentWorkout: snapshot.currentWorkout,
     currentDay: snapshot.currentDay,
     status,

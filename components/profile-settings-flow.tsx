@@ -33,9 +33,11 @@ function ProfileHeader({
   brand?: boolean;
   rightAction?: ReactNode;
 }) {
+  const { t } = useTranslator();
+
   return (
     <header className="topbar" style={{ alignItems: "flex-start", paddingTop: "calc(10px + env(safe-area-inset-top, 0px))" }}>
-      <Link href={backHref} aria-label="Go back" className="tap-target focus-ring" style={{ flex: "0 0 auto" }}>
+      <Link href={backHref} aria-label={t("common.back")} className="tap-target focus-ring" style={{ flex: "0 0 auto" }}>
         <span className="icon" aria-hidden="true">
           arrow_back
         </span>
@@ -542,16 +544,16 @@ function useSyncedProfileDraft(saved: ProfileSnapshot) {
   return [draft, setDraft] as const;
 }
 
-function saveButtonLabel(saveState: "idle" | "saved" | "error") {
+function saveButtonLabel(saveState: "idle" | "saved" | "error", t: (key: string) => string) {
   if (saveState === "error") {
-    return "Try again";
+    return t("common.retry");
   }
 
   if (saveState === "saved") {
-    return "Saved";
+    return t("common.success");
   }
 
-  return "Save changes";
+  return t("common.save");
 }
 
 function EditorFooter({
@@ -567,13 +569,15 @@ function EditorFooter({
   onSecondary: () => void;
   secondaryLabel?: string;
 }) {
+  const { t } = useTranslator();
+
   return (
     <div className="stack" style={{ gap: 12, paddingTop: 8 }}>
       <SecondaryButton className="focus-ring" onClick={onSecondary}>
-        {secondaryLabel}
+        {secondaryLabel === "Back" ? t("common.back") : secondaryLabel}
       </SecondaryButton>
       <PrimaryButton className="focus-ring" onClick={onSave} disabled={!dirty && saveState === "idle"}>
-        {saveButtonLabel(saveState)}
+        {saveButtonLabel(saveState, t)}
       </PrimaryButton>
     </div>
   );
