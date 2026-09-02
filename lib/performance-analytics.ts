@@ -948,6 +948,17 @@ function localizeAnalyticsIdentity(value: string, locale: Locale) {
   return value;
 }
 
+function localizeAnalyticsWorkout(value: string, locale: Locale) {
+  const normalized = value.trim().toLowerCase();
+  const labels: Record<string, Record<Locale, string>> = {
+    "glutes + legs": { es: "Glúteos + piernas", ca: "Glutis + cames", en: "Glutes + Legs", de: "Gesäß + Beine" },
+    "glutes + hamstrings": { es: "Glúteos + isquiotibiales", ca: "Glutis + isquiotibials", en: "Glutes + Hamstrings", de: "Gesäß + hintere Oberschenkel" },
+    "upper body power": { es: "Potencia del tren superior", ca: "Potència del tren superior", en: "Upper Body Power", de: "Kraft im Oberkörper" },
+    recovery: { es: "Recuperación", ca: "Recuperació", en: "Recovery", de: "Regeneration" }
+  };
+  return labels[normalized]?.[locale] ?? value;
+}
+
 export function buildPerformanceAnalyticsDashboardFromSnapshot(
   snapshot: {
     athleteName: string;
@@ -967,6 +978,7 @@ export function buildPerformanceAnalyticsDashboardFromSnapshot(
   const copy = getCopy(snapshot.locale);
   const phaseLabel = localizeAnalyticsIdentity(snapshot.phaseLabel, snapshot.locale);
   const goal = localizeAnalyticsIdentity(snapshot.goal, snapshot.locale);
+  const currentWorkout = localizeAnalyticsWorkout(snapshot.currentWorkout, snapshot.locale);
   const progressSeries = buildProgressSeries(snapshot.progressState, snapshot.locale, copy.weight, copy.waist);
   const training = buildWorkoutLoadSeries(snapshot.workout.sessions, snapshot.workout.exercises, snapshot.workout.sets, snapshot.locale, copy.totalVolume);
   const nutrition = buildNutritionSeries(snapshot.nutrition.days, snapshot.nutrition.selections, snapshot.nutrition.hydration, snapshot.nutrition.supplements, snapshot.locale, copy.nutritionAdherence, copy.hydration);
@@ -1167,7 +1179,7 @@ export function buildPerformanceAnalyticsDashboardFromSnapshot(
     athleteName: snapshot.athleteName,
     phaseLabel,
     goal,
-    currentWorkout: snapshot.currentWorkout,
+    currentWorkout,
     currentDay: snapshot.currentDay,
     status,
     statusLabel: highlight.statusLabel,
@@ -1268,8 +1280,8 @@ export async function loadPerformanceAnalyticsDashboard(
     athleteName: athleteSnapshot.snapshot.profile.name,
     goal: athleteSnapshot.snapshot.goals.mainGoal,
     phaseLabel: programBundle?.program?.phaseLabel ?? "Phase 1",
-    currentWorkout: programSummary?.workoutTitle ?? programBundle?.program?.firstWorkout ?? "—",
-    currentDay: programSummary?.dateLabel ?? range.endDateKey,
+    currentWorkout: localizeAnalyticsWorkout(programSummary?.workoutTitle ?? programBundle?.program?.firstWorkout ?? "—", locale),
+    currentDay: programSummary?.dateKey ? formatDateLabel(programSummary.dateKey, locale) : formatDateLabel(range.endDateKey, locale),
     progressState,
     workout: workoutSnapshot,
     nutrition: nutritionSnapshot,
