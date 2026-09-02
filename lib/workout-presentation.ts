@@ -50,7 +50,8 @@ export function getLocalizedExercisePresentation(definition: ExerciseDefinition,
   const localizedNames = locale === "es" ? names : presentation.names;
   const instructionOverrides = locale === "es" ? (definition.id === "walking-lunge" ? walkingLunge : definition.id === "glute-drive-machine" ? gluteDriveMachine : {}) : {};
   const equipmentLabel = presentation.equipment[definition.equipment] ?? humanizeSemanticValue(definition.equipment);
-  return { ...definition, ...instructionOverrides, name: localizedNames[definition.name] ?? definition.name, equipmentLabel, primaryMuscles: definition.primaryMuscles.map((muscle) => presentation.muscles[muscle] ?? humanizeSemanticValue(muscle)), secondaryMuscles: definition.secondaryMuscles.map((muscle) => presentation.muscles[muscle] ?? humanizeSemanticValue(muscle)), label: equipmentLabel };
+  const localizedLastPerformance = definition.lastPerformance?.replace(/^Bodyweight/i, equipmentLabel);
+  return { ...definition, ...instructionOverrides, name: localizedNames[definition.name] ?? definition.name, equipmentLabel, primaryMuscles: definition.primaryMuscles.map((muscle) => presentation.muscles[muscle] ?? humanizeSemanticValue(muscle)), secondaryMuscles: definition.secondaryMuscles.map((muscle) => presentation.muscles[muscle] ?? humanizeSemanticValue(muscle)), lastPerformance: localizedLastPerformance, label: equipmentLabel };
 }
 export function getLocalizedAlternativePresentation(alternative: ExerciseAlternative, locale: string) {
   const presentation = localePresentation[locale] ?? localePresentation.en;

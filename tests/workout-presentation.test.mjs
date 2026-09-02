@@ -26,6 +26,7 @@ const definition = {
   coachCues: ["Brace"],
   commonMistakes: ["Rush"],
   summary: "Summary"
+  ,lastPerformance: "Bodyweight | 20 steps"
 };
 
 test("semantic exercise presentation humanizes equipment and muscles in every locale", () => {
@@ -40,6 +41,7 @@ test("semantic exercise presentation humanizes equipment and muscles in every lo
     const localized = presentation.getLocalizedExercisePresentation(definition, locale);
     assert.equal(localized.equipmentLabel, equipment);
     assert.equal(localized.primaryMuscles[0], muscle);
+    assert.equal(localized.lastPerformance, `${equipment} | 20 steps`);
     assert.notEqual(localized.label, "MACHINE");
   }
 });
