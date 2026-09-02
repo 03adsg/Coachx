@@ -76,11 +76,18 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
   const auth = useAuthStore();
   const { setLocale, locale } = useLocale();
   const authRef = useRef(auth);
+  const localeRef = useRef(locale);
+  const localeWriteGenerationRef = useRef(0);
+  const localeSaveChainRef = useRef(Promise.resolve());
   const programStore = useProgramStore();
   const programStoreRef = useRef(programStore);
   const onboarding = useOnboardingStore();
   const onboardingRef = useRef(onboarding);
   const [state, setState] = useState<ProfileSettingsState>(() => reviveProfileSettingsState(null));
+
+  useEffect(() => {
+    localeRef.current = locale;
+  }, [locale]);
 
   useEffect(() => {
     onboardingRef.current = onboarding;
@@ -110,6 +117,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
     let active = true;
 
     async function hydrateFromRemote() {
+      const hydrationLocaleGeneration = localeWriteGenerationRef.current;
       const client = getSupabaseBrowserClient();
       const currentAuth = authRef.current;
 
@@ -148,7 +156,10 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
           ...remote.snapshot,
           profile: {
             ...remote.snapshot.profile,
-            locale: resolveAthleteSnapshotLocale(remote, onboardingRef.current.state.profile.locale)
+            locale:
+              localeWriteGenerationRef.current === hydrationLocaleGeneration
+                ? resolveAthleteSnapshotLocale(remote, onboardingRef.current.state.profile.locale)
+                : localeRef.current
           }
         };
         setState((current) => ({
@@ -160,7 +171,9 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
           saveError: null,
           lastSavedLabel: "Loaded"
         }));
-        setLocale(nextSaved.profile.locale);
+        if (localeWriteGenerationRef.current === hydrationLocaleGeneration) {
+          setLocale(nextSaved.profile.locale);
+        }
         onboardingRef.current.setProfile(remote.snapshot.profile);
         onboardingRef.current.setGoals(remote.snapshot.goals);
         onboardingRef.current.setTrainingPreferences(remote.snapshot.trainingPreferences);
@@ -249,6 +262,7 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
     };
 
     const commitLocale: ProfileSettingsStoreValue["commitLocale"] = (nextLocale) => {
+      localeWriteGenerationRef.current += 1;
       const nextSnapshot: ProfileSnapshot = {
         ...state.saved,
         profile: {
@@ -269,13 +283,14 @@ export function ProfileSettingsProvider({ children }: { children: ReactNode }) {
       const client = getSupabaseBrowserClient();
       const currentAuth = authRef.current;
       if (currentAuth.isConfigured && currentAuth.user && client) {
-        void saveAthleteSnapshot(
-          client,
-          currentAuth.user.id,
-          nextSnapshot,
-          mapOnboardingStatus(onboardingRef.current.state.progress.status),
-          onboardingRef.current.state.progress.status === "complete" ? new Date().toISOString() : null
-        )
+        localeSaveChainRef.current = localeSaveChainRef.current
+          .then(() => saveAthleteSnapshot(
+            client,
+            currentAuth.user!.id,
+            nextSnapshot,
+            mapOnboardingStatus(onboardingRef.current.state.progress.status),
+            onboardingRef.current.state.progress.status === "complete" ? new Date().toISOString() : null
+          ))
           .then(() => {
             const copy = localeFeedbackCopy[nextLocale];
             publishFeedbackSuccess("profile.locale", copy.successTitle, copy.successDetail);
