@@ -12,6 +12,7 @@ import { useWorkoutStore } from "@/components/workout-provider";
 import { useTranslator } from "@/components/locale-provider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getExerciseDefinition, countCompletedExercises } from "@/lib/workout-data";
+import { getLocalizedExercisePresentation } from "@/lib/workout-presentation";
 import { resolveExerciseHeroMedia } from "@/lib/media";
 import { getOrCreateWorkoutSession, type WorkoutSessionSeed } from "@/lib/workout-session-service";
 import type { ProgramTemplateExercise, ProgramTemplateView } from "@/lib/program-service";
@@ -265,7 +266,7 @@ export default function WorkoutOverviewPage() {
 
         <section className="stack-lg">
           {session.exercises.map((exercise, index) => {
-            const definition = getExerciseDefinition(exercise.performedExerciseId);
+            const definition = getLocalizedExercisePresentation(getExerciseDefinition(exercise.performedExerciseId), locale);
             const media = resolveExerciseHeroMedia({
               exerciseKey: definition.id,
               exerciseName: definition.name,
@@ -273,14 +274,14 @@ export default function WorkoutOverviewPage() {
               secondaryMuscles: definition.secondaryMuscles,
               equipment: definition.equipment
             });
-            const equipment = definition.label;
+            const equipment = definition.equipmentLabel;
 
             return (
               <div key={exercise.id} className="stack">
                 <Link
                   href={`/workout/${session.id}/exercise/${exercise.id}`}
                   className="workout-overview-card focus-ring"
-                  aria-label={`Open ${definition.name}`}
+                  aria-label={`${copy.startSession}: ${definition.name}`}
                 >
                   <div className="workout-overview-card__media">
                     <AthlexMedia compactFallback resolution={media} />

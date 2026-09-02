@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test tests/onboarding-data.test.mjs tests/media-system.test.mjs tests/responsive-ui-contract.test.mjs tests/notification-system.test.mjs",
+    "test": "node --test tests/onboarding-data.test.mjs tests/media-system.test.mjs tests/responsive-ui-contract.test.mjs tests/notification-system.test.mjs tests/workout-presentation.test.mjs",
     "qa:hydration": "node scripts/qa/slice-29-hydration.mjs",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit"

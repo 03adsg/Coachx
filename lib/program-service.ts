@@ -97,7 +97,7 @@ export interface ProgramDaySummary {
   habits: string;
   muscleFocus: MuscleGroup[];
   anatomyKey: string;
-  movements: Array<{ name: string; prescription: string; icon: string; thumbnail?: string }>;
+  movements: Array<{ exerciseKey: string; name: string; prescription: string; icon: string; thumbnail?: string }>;
   scheduledWorkoutId: string;
   templateCode: string;
   isAdHoc: boolean;
@@ -1013,6 +1013,7 @@ export function getProgramDaySummary(bundle: ProgramBundleView, dateKey: string)
       });
       const repRange = exercise.rep_min === exercise.rep_max ? `${exercise.rep_min}` : `${exercise.rep_min}-${exercise.rep_max}`;
       return {
+        exerciseKey: definition.id,
         name: definition.name,
         prescription: `${exercise.sets} sets x ${repRange} reps`,
         icon: "fitness_center",

@@ -9,6 +9,8 @@ import { useProfileSettingsStore } from "@/components/profile-settings-provider"
 import { useProgramStore } from "@/components/program-provider";
 import { Screen } from "@/components/screen";
 import { Card, PrimaryButton, Section } from "@/components/ui";
+import { getExerciseDefinition } from "@/lib/workout-data";
+import { getLocalizedExercisePresentation } from "@/lib/workout-presentation";
 
 function resolveDateKey(param: string | string[] | undefined, fallback: string) {
   if (Array.isArray(param)) {
@@ -20,7 +22,7 @@ function resolveDateKey(param: string | string[] | undefined, fallback: string) 
 
 export default function DayDetailPage() {
   const params = useParams<{ date?: string | string[] }>();
-  const { t } = useTranslator();
+  const { t, locale } = useTranslator();
   const { saved } = useProfileSettingsStore();
   const { getDaySummary, selectedDateKey } = useProgramStore();
   const dateKey = resolveDateKey(params.date, selectedDateKey ?? "2026-08-08");
@@ -114,9 +116,11 @@ export default function DayDetailPage() {
 
         <Section title="Workout" meta={day.primaryTarget}>
           <div className="stack">
-            {day.movements.map((movement) => (
+            {day.movements.map((movement) => {
+              const presentation = getLocalizedExercisePresentation(getExerciseDefinition(movement.exerciseKey), locale);
+              return (
               <Link
-                key={movement.name}
+                key={movement.exerciseKey}
                 href={day.scheduledWorkoutId ? `/workout/${day.scheduledWorkoutId}` : `/calendar?date=${day.dateKey}&month=${monthDateKey}`}
                 className="list-card focus-ring"
               >
@@ -125,7 +129,7 @@ export default function DayDetailPage() {
                 </span>
                 <div style={{ flex: 1 }}>
                   <div className="body-md" style={{ fontWeight: 700 }}>
-                    {movement.name}
+                    {presentation.name}
                   </div>
                   <div className="caption" style={{ marginTop: 4 }}>
                     {movement.prescription}
@@ -135,7 +139,8 @@ export default function DayDetailPage() {
                   chevron_right
                 </span>
               </Link>
-            ))}
+              );
+            })}
           </div>
         </Section>
 
