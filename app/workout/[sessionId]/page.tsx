@@ -212,6 +212,8 @@ export default function WorkoutOverviewPage() {
   };
 
   const backHref = day ? `/day/${day.dateKey}` : "/calendar";
+  const completedStatus = locale === "es" ? "COMPLETADO" : locale === "ca" ? "COMPLETAT" : locale === "de" ? "ABGESCHLOSSEN" : "COMPLETED";
+  const localizedLastSessionLabel = session.lastSessionLabel.replace(/COMPLETED/gi, completedStatus);
 
   return (
     <Screen
@@ -260,7 +262,7 @@ export default function WorkoutOverviewPage() {
             <span className="icon" style={{ fontSize: 16 }}>
               history
             </span>
-            <span>{session.lastSessionLabel}</span>
+            <span>{localizedLastSessionLabel}</span>
           </div>
         </section>
 

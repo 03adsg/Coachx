@@ -237,6 +237,7 @@ function AlternativeCard({
 }) {
   const localizedDefinition = getLocalizedExercisePresentation(definition, locale);
   const localizedAlternative = getLocalizedAlternativePresentation(alternative, locale);
+  const alternativeDefinition = getLocalizedExercisePresentation(getExerciseDefinition(alternative.exerciseId), locale);
   const equipmentLabel = localizedAlternative.equipmentLabel;
   const compatibilityLabel = localizedAlternative.label;
   return (
@@ -245,12 +246,12 @@ function AlternativeCard({
         <div className="exercise-alt-card__thumb">
           <AthlexMedia
             resolution={resolveExerciseThumbnailMedia({
-              exerciseKey: definition.id,
-              exerciseName: localizedDefinition.name,
-              primaryMuscles: localizedDefinition.primaryMuscles,
-              secondaryMuscles: localizedDefinition.secondaryMuscles,
-              equipment: definition.equipment,
-              equipmentLabel: getLocalizedExercisePresentation(definition, locale).equipmentLabel
+              exerciseKey: alternativeDefinition.id,
+              exerciseName: alternativeDefinition.name,
+              primaryMuscles: alternativeDefinition.primaryMuscles,
+              secondaryMuscles: alternativeDefinition.secondaryMuscles,
+              equipment: alternativeDefinition.equipment,
+              equipmentLabel: alternativeDefinition.equipmentLabel
             })}
           />
         </div>
