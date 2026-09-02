@@ -7,6 +7,7 @@ export interface ExerciseMediaContext {
   primaryMuscles?: string[];
   secondaryMuscles?: string[];
   equipment?: string;
+  equipmentLabel?: string;
 }
 
 const heroSizes = "(max-width: 430px) 100vw, 390px";
@@ -22,10 +23,10 @@ function buildAsset(src: string, alt: string, sizes: string, objectPosition: str
   };
 }
 
-function buildFallback({ exerciseName, primaryMuscles = [], secondaryMuscles = [], equipment }: ExerciseMediaContext): MediaFallback {
+function buildFallback({ exerciseName, primaryMuscles = [], secondaryMuscles = [], equipment, equipmentLabel }: ExerciseMediaContext): MediaFallback {
   const muscleLine = [...primaryMuscles, ...secondaryMuscles].slice(0, 2).join(" · ");
-  const subtitle = muscleLine || equipment || "AthlexForce movement reference";
-  const hint = equipment ? equipment.toUpperCase() : undefined;
+  const subtitle = muscleLine || equipmentLabel || equipment || "AthlexForce movement reference";
+  const hint = equipmentLabel ?? (equipment ? equipment.toUpperCase() : undefined);
 
   return {
     kind: "exercise",

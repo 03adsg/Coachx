@@ -394,7 +394,8 @@ export default function ActiveExercisePage() {
     exerciseName: localizedDefinition.name,
     primaryMuscles: localizedDefinition.primaryMuscles,
     secondaryMuscles: localizedDefinition.secondaryMuscles,
-    equipment: definition.equipment
+    equipment: definition.equipment,
+    equipmentLabel: localizedDefinition.equipmentLabel
   });
   const nextExerciseMedia = nextExercise
     ? resolveExerciseThumbnailMedia({

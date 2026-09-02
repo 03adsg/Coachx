@@ -272,7 +272,8 @@ export default function WorkoutOverviewPage() {
               exerciseName: definition.name,
               primaryMuscles: definition.primaryMuscles,
               secondaryMuscles: definition.secondaryMuscles,
-              equipment: definition.equipment
+              equipment: definition.equipment,
+              equipmentLabel: definition.equipmentLabel
             });
             const equipment = definition.equipmentLabel;
 

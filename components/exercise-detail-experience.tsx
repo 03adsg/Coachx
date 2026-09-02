@@ -249,7 +249,8 @@ function AlternativeCard({
               exerciseName: definition.name,
               primaryMuscles: definition.primaryMuscles,
               secondaryMuscles: definition.secondaryMuscles,
-              equipment: definition.equipment
+              equipment: definition.equipment,
+              equipmentLabel: getLocalizedExercisePresentation(definition, locale).equipmentLabel
             })}
           />
         </div>
@@ -325,7 +326,8 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
       exerciseName: localizedDefinition.name,
       primaryMuscles: localizedDefinition.primaryMuscles,
       secondaryMuscles: localizedDefinition.secondaryMuscles,
-      equipment: definition.equipment
+      equipment: definition.equipment,
+      equipmentLabel: localizedDefinition.equipmentLabel
     }),
     [definition.equipment, definition.id, localizedDefinition.name, localizedDefinition.primaryMuscles, localizedDefinition.secondaryMuscles]
   );
