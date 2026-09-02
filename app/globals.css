@@ -4373,6 +4373,53 @@ img {
   padding-bottom: 0;
 }
 
+.progress-loading-shell {
+  min-height: 0;
+}
+
+.progress-loading-copy {
+  display: grid;
+  gap: 10px;
+}
+
+.progress-loading-card {
+  display: grid;
+  gap: 14px;
+  min-height: 260px;
+  padding: 16px;
+  border: 1px solid var(--border-quiet);
+  border-radius: var(--radius-lg);
+  background: var(--background-charcoal);
+}
+
+.progress-loading-block {
+  min-height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0.06) 20%, rgba(255, 255, 255, 0.13) 40%, rgba(255, 255, 255, 0.06) 60%);
+  background-size: 200% 100%;
+  animation: progress-loading-shimmer 1.4s ease-in-out infinite;
+}
+
+.progress-loading-block--title { width: min(220px, 62%); min-height: 28px; }
+.progress-loading-block--short { width: 34%; min-height: 16px; }
+.progress-loading-block--summary { width: 72%; min-height: 32px; }
+.progress-loading-block--body { width: 94%; min-height: 52px; }
+
+.progress-loading-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@keyframes progress-loading-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-loading-block { animation: none; }
+}
+
 .progress-analytics-shell > main {
   padding-bottom: calc(132px + var(--safe-bottom));
 }

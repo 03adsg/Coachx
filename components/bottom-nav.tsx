@@ -10,10 +10,14 @@ interface BottomNavProps {
 export function BottomNav({ active }: BottomNavProps) {
   const { t } = useTranslator();
   const [optimisticNutritionActive, setOptimisticNutritionActive] = useState(false);
+  const [optimisticProgressActive, setOptimisticProgressActive] = useState(false);
 
   useEffect(() => {
     if (active === "nutrition") {
       setOptimisticNutritionActive(false);
+    }
+    if (active === "progress") {
+      setOptimisticProgressActive(false);
     }
   }, [active]);
 
@@ -31,15 +35,18 @@ export function BottomNav({ active }: BottomNavProps) {
         <Link
           key={tab.id}
           href={tab.href}
-          className={`nav-item ${tab.id === active || (tab.id === "nutrition" && optimisticNutritionActive) ? "active" : ""}`}
+          className={`nav-item ${tab.id === active || (tab.id === "nutrition" && optimisticNutritionActive) || (tab.id === "progress" && optimisticProgressActive) ? "active" : ""}`}
           aria-current={tab.id === active ? "page" : undefined}
           onClick={() => {
             if (tab.id === "nutrition" && active !== "nutrition") {
               setOptimisticNutritionActive(true);
             }
+            if (tab.id === "progress" && active !== "progress") {
+              setOptimisticProgressActive(true);
+            }
           }}
         >
-          <span className={`icon ${tab.id === active || (tab.id === "nutrition" && optimisticNutritionActive) ? "filled" : ""}`} aria-hidden="true">
+          <span className={`icon ${tab.id === active || (tab.id === "nutrition" && optimisticNutritionActive) || (tab.id === "progress" && optimisticProgressActive) ? "filled" : ""}`} aria-hidden="true">
             {tab.icon}
           </span>
           <span>{tab.label}</span>
