@@ -673,7 +673,26 @@ img {
 
 .workout-active-shell {
   padding-top: 4px;
-  padding-bottom: calc(224px + var(--safe-bottom));
+  padding-bottom: calc(132px + var(--safe-bottom));
+}
+
+.workout-complete-set-dock {
+  position: fixed;
+  left: 50%;
+  bottom: max(8px, var(--safe-bottom));
+  width: min(calc(100% - 24px), var(--max-mobile-width));
+  padding: 0;
+  transform: translateX(-50%);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.workout-complete-set-dock.sticky-action--hidden {
+  transform: translate(-50%, calc(100% + 16px));
+}
+
+.workout-complete-set-dock > .button-primary {
+  width: 100%;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.38);
 }
 
 .workout-start-card {
@@ -1786,6 +1805,21 @@ img {
   border: 0;
   box-shadow: none;
   padding: 0;
+}
+
+.workout-logged-set-editor {
+  padding: 16px;
+  border: 1px solid rgba(182, 255, 0, 0.2);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(30, 30, 30, 0.98) 0%, rgba(17, 17, 17, 0.98) 100%);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+}
+
+.workout-logged-set-card {
+  padding: 14px;
+  border: 1px solid var(--border-quiet);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(26, 26, 26, 0.96) 0%, rgba(18, 18, 18, 0.98) 100%);
 }
 
 .card.workout-set-row--editing .workout-set-row__header {
@@ -5403,6 +5437,15 @@ img {
   .workout-active-hero__detail-link {
     width: 100%;
     justify-content: center;
+  }
+
+  .workout-logged-set-editor .workout-set-row__header,
+  .workout-logged-set-card > .row {
+    align-items: flex-start;
+  }
+
+  .workout-logged-set-editor .workout-set-row__actions {
+    grid-template-columns: 1fr 1fr;
   }
 
   .nutrition-hero-card__summary,

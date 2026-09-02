@@ -33,7 +33,10 @@ test("workout responsive shell keeps the browser scroll and sticky CTA contract 
   assert.match(css, /overflow-y: auto;/);
   assert.match(css, /\.sticky-action--hidden \{/);
   assert.match(css, /\.workout-active-shell \{/);
-  assert.match(css, /padding-bottom: calc\(224px \+ var\(--safe-bottom\)\);/);
+  assert.match(css, /padding-bottom: calc\(132px \+ var\(--safe-bottom\)\);/);
+  assert.match(css, /\.workout-complete-set-dock \{/);
+  assert.match(css, /position: fixed;/);
+  assert.match(css, /bottom: max\(8px, var\(--safe-bottom\)\);/);
   assert.match(css, /\.card\.workout-set-row--editing \{/);
   assert.match(css, /display: grid;/);
   assert.match(css, /background: transparent;/);
@@ -43,6 +46,8 @@ test("workout responsive shell keeps the browser scroll and sticky CTA contract 
   assert.match(workoutPage, /getExerciseProgressionTarget/);
   assert.match(workoutPage, /workout-set-row--editing/);
   assert.match(workoutPage, /previewExerciseBody/);
+  assert.match(workoutPage, /openPreview/);
+  assert.match(workoutPage, /getLocalizedExercisePresentation/);
   assert.match(workoutOverview, /resumeSession/);
 
   assert.match(workoutData, /localizedProgressionTargets/);

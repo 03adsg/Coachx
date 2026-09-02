@@ -33,6 +33,7 @@ import { validateWorkoutSetDraft, type WorkoutSetDraftErrors } from "@/lib/worko
 import { resolveExerciseHeroMedia, resolveExerciseThumbnailMedia } from "@/lib/media";
 import { getOrCreateWorkoutSession, type WorkoutSessionSeed } from "@/lib/workout-session-service";
 import { getWorkoutLiveSnapshot } from "@/lib/workout-live-state";
+import { getLocalizedExercisePresentation } from "@/lib/workout-presentation";
 import type { SupportedLocale } from "@/lib/numeric-input";
 import type { ProgramTemplateExercise, ProgramTemplateView } from "@/lib/program-service";
 
@@ -366,13 +367,14 @@ export default function ActiveExercisePage() {
   const live = getWorkoutLiveSnapshot(session);
   const exercise = getWorkoutExercise(session, routeExerciseId || live.activeExercise.id);
   const definition = getExerciseDefinition(exercise.performedExerciseId);
+  const localizedDefinition = getLocalizedExercisePresentation(definition, locale);
   const currentSet = exercise.sets.find((set) => !set.completed) ?? exercise.sets[exercise.sets.length - 1];
   const nextExercise = session.exercises[exercise.order] ?? null;
   const completedCount = exercise.completedSets.length;
   const exerciseComplete = exercise.completedSets.length >= exercise.totalSets;
   const remainingExercises = Math.max(0, session.totalExercises - countCompletedExercises(session) - (exerciseComplete ? 0 : 1));
-  const primaryMuscle = muscleLabel(locale, definition.primaryMuscles[0] ?? "");
-  const secondaryMuscle = muscleLabel(locale, definition.secondaryMuscles[0] ?? "");
+  const primaryMuscle = localizedDefinition.primaryMuscles[0] ?? "";
+  const secondaryMuscle = localizedDefinition.secondaryMuscles[0] ?? "";
   const heroMedia = resolveExerciseHeroMedia({
     exerciseKey: definition.id,
     exerciseName: definition.name,
@@ -465,6 +467,7 @@ export default function ActiveExercisePage() {
       secondary: "Secondary",
       previewExercise: "Preview exercise",
       previewExerciseBody: "Review technique, media, and alternatives without losing workout context.",
+      openPreview: "Open exercise preview",
       sets: "Sets",
       reps: "Reps",
       sec: "Sec",
@@ -517,6 +520,7 @@ export default function ActiveExercisePage() {
       secondary: "Secundario",
       previewExercise: "Vista previa del ejercicio",
       previewExerciseBody: "Revisa la técnica, los medios y las alternativas sin perder el contexto del entrenamiento.",
+      openPreview: "Abrir vista previa",
       sets: "Series",
       reps: "Reps",
       sec: "Seg",
@@ -569,6 +573,7 @@ export default function ActiveExercisePage() {
       secondary: "Secundari",
       previewExercise: "Previsualitza l'exercici",
       previewExerciseBody: "Revisa la tècnica, els mitjans i les alternatives sense perdre el context de l'entrenament.",
+      openPreview: "Obrir vista prèvia",
       sets: "Sèries",
       reps: "Reps",
       sec: "Seg",
@@ -621,6 +626,7 @@ export default function ActiveExercisePage() {
       secondary: "Sekundär",
       previewExercise: "Übung ansehen",
       previewExerciseBody: "Überprüfe Technik, Medien und Alternativen, ohne den Trainingskontext zu verlieren.",
+      openPreview: "Übungsvorschau öffnen",
       sets: "Sätze",
       reps: "Wdh.",
       sec: "Sek",
@@ -673,6 +679,7 @@ export default function ActiveExercisePage() {
     secondary: "Secondary",
     previewExercise: "Preview exercise",
     previewExerciseBody: "Review technique, media, and alternatives without losing workout context.",
+    openPreview: "Open exercise preview",
     sets: "Sets",
     reps: "Reps",
     sec: "Sec",
@@ -1051,10 +1058,10 @@ export default function ActiveExercisePage() {
                 <div className="workout-active-hero__body">
                   <div className="workout-active-hero__body-copy">
                     <div className="pill" style={{ background: "rgba(182,255,0,0.14)", color: "var(--accent-primary)", width: "fit-content" }}>
-                      {definition.label}
+                      {localizedDefinition.label}
                     </div>
                     <h1 className="headline-lg" style={{ textTransform: "uppercase", marginTop: 10 }}>
-                      {definition.name}
+                      {localizedDefinition.name}
                     </h1>
                     <p className="body-md" style={{ marginTop: 8, color: "rgba(247,247,247,0.88)" }}>
                       {copy.primary}: {primaryMuscle} · {copy.secondary}: {secondaryMuscle}
@@ -1070,7 +1077,7 @@ export default function ActiveExercisePage() {
                     className="button-secondary focus-ring workout-active-hero__detail-link"
                     href={`/workout/${workoutId}/exercise/${exercise.id}/detail`}
                   >
-                    {copy.previewExercise}
+                    {copy.openPreview}
                   </Link>
                 </div>
               </Card>
@@ -1148,7 +1155,7 @@ export default function ActiveExercisePage() {
                         {copy.exercise} {exercise.order} / {session.totalExercises}
                       </div>
                       <div className="headline-md" style={{ marginTop: 8 }}>
-                        {definition.name}
+                        {localizedDefinition.name}
                       </div>
                     </div>
                     <div className="pill" style={{ background: "rgba(182,255,0,0.12)", color: "var(--accent-primary)" }}>
@@ -1219,7 +1226,7 @@ export default function ActiveExercisePage() {
 
                   if (isEditing && setDraft) {
                     return (
-                      <Card key={set.setNumber} className="workout-set-row workout-set-row--editing elevated">
+                      <Card key={set.setNumber} className="workout-set-row workout-set-row--editing workout-logged-set-editor elevated">
                         <div className="row start workout-set-row__header">
                           <div>
                             <div className="eyebrow" style={{ margin: 0 }}>
@@ -1289,7 +1296,7 @@ export default function ActiveExercisePage() {
                   }
 
                   return (
-                    <Card key={set.setNumber} className="workout-set-row elevated">
+                    <Card key={set.setNumber} className="workout-set-row workout-logged-set-card elevated">
                       <div className="row start">
                         <div className="workout-set-row__meta">
                           <div className="eyebrow" style={{ margin: 0 }}>
@@ -1478,7 +1485,7 @@ export default function ActiveExercisePage() {
         ) : null}
 
         {editingSetNumber === null ? (
-          <div className={`sticky-action ${stickyActionHidden ? "sticky-action--hidden" : ""}`.trim()}>
+          <div className={`sticky-action workout-complete-set-dock ${stickyActionHidden ? "sticky-action--hidden" : ""}`.trim()}>
             {!exerciseComplete ? (
               <button
                 aria-label={completeSetLabel}

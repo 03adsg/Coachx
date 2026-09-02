@@ -16,6 +16,7 @@ import {
   getWorkoutExercise,
   type ExerciseAlternative
 } from "@/lib/workout-data";
+import { getLocalizedExercisePresentation } from "@/lib/workout-presentation";
 import {
   resolveExerciseEndMedia,
   resolveExerciseFullscreenMedia,
@@ -57,6 +58,7 @@ function copyFor(locale: string) {
         performance: "Performance",
         alternatives: "Alternatives",
         preview: "Preview exercise",
+        openPreview: "Open exercise preview",
         fullscreen: "Fullscreen media",
         returnWorkout: "Return to workout",
         returnLibrary: "Back to library",
@@ -88,6 +90,7 @@ function copyFor(locale: string) {
         performance: "Rendimiento",
         alternatives: "Alternativas",
         preview: "Vista previa del ejercicio",
+        openPreview: "Abrir vista previa",
         fullscreen: "Media en pantalla completa",
         returnWorkout: "Volver al entrenamiento",
         returnLibrary: "Volver a la biblioteca",
@@ -119,6 +122,7 @@ function copyFor(locale: string) {
         performance: "Rendiment",
         alternatives: "Alternatives",
         preview: "Previsualitza l'exercici",
+        openPreview: "Obrir vista prèvia",
         fullscreen: "Media a pantalla completa",
         returnWorkout: "Torna a l'entrenament",
         returnLibrary: "Torna a la biblioteca",
@@ -150,6 +154,7 @@ function copyFor(locale: string) {
         performance: "Leistung",
         alternatives: "Alternativen",
         preview: "Übung ansehen",
+        openPreview: "Übungsvorschau öffnen",
         fullscreen: "Medien im Vollbild",
         returnWorkout: "Zurück zum Training",
         returnLibrary: "Zurück zur Bibliothek",
@@ -181,6 +186,7 @@ function copyFor(locale: string) {
       performance: "Performance",
       alternatives: "Alternatives",
       preview: "Preview exercise",
+      openPreview: "Open exercise preview",
       fullscreen: "Fullscreen media",
       returnWorkout: "Return to workout",
       returnLibrary: "Back to library",
@@ -218,7 +224,8 @@ function AlternativeCard({
   onSelect,
   selected,
   localeCopy,
-  source
+  source,
+  locale
 }: {
   alternative: ExerciseAlternative;
   definition: ReturnType<typeof getExerciseDefinition>;
@@ -226,8 +233,12 @@ function AlternativeCard({
   selected: boolean;
   localeCopy: ReturnType<typeof copyFor>;
   source: DetailSource;
+  locale: string;
 }) {
-  const equipmentLabel = alternative.equipment.toUpperCase();
+  const equipmentLabel = locale === "es"
+    ? { barbell: "BARRA", machine: "MÁQUINA", smith: "SMITH", dumbbells: "MANCUERNAS", cable: "POLEA", bodyweight: "PESO CORPORAL" }[alternative.equipment]
+    : alternative.equipment.toUpperCase();
+  const compatibilityLabel = locale === "es" ? (alternative.label === "EXCELLENT" ? "EXCELENTE" : "BUENA OPCIÓN") : alternative.label;
   return (
     <Card className={`exercise-alt-card ${selected ? "selected" : ""}`.trim()}>
       <div className="row start">
@@ -243,7 +254,7 @@ function AlternativeCard({
           />
         </div>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <div className="workout-status-pill workout-status-pill--match">{alternative.label}</div>
+          <div className="workout-status-pill workout-status-pill--match">{compatibilityLabel}</div>
           <div className="headline-md" style={{ marginTop: 8, textTransform: "uppercase" }}>
             {definition.name}
           </div>
@@ -285,6 +296,7 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
   const isCoachManaged = identityIntent === "coach_managed";
   const exercise = getWorkoutExercise(session, exerciseId);
   const definition = getExerciseDefinition(exercise.performedExerciseId);
+  const localizedDefinition = getLocalizedExercisePresentation(definition, locale);
   const alternatives = useMemo(() => getWorkoutAlternativeCards(definition.id), [definition.id]);
   const [mediaSide, setMediaSide] = useState<MediaSide>("start");
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
@@ -388,8 +400,8 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
     preload.src = nextMedia.asset.src;
   }, [endMedia, mediaSide, startMedia]);
 
-  const primaryMuscles = definition.primaryMuscles.map((muscle) => capitalizeWords(muscle));
-  const secondaryMuscles = definition.secondaryMuscles.map((muscle) => capitalizeWords(muscle));
+  const primaryMuscles = localizedDefinition.primaryMuscles.map((muscle) => capitalizeWords(muscle));
+  const secondaryMuscles = localizedDefinition.secondaryMuscles.map((muscle) => capitalizeWords(muscle));
   const returnLabel = source === "workout" ? copy.returnWorkout : copy.returnLibrary;
   const backActionHref = detailHref ?? backHref;
 
@@ -407,11 +419,11 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
             <div className="eyebrow" style={{ margin: 0 }}>
               {copy.detail}
             </div>
-            <div className="workout-section-topbar__title">{definition.name}</div>
+          <div className="workout-section-topbar__title">{localizedDefinition.name}</div>
             <div className="workout-section-topbar__meta">
-              <span>{definition.equipment.toUpperCase()}</span>
+              <span>{localizedDefinition.equipmentLabel ?? definition.equipment.toUpperCase()}</span>
               <span>·</span>
-              <span>{isCoachManaged ? "COACH-MANAGED" : "SELF-MANAGED"}</span>
+              <span>{isCoachManaged ? (locale === "es" ? "GESTIONADO POR COACH" : "COACH-MANAGED") : locale === "es" ? "AUTOGESTIONADO" : "SELF-MANAGED"}</span>
             </div>
           </div>
           <button aria-label={copy.fullscreen} className="tap-target focus-ring" type="button" onClick={() => setFullscreenOpen(true)}>
@@ -433,14 +445,14 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
             <div className="exercise-detail-hero__content">
               <div className="row start">
                 <div className="pill" style={{ background: "rgba(182,255,0,0.14)", color: "var(--accent-primary)" }}>
-                  {definition.equipment.toUpperCase()}
+                  {localizedDefinition.equipmentLabel ?? definition.equipment.toUpperCase()}
                 </div>
                 <div className="caption" style={{ color: "var(--accent-primary)" }}>
                   {copy.preview}
                 </div>
               </div>
               <h1 className="headline-lg" style={{ marginTop: 8, textTransform: "uppercase" }}>
-                {definition.name}
+                {localizedDefinition.name}
               </h1>
               <p className="body-md" style={{ marginTop: 8, color: "rgba(247,247,247,0.88)" }}>
                 {primaryMuscles.join(" · ")} <span style={{ color: "var(--text-secondary)" }}>·</span> {secondaryMuscles.join(" · ")}
@@ -470,7 +482,7 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
                 {copy.setup}
               </div>
               <ul className="workout-step-list">
-                {definition.setup.map((item, index) => (
+                {localizedDefinition.setup.map((item, index) => (
                   <li key={item}>
                     <span className="workout-step-list__number">{String(index + 1).padStart(2, "0")}</span>
                     <span>{item}</span>
@@ -483,7 +495,7 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
                 {copy.cues}
               </div>
               <div className="stack" style={{ marginTop: 12 }}>
-                {definition.coachCues.map((cue) => (
+                {localizedDefinition.coachCues.map((cue) => (
                   <div key={cue} className="body-md">
                     • {cue}
                   </div>
@@ -494,7 +506,7 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
                 {copy.avoid}
               </div>
               <div className="stack" style={{ marginTop: 12 }}>
-                {definition.commonMistakes.map((mistake) => (
+                {localizedDefinition.commonMistakes.map((mistake) => (
                   <div key={mistake} className="body-md">
                     • {mistake}
                   </div>
@@ -585,6 +597,7 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
                   selected={alternative.id === selectedAlternativeId}
                   localeCopy={copy}
                   source={source}
+                  locale={locale}
                 />
               );
             })}
@@ -600,7 +613,7 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
           </PrimaryButton>
           {source === "workout" ? (
             <SecondaryButton className="focus-ring" onClick={() => setFullscreenOpen(true)}>
-              {copy.preview}
+              {copy.openPreview}
             </SecondaryButton>
           ) : null}
         </div>
@@ -619,13 +632,13 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
               </p>
               <div className="exercise-detail-confirm-grid" style={{ marginTop: 12 }} data-workout-motion="alternative-preview">
                 <Card className="p-16">
-                  <div className="caption">Before</div>
+                  <div className="caption">{locale === "es" ? "Antes" : "Before"}</div>
                   <div className="body-md" style={{ marginTop: 8, fontWeight: 700 }}>
-                    {definition.name}
+                    {localizedDefinition.name}
                   </div>
                 </Card>
                 <Card className="p-16">
-                  <div className="caption">After</div>
+                  <div className="caption">{locale === "es" ? "Después" : "After"}</div>
                   <div className="body-md" style={{ marginTop: 8, fontWeight: 700 }}>
                     {getExerciseDefinition(confirmAlternative.exerciseId).name}
                   </div>
@@ -634,7 +647,7 @@ export function ExerciseDetailExperience({ exerciseId, backHref, source, detailH
               {isCoachManaged ? (
                 <Card className="p-16 elevated" style={{ background: "var(--background-charcoal)" }}>
                   <div className="progress-chip progress-chip--accent" style={{ display: "inline-flex" }}>
-                    DEFERRED
+                    {locale === "es" ? "PENDIENTE" : "DEFERRED"}
                   </div>
                   <p className="body-md" style={{ marginTop: 10, color: "var(--text-secondary)" }}>
                     {copy.requestDeferred}
