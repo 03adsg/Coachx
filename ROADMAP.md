@@ -1,94 +1,43 @@
-# CoachX — Roadmap
+# AthlexForce Roadmap
 
-Roadmap deliberadamente corto. Construiremos y validaremos una fase antes de profundizar la siguiente.
+## Canonical Runway
 
-## Fase 0 — Base del producto ✅
+- Baseline commit: `750947236c04479e23d2174a71c19e8946ab663d`
+- Canonical production: `https://coachxsync1.vercel.app`
+- Canonical Supabase project: `zlblnezbbiimapruazvc`
+- Mandatory cross-cutting gate: `docs/GLOBAL_LANGUAGE_I18N_CERTIFICATION.md`
 
-- Definir MVP, arquitectura y reglas del repo.
-- Stack: Next.js/TypeScript + Supabase + OpenAI + PWA.
-- Modelo mobile-first iPhone.
+## Slice Status
 
-## Fase 1 — App shell + usuario + calendario
+| Slice | Status | Notes |
+| --- | --- | --- |
+| 1-20 | COMPLETE | Foundation, auth, identity, relationship, workout, nutrition, progress, profile, i18n, QA, and security certification are considered complete under the existing certification trail. |
+| 21 | COMPLETE | Athlete Flow Architecture is complete. |
+| 22 | COMPLETE | Live Workout Experience is complete and established as the production HEAD baseline. |
+| 23 | COMPLETE | Exercise Detail + Alternatives are implemented and documented in `docs/SLICE_23_CLOSURE.md`. |
+| 24 | COMPLETE | Nutrition UX 2.0 implementation and connector-backed live QA are complete per `docs/SLICE_24_LIVE_QA.md`. |
+| 25 | COMPLETE | Media System. Production ready. |
+| 26 | COMPLETE | Feedback + Motion polish. Production ready. |
+| 27 | COMPLETE | Inputs and intensity refinement. Production-certified before Slice 28. |
+| 28 | COMPLETE / IPHONE PWA PHYSICAL CHECK OUT-OF-BAND | Web/PWA notifications. Production deploy, VAPID, Edge auth, Cron, RLS insert policy, real push, deep-link, quiet hours, and live copy QA are complete. Physical iPhone Home Screen Web Push remains the only out-of-band device check. |
+| 29 | IN PROGRESS | Athlete Private Alpha final certification. |
 
-- Proyecto Next.js y diseño mobile-first.
-- PWA instalable en iPhone.
-- Supabase Auth.
-- Perfil de usuario.
-- Calendario mensual/semanal.
-- Pulsar un día abre `/day/[date]`.
-- Navegación mínima: Hoy, Calendario, Progreso, Perfil.
+## Product Principle
 
-**Resultado:** Angie entra, inicia sesión, ve su calendario y abre cualquier día.
+- Finish Athlete Private Alpha first.
+- Then test with real athletes.
+- Then resume the full coach <-> athlete product.
+- Coach foundation and security exist now so athlete modes stay architecturally correct.
+- Do not declare Slice 29 or any athlete Private Alpha release ready until the global language and i18n certification gate passes across all athlete-facing surfaces.
 
-## Fase 2 — Pantalla diaria
+## Roadmap Order
 
-- Cabecera del día y estado.
-- Grupo muscular del día con ilustración.
-- Tarjetas: entrenamiento, dieta, cardio/hábitos.
-- Entrenamiento A/B cuando corresponda.
-- Resumen simple de calorías/macros.
+1. Keep the current athlete surface stable.
+2. Add only the next slice when the current slice is visually and functionally converged.
+3. Do not move coach analytics or post-alpha coach scope ahead of Athlete Private Alpha.
+4. Execute the global language and i18n certification gate before Slice 28 final web certification closes and again before Slice 29 Private Alpha can be declared ready.
 
-**Resultado:** un día contiene todo lo necesario sin navegar por múltiples pantallas.
+## Notes
 
-## Fase 3 — Motor de entrenamiento y registro
-
-- Biblioteca de ejercicios.
-- Imagen/guía por ejercicio.
-- Variante equivalente máquina ↔ mancuernas/peso libre.
-- Series, reps, RIR, descanso y notas.
-- Registro de peso y repeticiones por serie.
-- Mostrar el último rendimiento al volver a ese ejercicio.
-- Historial y sugerencia de progresión.
-
-**Resultado:** la app sustituye libreta/notas durante el gimnasio.
-
-## Fase 4 — Nutrición
-
-- Plan diario por objetivo.
-- Mínimo 3 opciones por comida con macros equivalentes.
-- Training Day / Rest Day.
-- Sustitución rápida de una opción.
-- Lista simple de compra/meal prep después del MVP básico.
-
-**Resultado:** Angie puede elegir qué comer sin salirse del plan.
-
-## Fase 5 — Onboarding + seguimiento
-
-- Formulario inicial por pasos con lógica condicional.
-- Objetivos, salud, experiencia, preferencias, horarios y nutrición.
-- Check-in semanal.
-- Peso, medidas, fotos, sueño, energía, estrés y adherencia.
-- Dashboard de progreso simple.
-
-## Fase 6 — OpenAI Coach Engine
-
-- OpenAI Responses API exclusivamente desde servidor.
-- Salidas estructuradas y validadas.
-- Generación/propuesta de rutina.
-- Generación/propuesta de dieta.
-- Interpretación de historial y check-ins.
-- Sugerencias de progresión/adaptación.
-- Guardrails: la IA propone; los datos persistidos y reglas del programa mandan.
-- Cambios sensibles o de salud requieren revisión del coach.
-
-## Fase 7 — Panel Coach
-
-- Lista de usuarios.
-- Vista de adherencia/progreso.
-- Editar/asignar fases, rutinas y dieta.
-- Aprobar o rechazar recomendaciones de IA.
-- Alertas importantes.
-
-## Fase 8 — Pulido y producción
-
-- QA iPhone/Safari/PWA.
-- Rendimiento y accesibilidad.
-- Seguridad/RLS de Supabase.
-- Privacidad, borrado/exportación de datos.
-- Deploy y dominio/subdominio definitivo.
-
----
-
-## Orden inmediato
-
-**Ahora solo desarrollamos Fase 1.** No se construye la Fase 2 hasta que calendario, navegación, auth y experiencia iPhone estén sólidos.
+- `ROADMAP.md` is the canonical roadmap for this repository.
+- Supporting audit and slice docs remain valid only when they do not conflict with this file.
